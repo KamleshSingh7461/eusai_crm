@@ -28,10 +28,10 @@ import {
     ExternalLink,
     ChevronLeft,
     GraduationCap,
-    AlertTriangle,
     X,
     LogOut,
-    Loader2
+    Loader2,
+    Shield
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSpace } from '@/context/SpaceContext';
@@ -106,6 +106,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
         ...(canManageTeam ? [{ name: 'Team', href: '/team', icon: Users }] : []),
         ...(canViewResources ? [{ name: 'Resources', href: '/resources', icon: Layers }] : []),
         { name: 'Reports', href: '/reports', icon: Table },
+        ...(userRole === 'DIRECTOR' ? [{ name: 'System Admin', href: '/admin', icon: Shield }] : []),
     ];
 
     const canSubmitReport = !['DIRECTOR', 'MANAGER'].includes(userRole);
