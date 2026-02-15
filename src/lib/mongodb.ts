@@ -17,6 +17,10 @@ async function dbConnect() {
     return cached.conn;
   }
 
+  if (!MONGODB_URI) {
+    return null;
+  }
+
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
