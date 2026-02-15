@@ -1,26 +1,167 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: #0052CC;
+  --color-border: #DFE1E6;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 217 91% 40%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 214 32% 91%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 214 32% 91%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 214 32% 91%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 217 91% 40%;
+  --radius: 0.25rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #DFE1E6;
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #B3BAC5;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    background-color: #FFFFFF;
+  }
+}
+
+/*
+ * Mobile Navbar Optimization
+ *
+ * Issues: Resolved a syntax error introduced during the responsive grid implementation.
+ * Layout: Fixed "Content behind sidebar" bug on desktop by synchronizing AppShell and Sidebar layouts.
+ * Navbar: Optimized the top navigation bar for mobile by increasing height, simplifies the Create and Search buttons, and hiding secondary icons.
+ *
+ * Proof of Work
+ *
+ * Mobile Navbar Optimization
+ * NOTE: The top navbar is now much more spacious on mobile. Search and Create have been simplified to icon-only buttons on small screens to prevent congestion.
+ *
+ * Desktop Sidebar Alignment
+ */
+.sidebar-link-eusai {
+  @apply flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-sm transition-all;
+  color: #42526E;
+}
+
+.sidebar-link-eusai:hover {
+  background: #EBECF0;
+  color: #172B4D;
+}
+
+.sidebar-link-eusai.active {
+  background: #DEEBFF;
+  color: #0052CC;
+  position: relative;
+}
+
+.sidebar-link-eusai.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  background: #0052CC;
+  border-radius: 0 2px 2px 0;
+}
+
+.card-eusai {
+  background: white;
+  border: 1px solid #DFE1E6;
+  border-radius: 3px;
+  padding: 1rem;
+}
+
+.card-eusai:hover {
+  background: #FAFBFC;
+  border-color: #4C9AFF;
+}
+
+.btn-eusai-create {
+  @apply px-4 py-2 bg-[#0052CC] text-white rounded-lg font-semibold text-sm transition-all hover:bg-[#0747A6] shadow-sm;
+}
+
+.card-jira {
+  @apply p-6 bg-white border border-[#DFE1E6] rounded-sm shadow-sm transition-all;
+}
+
+.card-jira:hover {
+  box-shadow: 0 4px 8px rgba(23, 43, 77, 0.1);
+  border-color: #C1C7D0;
+}
+
+.btn-jira-create {
+  @apply px-3 py-1.5 bg-[#0052CC] text-white rounded-sm font-medium text-sm transition-all hover:bg-[#0747A6];
+}
+
+.btn-jira-secondary {
+  @apply px-3 py-1.5 bg-white border border-[#DFE1E6] rounded-sm font-medium text-sm text-[#42526E] hover:bg-[#F4F5F7];
+}
+
+/* Design Tokens - Focus & Interaction */
+@layer utilities {
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-[#0052CC]/30 focus:ring-offset-2;
+  }
+
+  .transition-smooth {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .hover-lift {
+    @apply hover:shadow-md hover:-translate-y-0.5 transition-all duration-200;
+  }
+
+  .text-eusai {
+    color: #172B4D;
+  }
+
+  .text-eusai-muted {
+    color: #6B778C;
+  }
+
+  .bg-eusai-subtle {
+    background-color: #FAFBFC;
+  }
+
+  .border-eusai {
+    border-color: #DFE1E6;
+  }
 }
