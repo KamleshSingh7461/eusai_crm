@@ -7,6 +7,7 @@ import prisma from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
+    secret: process.env.NEXTAUTH_SECRET,
     providers: [
         CredentialsProvider({
             name: "Credentials",
@@ -93,5 +94,5 @@ export const authOptions: NextAuthOptions = {
             return session;
         },
     },
-    debug: process.env.NODE_ENV === 'development',
+    debug: true,
 };
