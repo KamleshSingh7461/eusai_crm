@@ -15,7 +15,7 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
-                if (credentials?.email === "admin@eusai.com" && credentials?.password === "admin123") {
+                if (credentials?.email === "admin@eusaiteam.com" && credentials?.password === "admin123") {
                     const email = credentials.email;
                     // find or create the user in the database
                     // @ts-ignore
