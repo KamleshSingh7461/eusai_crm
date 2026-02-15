@@ -37,10 +37,12 @@ export const authOptions: NextAuthOptions = {
         GithubProvider({
             clientId: process.env.GITHUB_ID || "MOCK_GITHUB_ID",
             clientSecret: process.env.GITHUB_SECRET || "MOCK_GITHUB_SECRET",
+            allowDangerousEmailAccountLinking: true,
         }),
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID || "MOCK_GOOGLE_ID",
             clientSecret: process.env.GOOGLE_CLIENT_SECRET || "MOCK_GOOGLE_SECRET",
+            allowDangerousEmailAccountLinking: true,
             authorization: {
                 params: {
                     scope: "openid profile email",
