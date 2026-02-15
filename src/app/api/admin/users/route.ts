@@ -22,7 +22,10 @@ export async function GET() {
         const users = await prisma.user.findMany({
             include: {
                 manager: {
-                    select: { name: true, email: true }
+                    select: { id: true, name: true, email: true }
+                },
+                subordinates: {
+                    select: { id: true, name: true, email: true, role: true }
                 },
                 _count: {
                     select: {
@@ -56,8 +59,8 @@ export async function PUT(req: NextRequest) {
         const updatedUser = await prisma.user.update({
             where: { id: userId },
             data: {
-                role,
-                department
+                ...(role && { role }),
+                ...(department !== undefined && { department })
             }
         });
 
