@@ -59,7 +59,7 @@ export default function WorkActivityFeed({ data }: WorkActivityFeedProps) {
                 title: p.title,
                 type: 'New Project Created',
                 icon: TrendingUp,
-                time: formatDistanceToNow(new Date(p.createdAt)) + ' ago'
+                time: p.createdAt ? formatDistanceToNow(new Date(p.createdAt)) + ' ago' : 'Recently'
             }));
         } else if (activeTab === 'Executive Actions') {
             renderData = (data.actions || []).map(t => ({
