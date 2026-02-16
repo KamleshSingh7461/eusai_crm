@@ -10,7 +10,8 @@ export const metadata: Metadata = {
   title: "EUSAI CRM | Enterprise Business Process Management",
   description: "Advanced enterprise platform for business process management, resource tracking, and high-performance CRM.",
   icons: {
-    icon: '/EUSAI-LOGO.png',
+    icon: '/favicon.svg',
+    apple: '/favicon.svg',
   }
 };
 
