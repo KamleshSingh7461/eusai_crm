@@ -7,8 +7,8 @@ import { Providers } from "@/components/Providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "EUSAI TEAM | Enterprise BPM Platform",
-  description: "Advanced enterprise platform for business process management and CRM.",
+  title: "EUSAI CRM | Enterprise Business Process Management",
+  description: "Advanced enterprise platform for business process management, resource tracking, and high-performance CRM.",
   icons: {
     icon: '/EUSAI-LOGO.png',
   }
