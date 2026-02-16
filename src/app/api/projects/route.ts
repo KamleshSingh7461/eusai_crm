@@ -152,6 +152,16 @@ export async function GET(request: Request) {
     }
 }
 export async function DELETE(request: Request) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { role } = session.user as any;
+    if (role !== 'DIRECTOR') {
+        return NextResponse.json({ error: 'Forbidden: Only Directors can decommission projects' }, { status: 403 });
+    }
+
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
@@ -160,16 +170,13 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ error: 'Project ID required' }, { status: 400 });
         }
 
-        // Before deleting the project, we might need to handle related records
-        // For simplicity, we'll assume cascade delete or just delete the project
-        // In a real scenario, we'd delete tasks, issues, etc. or mark as deleted.
-
         await prisma.project.delete({
             where: { id }
         });
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
+        console.error('Project deletion error:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

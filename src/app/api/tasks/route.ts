@@ -20,7 +20,7 @@ export async function GET(request: Request) {
         } else if (role === 'TEAM_LEADER') {
             // View own tasks AND tasks assigned to subordinates
             // First, find subordinates
-            const user = await prisma.user.findUnique({
+            const user = await (prisma as any).user.findUnique({
                 where: { id: userId },
                 include: { subordinates: true }
             }) as any;
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
             whereClause = { userId: userId };
         }
 
-        const tasks = await prisma.task.findMany({
+        const tasks = await (prisma as any).task.findMany({
             where: whereClause,
             include: {
                 assignedTo: {
@@ -120,27 +120,40 @@ export async function POST(request: Request) {
 
     try {
         const body = await request.json();
-        const { title, description, deadline, priority, projectId, project, assignedToId, status } = body;
+        const { title, description, deadline, priority, projectId, assignedToId, status, category } = body;
 
-        // Handle "project" string (legacy) vs "projectId"
-        // If projectId is missing but 'project' name is given, we might need logic or just enforce projectId.
-        // For now, let's assume projectId is passed.
-
-        const newTask = await prisma.task.create({
+        const newTask = await (prisma as any).task.create({
             data: {
                 title,
                 description,
                 deadline: new Date(deadline),
-                priority: parseInt(priority) || 1, // Ensure int
-                projectId: projectId, // This ties it to a project
-                userId: assignedToId, // This assigns it to a user
-                status: status || 'TODO'
+                priority: parseInt(priority) || 1,
+                projectId: projectId || null,
+                userId: assignedToId || null,
+                status: status || 'TODO',
+                category: category || 'CUSTOM'
             }
         });
+
+        // Log activity for project task creation
+        if (projectId) {
+            await (prisma as any).activity.create({
+                data: {
+                    projectId,
+                    userId: (session.user as any).id,
+                    action: 'TASK_CREATED',
+                    metadata: {
+                        title,
+                        category: category || 'CUSTOM'
+                    }
+                }
+            }).catch((err: any) => console.error("Failed to log activity:", err));
+        }
 
         return NextResponse.json(newTask);
 
     } catch (error: any) {
+        console.error("Task creation error:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

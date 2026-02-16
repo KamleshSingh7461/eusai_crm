@@ -20,10 +20,24 @@ export async function GET(request: NextRequest) {
     try {
         let whereClause: any = {};
 
+        const currentUser = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { department: true }
+        });
+
         if (startRole === 'TEAM_LEADER') {
             // For TLs, only show their direct reports
             whereClause = { managerId: userId };
+        } else if (startRole === 'MANAGER') {
+            // For Managers, show their subordinates OR people in the same department
+            whereClause = {
+                OR: [
+                    { managerId: userId },
+                    { department: currentUser?.department }
+                ]
+            };
         }
+        // DIRECTOR: See all (empty whereClause)
 
         const users = await prisma.user.findMany({
             where: whereClause,

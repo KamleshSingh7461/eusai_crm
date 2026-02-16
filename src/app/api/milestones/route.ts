@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// POST /api/milestones - Create new milestone
+// POST /api/milestones - Create new milestone(s)
 export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, category, priority, targetDate, description, assignedTo, projectId, universityId, mouType } = body;
+    const milestonesData = Array.isArray(body) ? body : [body];
 
     const userRole = (session.user as any).role;
     const userId = (session.user as any).id;
@@ -121,24 +121,62 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const newMilestone = await prisma.milestone.create({
-            data: {
-                title,
-                category,
-                priority,
-                targetDate: new Date(targetDate),
-                description,
-                owner: assignedTo || userId,
-                projectId: projectId || null,
-                universityId: universityId || null,
-                mouType: mouType || null,
-                status: 'PENDING',
-                progress: 0
+        const results = await (prisma as any).$transaction(async (tx: any) => {
+            const createdMilestones = [];
+
+            for (const data of milestonesData) {
+                const {
+                    title,
+                    category,
+                    priority,
+                    targetDate,
+                    description,
+                    ownerId,
+                    projectId,
+                    universityId,
+                    mouType,
+                    universityName,
+                    orderType,
+                    isFlagged,
+                    remarks
+                } = data;
+
+                const newMilestone = await tx.milestone.create({
+                    data: {
+                        title,
+                        category,
+                        priority,
+                        targetDate: new Date(targetDate),
+                        description,
+                        owner: ownerId || userId,
+                        projectId: projectId || null,
+                        universityId: universityId || null,
+                        mouType: mouType || null,
+                        status: 'PENDING',
+                        progress: 0,
+                        isFlagged: isFlagged || false,
+                        remarks: remarks || null,
+                        ...(category === 'BUSINESS_ORDER' && universityName ? {
+                            businessOrders: {
+                                create: {
+                                    title: `Order for ${universityName}`,
+                                    universityName,
+                                    orderType,
+                                    amount: 0,
+                                    universityId: universityId || 'MANUAL_ENTRY'
+                                }
+                            }
+                        } : {})
+                    }
+                });
+                createdMilestones.push(newMilestone);
             }
+            return createdMilestones;
         });
-        return NextResponse.json(newMilestone);
+
+        return NextResponse.json(results);
     } catch (error) {
-        console.error('Failed to create milestone:', error);
-        return NextResponse.json({ error: 'Failed to create milestone' }, { status: 500 });
+        console.error('Failed to create milestone(s):', error);
+        return NextResponse.json({ error: 'Failed to create milestone(s)' }, { status: 500 });
     }
 }

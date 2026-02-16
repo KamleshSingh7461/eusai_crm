@@ -28,9 +28,9 @@ import { useToast } from '@/context/ToastContext';
 import Button from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import ProjectEditModal from '@/components/projects/ProjectEditModal';
+import CreateMilestoneModal from '@/components/modals/CreateMilestoneModal';
 import TaskCreateModal from '@/components/tasks/TaskCreateModal';
-import MilestoneCreateModal from '@/components/milestones/MilestoneCreateModal';
+import ProjectEditModal from '@/components/projects/ProjectEditModal';
 
 export default function ProjectDetailPage() {
     const { id } = useParams();
@@ -312,16 +312,29 @@ export default function ProjectDetailPage() {
                                             <div className="flex-1">
                                                 <div className="flex items-center justify-between mb-1">
                                                     <h4 className={cn("text-sm font-bold transition-all", task.status === 'DONE' ? 'text-[#6B778C] line-through' : 'text-[#172B4D] group-hover:text-[#0052CC]')}>
-                                                        {task.title}
                                                     </h4>
-                                                    <span className={cn(
-                                                        "text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest",
-                                                        task.priority === 3 ? 'bg-red-50 text-red-600 border border-red-100' :
-                                                            task.priority === 2 ? 'bg-blue-50 text-blue-600 border border-blue-100' :
-                                                                'bg-gray-50 text-gray-600 border border-gray-100'
-                                                    )}>
-                                                        {task.priority === 3 ? 'High' : task.priority === 2 ? 'Medium' : 'Low'}
-                                                    </span>
+                                                    <div className="flex gap-2">
+                                                        {task.category && (
+                                                            <span className={cn(
+                                                                "text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest border",
+                                                                task.category === 'EUSAI_AGREEMENT' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                                                    task.category === 'SPORTS_LOGO' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' :
+                                                                        task.category === 'MOU' ? 'bg-purple-50 text-purple-600 border-purple-100' :
+                                                                            task.category === 'BUSINESS_ORDER' ? 'bg-pink-50 text-pink-600 border-pink-100' :
+                                                                                'bg-gray-50 text-gray-600 border-gray-100'
+                                                            )}>
+                                                                {task.category.replace('_', ' ')}
+                                                            </span>
+                                                        )}
+                                                        <span className={cn(
+                                                            "text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest",
+                                                            task.priority === 3 ? 'bg-red-50 text-red-600 border border-red-100' :
+                                                                task.priority === 2 ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                                                                    'bg-gray-50 text-gray-600 border border-gray-100'
+                                                        )}>
+                                                            {task.priority === 3 ? 'High' : task.priority === 2 ? 'Medium' : 'Low'}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                                 <div className="flex items-center gap-4 text-[10px] text-[#6B778C] font-bold uppercase tracking-widest">
                                                     <span className="flex items-center gap-1">
@@ -453,16 +466,15 @@ export default function ProjectDetailPage() {
                 />
             )}
 
-            {showMilestoneModal && (
-                <MilestoneCreateModal
-                    projectId={project.id}
-                    onClose={() => setShowMilestoneModal(false)}
-                    onSuccess={() => {
-                        setShowMilestoneModal(false);
-                        fetchProjectDetails();
-                    }}
-                />
-            )}
+            <CreateMilestoneModal
+                isOpen={showMilestoneModal}
+                defaultProjectId={project.id}
+                onClose={() => setShowMilestoneModal(false)}
+                onSuccess={() => {
+                    setShowMilestoneModal(false);
+                    fetchProjectDetails();
+                }}
+            />
         </div>
     );
 }

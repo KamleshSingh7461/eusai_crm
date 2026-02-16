@@ -121,7 +121,6 @@ model Project {
   
   managerId    String?
   manager      User?         @relation("ProjectManager", fields: [managerId], references: [id])
-
   tasks        Task[]
   reports      Report[]
   resources    Resource[]    @relation("ProjectResources")
@@ -149,7 +148,7 @@ model Expense {
   userId      String
   user        User     @relation("UserExpenses", fields: [userId], references: [id])
   projectId   String
-  project     Project  @relation(fields: [projectId], references: [id])
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -161,10 +160,11 @@ model Task {
   deadline    DateTime
   status      String   @default("TODO") // TODO, IN_PROGRESS, REVIEW, DONE
   priority    Int      @default(1) // 1: Low, 2: Medium, 3: High
-  projectId   String
+  projectId   String?
   assignedTo  User?    @relation("AssignedTo", fields: [userId], references: [id])
   userId      String?
-  project     Project  @relation(fields: [projectId], references: [id])
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  category    String?  // EUSAI_AGREEMENT, SPORTS_LOGO, MOU, BUSINESS_ORDER, CUSTOM
   comments    Comment[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -190,7 +190,7 @@ model Report {
   type        String // FINANCIAL, RESOURCE, RISK
   content     String
   generatedAt DateTime @default(now())
-  project     Project  @relation(fields: [projectId], references: [id])
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId   String
 }
 
@@ -209,7 +209,7 @@ model Document {
   size       String
   url        String
   projectId  String?
-  project    Project? @relation(fields: [projectId], references: [id])
+  project    Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   spaceId    String?
   space      Space?   @relation(fields: [spaceId], references: [id])
   uploadedBy String
@@ -222,7 +222,7 @@ model WikiPage {
   title     String
   content   String
   projectId String?
-  project   Project? @relation(fields: [projectId], references: [id])
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   spaceId   String?
   space     Space?   @relation(fields: [spaceId], references: [id])
   authorId  String
@@ -234,7 +234,7 @@ model Issue {
   id        String   @id @default(uuid())
   title     String
   projectId String?
-  project   Project? @relation(fields: [projectId], references: [id])
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   spaceId   String?
   space     Space?   @relation(fields: [spaceId], references: [id])
   severity  String // CRITICAL, HIGH, MEDIUM, LOW
@@ -292,6 +292,9 @@ model BusinessOrder {
   universityId  String
   university    University @relation(fields: [universityId], references: [id])
   
+  universityName String? // Cached university name for quick access
+  orderType     String?   // School Spirit, Outgoing Packages, Merchandise Jersey
+  
   description   String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -301,7 +304,7 @@ model Milestone {
   id            String    @id @default(uuid())
   title         String
   description   String?
-  category      String // MAIN_AGREEMENT, SPORTS_LOGO, MOU, BUSINESS_ORDER, CUSTOM
+  category      String // EUSAI_AGREEMENT, SPORTS_LOGO, MOU, BUSINESS_ORDER, CUSTOM
   mouType       String? // Merchandise Store, School Spirit, FGSN Studio, etc.
   targetDate    DateTime
   completedDate DateTime?
@@ -309,7 +312,7 @@ model Milestone {
   status        String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, DELAYED
   
   projectId     String?
-  project       Project?  @relation(fields: [projectId], references: [id])
+  project       Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   
   universityId  String?
   university    University? @relation(fields: [universityId], references: [id])
@@ -322,6 +325,11 @@ model Milestone {
   priority      String    @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
   owner         String    // UserId assigned to this
   ownerUser     User      @relation("MilestoneOwner", fields: [owner], references: [id])
+  
+  isFlagged     Boolean   @default(false)
+  remarks       String?   // For flagging or quick notes
+  comments      Comment[]
+  
   metadata      String? // Flexible field for category-specific data
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -338,7 +346,7 @@ model DailyReport {
   challenges      String?
   tomorrowPlan    String?
   projectId       String?
-  project         Project? @relation(fields: [projectId], references: [id])
+  project         Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   submittedAt     DateTime @default(now())
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -382,10 +390,12 @@ model Activity {
 
 model Comment {
   id          String   @id @default(uuid())
-  projectId   String
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   taskId      String?
   task        Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  milestoneId String?
+  milestone   Milestone? @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   text        String
@@ -394,5 +404,6 @@ model Comment {
 
   @@index([projectId])
   @@index([taskId])
+  @@index([milestoneId])
   @@index([userId])
 }

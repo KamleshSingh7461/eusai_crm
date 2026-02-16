@@ -21,8 +21,9 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
         description: '',
         status: 'TODO',
         priority: '1',
-        deadline: '',
-        assigneeId: ''
+        deadline: new Date().toISOString().split('T')[0],
+        assignedToId: '',
+        category: 'CUSTOM'
     });
     const { showToast } = useToast();
 
@@ -45,7 +46,8 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
                 showToast('Task added to backlog', 'success');
                 onSuccess();
             } else {
-                showToast('Failed to create task', 'error');
+                const data = await response.json();
+                showToast(data.error || 'Failed to create task', 'error');
             }
         } catch (error) {
             showToast('Network error creating task', 'error');
@@ -75,6 +77,21 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-bold text-[#6B778C] uppercase tracking-wider">Category</label>
+                            <select
+                                value={formData.category}
+                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                className="w-full h-10 px-3 bg-white border border-[#DFE1E6] rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#0052CC]"
+                                required
+                            >
+                                <option value="EUSAI_AGREEMENT">EUSAI Agreement</option>
+                                <option value="SPORTS_LOGO">Sports Logo Agreement</option>
+                                <option value="MOU">MOU</option>
+                                <option value="BUSINESS_ORDER">Business Order</option>
+                                <option value="CUSTOM">Custom Task</option>
+                            </select>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
                             <label className="text-xs font-bold text-[#6B778C] uppercase tracking-wider">Priority</label>
                             <select
                                 value={formData.priority}
@@ -86,11 +103,14 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
                                 <option value="3">High - Critical</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1.5">
                             <label className="text-xs font-bold text-[#6B778C] uppercase tracking-wider">Assignee</label>
                             <select
-                                value={formData.assigneeId}
-                                onChange={(e) => setFormData({ ...formData, assigneeId: e.target.value })}
+                                value={formData.assignedToId}
+                                onChange={(e) => setFormData({ ...formData, assignedToId: e.target.value })}
                                 className="w-full h-10 px-3 bg-white border border-[#DFE1E6] rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#0052CC]"
                             >
                                 <option value="">Unassigned</option>
@@ -101,15 +121,14 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
                                 ))}
                             </select>
                         </div>
+                        <Input
+                            label="Deadline"
+                            type="date"
+                            value={formData.deadline}
+                            onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                            required
+                        />
                     </div>
-
-                    <Input
-                        label="Deadline"
-                        type="date"
-                        value={formData.deadline}
-                        onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                        required
-                    />
 
                     <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-bold text-[#6B778C] uppercase tracking-wider">Description</label>

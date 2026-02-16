@@ -15,23 +15,49 @@ export async function GET() {
     }
 
     try {
-        // 1. Organizational KPIs & Activity
+        // 1. Fetch Comprehensive Data
         const [
+            users,
+            projects,
             partnerCount,
             totalRevenueData,
-            staffCount,
-            spacesWithProjects,
+            spaces,
             recentMilestones,
             issueStats,
-            executiveActions,
             globalActivity
         ] = await Promise.all([
+            // All Users with their task summaries
+            (prisma as any).user.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    role: true,
+                    image: true,
+                    _count: {
+                        select: {
+                            tasks: { where: { status: { not: 'COMPLETED' } } },
+                            milestones: { where: { status: { not: 'COMPLETED' } } }
+                        }
+                    }
+                }
+            }),
+            // All Projects with their details
+            (prisma as any).project.findMany({
+                include: {
+                    _count: {
+                        select: {
+                            tasks: true,
+                            milestones: true
+                        }
+                    },
+                    manager: { select: { name: true } }
+                }
+            }),
             (prisma as any).university.count({ where: { status: 'PARTNER' } }),
             (prisma as any).businessOrder.aggregate({
                 where: { status: 'PAID' },
                 _sum: { amount: true }
             }),
-            (prisma as any).user.count(),
             (prisma as any).space.findMany({
                 include: {
                     _count: {
@@ -40,9 +66,8 @@ export async function GET() {
                 }
             }),
             (prisma as any).milestone.findMany({
-                where: { status: 'COMPLETED' },
-                orderBy: { completedDate: 'desc' },
-                take: 5,
+                orderBy: { createdAt: 'desc' },
+                take: 10,
                 include: {
                     ownerUser: { select: { name: true, image: true } },
                     project: { select: { name: true } }
@@ -54,21 +79,11 @@ export async function GET() {
                 _count: true
             }),
             (prisma as any).task.findMany({
-                where: {
-                    userId: (session.user as any).id,
-                    status: { not: 'COMPLETED' }
-                },
-                orderBy: { deadline: 'asc' },
-                take: 5
-            }),
-            (prisma as any).project.findMany({
                 orderBy: { createdAt: 'desc' },
-                take: 5,
-                select: {
-                    id: true,
-                    name: true,
-                    status: true,
-                    createdAt: true
+                take: 10,
+                include: {
+                    assignedTo: { select: { name: true } },
+                    project: { select: { name: true } }
                 }
             })
         ]);
@@ -76,7 +91,7 @@ export async function GET() {
         const totalRevenue = Number(totalRevenueData._sum.amount || 0);
 
         // 2. Space Distribution for Portfolio Pulse
-        const spaceDistribution = spacesWithProjects.map((space: any) => ({
+        const spaceDistribution = spaces.map((space: any) => ({
             id: space.id,
             name: space.name,
             color: space.color,
@@ -91,31 +106,46 @@ export async function GET() {
             stats: {
                 partnerCount,
                 totalRevenue,
-                staffCount,
-                marketCoverage: 0, // No source for this metric currently
+                staffCount: users.length,
+                marketCoverage: 0,
                 criticalIssues,
                 totalOpenIssues
             },
+            employees: users.map((u: any) => ({
+                id: u.id,
+                name: u.name,
+                role: u.role,
+                image: u.image,
+                pendingTasks: u._count.tasks,
+                pendingMilestones: u._count.milestones
+            })),
+            projects: projects.map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                status: p.status,
+                managerName: p.manager?.name || 'Unassigned',
+                taskCount: p._count.tasks,
+                milestoneCount: p._count.milestones,
+                progress: p._count.milestones > 0 ? 0 : 0 // Progress logic can be refined later
+            })),
             spaceDistribution,
             recentMilestones: recentMilestones.map((m: any) => ({
                 id: m.id,
                 title: m.title,
                 projectName: m.project?.name || 'Unknown Project',
-                ownerName: m.ownerUser.name,
-                ownerImage: m.ownerUser.image,
+                ownerName: m.ownerUser?.name || 'System',
+                ownerImage: m.ownerUser?.image,
+                status: m.status,
                 completedAt: m.completedDate
             })),
-            executiveActions: executiveActions.map((t: any) => ({
+            globalActivity: globalActivity.map((t: any) => ({
                 id: t.id,
                 title: t.title,
                 priority: t.priority,
-                dueDate: t.deadline
-            })),
-            globalActivity: globalActivity.map((p: any) => ({
-                id: p.id,
-                title: p.name,
-                status: p.status,
-                createdAt: p.createdAt
+                status: t.status,
+                dueDate: t.deadline,
+                assignedTo: t.assignedTo?.name,
+                projectName: t.project?.name
             })),
             role: 'DIRECTOR'
         });

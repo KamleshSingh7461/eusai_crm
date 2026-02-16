@@ -13,6 +13,7 @@ import {
     Loader2
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { useToast } from '@/context/ToastContext';
 
 const taskSchema = z.object({
     title: z.string().min(3, 'Title is required'),
@@ -20,8 +21,9 @@ const taskSchema = z.object({
     deadline: z.string().min(1, 'Deadline is required'),
     priority: z.string().min(1, 'Priority is required'),
     projectId: z.string().optional().or(z.literal('')),
-    assignedToId: z.string().min(1, 'Assignee is required'),
-    status: z.string().optional().or(z.literal(''))
+    assignedToId: z.string().optional().or(z.literal('')),
+    status: z.string().optional().or(z.literal('')),
+    category: z.string().min(1, 'Category is required')
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
@@ -45,6 +47,7 @@ interface NewTaskModalProps {
 
 export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTaskModalProps) {
     const { data: session } = useSession();
+    const { showToast } = useToast();
     const [teamMembers, setTeamMembers] = useState<User[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoadingData, setIsLoadingData] = useState(false);
@@ -52,9 +55,10 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
     const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<TaskFormValues>({
         resolver: zodResolver(taskSchema),
         defaultValues: {
-            priority: 'medium',
+            priority: '1',
             status: 'TODO',
-            deadline: new Date().toISOString().split('T')[0]
+            deadline: new Date().toISOString().split('T')[0],
+            category: 'CUSTOM'
         }
     });
 
@@ -71,36 +75,11 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
                     }
 
                     // 2. Fetch Team Members (for picking assignee)
-                    // If Team Leader, fetch subordinates. If Director/Manager, fetch everyone or hierarchy.
-                    // We can reuse /api/users/managers? or create /api/users/team?
-                    // For now, let's try /api/dashboard/team-leader if TL, or just use a generic team fetch.
-                    // Actually, let's rely on a new generic user fetch or the team-leader one.
-                    // Simpler: Reuse /api/team if available or /api/users/managers (but that's for managers).
-
-                    // Let's call /api/team if user is Director/Manager, or /api/dashboard/team-leader if TL
                     const userRole = (session.user as any).role;
-                    let usersUrl = '';
-
-                    if (userRole === 'TEAM_LEADER') {
-                        const res = await fetch('/api/dashboard/team-leader');
-                        if (res.ok) {
-                            const data = await res.json();
-                            // The API returns { stats: ..., team: [...] }
-                            setTeamMembers(data.team);
-                            // Ensure the TL can also assign to themselves (they might not be in the 'team' array of subordinates)
-                            // We can add "Me" option manually in the UI check
-                        }
-                    } else if (['DIRECTOR', 'MANAGER'].includes(userRole)) {
-                        // Managers can assign to anyone usually
-                        // We might need a generic /api/users/all endpoint or similar.
-                        // For now let's reuse /api/team which returns users with hierarchy
-                        const res = await fetch('/api/team');
-                        if (res.ok) {
-                            const data = await res.json();
-                            // flatten hierarchy or just use the list
-                            // The API returns { users: [...], meta: ... }
-                            setTeamMembers(data.users || []);
-                        }
+                    const res = await fetch('/api/team');
+                    if (res.ok) {
+                        const data = await res.json();
+                        setTeamMembers(data.users || []);
                     }
 
                 } catch (error) {
@@ -123,10 +102,12 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
 
             if (response.ok) {
                 reset();
+                showToast('Task created successfully', 'success');
                 onTaskCreated();
                 onClose();
             } else {
-                console.error("Failed to create task");
+                const data = await response.json();
+                showToast(data.error || 'Failed to create task', 'error');
             }
         } catch (error) {
             console.error("Error submitting task:", error);
@@ -199,7 +180,7 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
                                 <option value="">Select Member...</option>
                                 <option value={(session?.user as any)?.id}>Me (Self)</option>
                                 {teamMembers.map(u => (
-                                    <option key={u.id} value={u.id}>{u.name}</option>
+                                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
                                 ))}
                             </select>
                             {errors.assignedToId && <p className="text-xs text-red-500">{errors.assignedToId.message}</p>}
@@ -219,20 +200,35 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
                             />
                         </div>
 
-                        {/* Priority */}
+                        {/* Category */}
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
-                                <Flag className="w-3 h-3" /> Priority
-                            </label>
+                            <label className="text-xs font-bold text-[#6B778C] uppercase">Category</label>
                             <select
-                                {...register('priority')}
+                                {...register('category')}
                                 className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#4C9AFF]/20 focus:border-[#4C9AFF] outline-none transition-all"
                             >
-                                <option value="1">Low</option>
-                                <option value="2">Medium</option>
-                                <option value="3">High</option>
+                                <option value="EUSAI_AGREEMENT">EUSAI Agreement</option>
+                                <option value="SPORTS_LOGO">Sports Logo Agreement</option>
+                                <option value="MOU">MOU</option>
+                                <option value="BUSINESS_ORDER">Business Order</option>
+                                <option value="CUSTOM">Custom Task</option>
                             </select>
                         </div>
+                    </div>
+
+                    {/* Priority */}
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
+                            <Flag className="w-3 h-3" /> Priority
+                        </label>
+                        <select
+                            {...register('priority')}
+                            className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#4C9AFF]/20 focus:border-[#4C9AFF] outline-none transition-all"
+                        >
+                            <option value="1">Low</option>
+                            <option value="2">Medium</option>
+                            <option value="3">High</option>
+                        </select>
                     </div>
 
                     {/* Actions */}

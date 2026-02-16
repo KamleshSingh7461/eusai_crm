@@ -15,9 +15,13 @@ import {
     Loader2,
     X,
     Search,
-    GraduationCap
+    GraduationCap,
+    Flag,
+    MessageSquare,
+    Check
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
+import CreateMilestoneModal from '@/components/modals/CreateMilestoneModal';
 
 interface Milestone {
     id: string;
@@ -32,84 +36,37 @@ interface Milestone {
     project?: { name: string };
     university?: { name: string };
     mouType?: string;
+    isFlagged: boolean;
+    remarks?: string;
 }
 
-interface University {
-    id: string;
-    name: string;
-}
+const CATEGORIES = [
+    { value: 'EUSAI_AGREEMENT', label: 'EUSAI Agreement' },
+    { value: 'SPORTS_LOGO', label: 'Sports Logo Agreement' },
+    { value: 'MOU', label: "MOU's" },
+    { value: 'BUSINESS_ORDER', label: 'Business Order' },
+    { value: 'CUSTOM', label: 'Custom' }
+];
 
 export default function MilestonesPage() {
     const { data: session } = useSession();
     const { showToast } = useToast();
     const [milestones, setMilestones] = useState<Milestone[]>([]);
-    const [universities, setUniversities] = useState<University[]>([]);
-    const [projects, setProjects] = useState<any[]>([]);
-    const [teamMembers, setTeamMembers] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filters, setFilters] = useState({ category: 'ALL', employeeId: '', universityId: '' });
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
-    // Form State
-    const [formData, setFormData] = useState({
-        title: '',
-        category: 'EUSAI_LOGO',
-        priority: 'MEDIUM',
-        targetDate: '',
-        description: '',
-        assignedTo: '',
-        projectId: '',
-        universityId: '',
-        mouType: ''
-    });
+    const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(null);
+    const [remarkText, setRemarkText] = useState('');
+    const [isFlaggedChecked, setIsFlaggedChecked] = useState(false);
+    const [isRemarking, setIsRemarking] = useState(false);
 
     const userRole = (session?.user as any)?.role || 'EMPLOYEE';
+    const userId = (session?.user as any)?.id;
     const canCreate = ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole);
 
     useEffect(() => {
         fetchMilestones();
-        fetchUniversities();
-        if (isCreateModalOpen) {
-            fetchFormOptions();
-        }
-    }, [filters, isCreateModalOpen]);
-
-    const fetchFormOptions = async () => {
-        try {
-            // 1. Fetch Projects
-            const projRes = await fetch('/api/projects');
-            if (projRes.ok) setProjects(await projRes.json());
-
-            // 2. Fetch Team Members
-            if (userRole === 'TEAM_LEADER') {
-                const res = await fetch('/api/dashboard/team-leader');
-                if (res.ok) {
-                    const data = await res.json();
-                    setTeamMembers(data.team || []);
-                }
-            } else if (['DIRECTOR', 'MANAGER'].includes(userRole)) {
-                const res = await fetch('/api/team');
-                if (res.ok) {
-                    const data = await res.json();
-                    setTeamMembers(data.users || (Array.isArray(data) ? data : []));
-                }
-            }
-        } catch (error) {
-            console.error("Failed to fetch modal options", error);
-        }
-    };
-
-    const fetchUniversities = async () => {
-        try {
-            const res = await fetch('/api/universities?status=ALL');
-            if (res.ok) {
-                const data = await res.json();
-                setUniversities(data.universities || (Array.isArray(data) ? data : []));
-            }
-        } catch (error) {
-            console.error("Failed to fetch universities", error);
-        }
-    };
+    }, [filters]);
 
     const fetchMilestones = async () => {
         setIsLoading(true);
@@ -133,36 +90,45 @@ export default function MilestonesPage() {
         }
     };
 
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleUpdateStatus = async (milestoneId: string, status: string, progress: number) => {
         try {
-            // Ensure targetDate is valid
-            if (!formData.targetDate) {
-                showToast('Please select a target date', 'error');
-                return;
-            }
-
-            const res = await fetch('/api/milestones', {
-                method: 'POST',
+            const res = await fetch(`/api/milestones/${milestoneId}`, {
+                method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                body: JSON.stringify({ status, progress })
             });
 
             if (res.ok) {
-                showToast('Milestone created successfully', 'success');
-                setIsCreateModalOpen(false);
+                showToast(`Milestone marked as ${status.toLowerCase()}`, 'success');
                 fetchMilestones();
-                setFormData({
-                    title: '', category: 'EUSAI_LOGO', priority: 'MEDIUM',
-                    targetDate: '', description: '', assignedTo: '', projectId: '',
-                    universityId: '', mouType: ''
-                });
-            } else {
-                const err = await res.json();
-                showToast(err.error || 'Failed to create milestone', 'error');
             }
         } catch (error) {
-            showToast('Error creating milestone', 'error');
+            showToast('Failed to update milestone', 'error');
+        }
+    };
+
+    const handleAddRemark = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedMilestone || !remarkText.trim()) return;
+
+        setIsRemarking(true);
+        try {
+            const res = await fetch(`/api/milestones/${selectedMilestone.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ remarks: remarkText, isFlagged: isFlaggedChecked })
+            });
+
+            if (res.ok) {
+                showToast('Remark/Flag added successfully', 'success');
+                setRemarkText('');
+                setSelectedMilestone(null);
+                fetchMilestones();
+            }
+        } catch (error) {
+            showToast('Failed to add remark', 'error');
+        } finally {
+            setIsRemarking(false);
         }
     };
 
@@ -176,23 +142,26 @@ export default function MilestonesPage() {
     };
 
     const getPriorityIcon = (priority: string) => {
-        if (priority === 'CRITICAL') return <AlertCircle className="w-3 h-3 text-red-600" />;
-        if (priority === 'HIGH') return <Target className="w-3 h-3 text-orange-500" />;
-        return <Clock className="w-3 h-3 text-slate-500" />;
+        if (priority === 'CRITICAL') return <AlertCircle className="w-3.5 h-3.5 text-red-600" />;
+        if (priority === 'HIGH') return <Target className="w-3.5 h-3.5 text-orange-500" />;
+        return <Clock className="w-3.5 h-3.5 text-slate-500" />;
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 p-4 md:p-8 animate-in fade-in duration-500 max-w-7xl mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-[#172B4D] mb-2">Milestones</h1>
-                    <p className="text-[#6B778C]">Track key deliverables, MOUs, and team goals.</p>
+                    <h1 className="text-3xl font-bold text-[#172B4D] mb-2 flex items-center gap-3">
+                        <Target className="w-8 h-8 text-[#0052CC]" />
+                        Milestones
+                    </h1>
+                    <p className="text-[#6B778C]">Hierarchy-based tracking for MOUs, Agreements, and Business Orders.</p>
                 </div>
                 {canCreate && (
                     <button
                         onClick={() => setIsCreateModalOpen(true)}
-                        className="btn-eusai-create flex items-center gap-2 px-6 py-3 h-auto"
+                        className="bg-[#0052CC] hover:bg-[#0747A6] text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95"
                     >
                         <Plus className="w-5 h-5" />
                         Create Milestone
@@ -200,45 +169,29 @@ export default function MilestonesPage() {
                 )}
             </div>
 
-            {/* Filters */}
-            <div className="card-jira p-4 flex flex-col md:flex-row gap-4 items-end md:items-center bg-white border border-[#DFE1E6] rounded-sm shadow-sm">
-                <div className="w-full md:w-auto flex-1">
-                    <label className="text-xs font-bold text-[#6B778C] uppercase mb-1 block">Category</label>
+            {/* Filters Bar */}
+            <div className="bg-white p-4 border border-[#DFE1E6] rounded-xl shadow-sm flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                    <label className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider mb-1 block">Category</label>
                     <select
                         value={filters.category}
                         onChange={e => setFilters({ ...filters, category: e.target.value })}
-                        className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                        className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#0052CC]/20 outline-none"
                     >
                         <option value="ALL">All Categories</option>
-                        <option value="EUSAI_LOGO">EUSAI Logo</option>
-                        <option value="MOU">MOU</option>
-                        <option value="BUSINESS_ORDER">Business/Order</option>
-                        <option value="CUSTOM">Custom</option>
+                        {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                     </select>
                 </div>
-                <div className="w-full md:w-auto flex-1">
-                    <label className="text-xs font-bold text-[#6B778C] uppercase mb-1 block">Filter by University</label>
-                    <select
-                        value={filters.universityId}
-                        onChange={e => setFilters({ ...filters, universityId: e.target.value })}
-                        className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                    >
-                        <option value="">All Universities</option>
-                        {universities.map(uni => (
-                            <option key={uni.id} value={uni.id}>{uni.name}</option>
-                        ))}
-                    </select>
-                </div>
-                {(userRole === 'DIRECTOR' || userRole === 'MANAGER' || userRole === 'TEAM_LEADER') && (
-                    <div className="w-full md:w-auto flex-1">
-                        <label className="text-xs font-bold text-[#6B778C] uppercase mb-1 block">Filter by Employee ID</label>
+                {canCreate && (
+                    <div className="flex-1">
+                        <label className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider mb-1 block">Assigned To (User ID)</label>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B778C]" />
                             <input
-                                placeholder="Enter User ID..."
+                                placeholder="Filter by employee..."
                                 value={filters.employeeId}
                                 onChange={e => setFilters({ ...filters, employeeId: e.target.value })}
-                                className="w-full pl-9 pr-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-lg pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-[#0052CC]/20 outline-none"
                             />
                         </div>
                     </div>
@@ -247,72 +200,108 @@ export default function MilestonesPage() {
 
             {/* Milestones Grid */}
             {isLoading ? (
-                <div className="p-12 flex flex-col items-center justify-center gap-3 text-[#6B778C]">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#0052CC]" />
-                    <p className="text-sm">Loading milestones...</p>
+                <div className="flex flex-col items-center justify-center py-24 gap-4">
+                    <Loader2 className="w-10 h-10 animate-spin text-[#0052CC]" />
+                    <p className="text-[#6B778C] font-medium">Crunching milestone data...</p>
                 </div>
             ) : milestones.length === 0 ? (
-                <div className="p-12 text-center border-2 border-dashed border-[#DFE1E6] rounded-sm text-[#6B778C]">
-                    <Target className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                    <h3 className="text-lg font-bold mb-1">No Milestones Found</h3>
-                    <p className="text-sm max-w-sm mx-auto">There are no milestones matching your filters. {canCreate && 'Create one to get started!'}</p>
+                <div className="bg-white border-2 border-dashed border-[#DFE1E6] rounded-2xl py-20 text-center">
+                    <div className="bg-slate-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Target className="w-10 h-10 text-slate-300" />
+                    </div>
+                    <h3 className="text-xl font-bold text-[#172B4D]">No Milestones Found</h3>
+                    <p className="text-[#6B778C] mt-2 max-w-xs mx-auto">Try adjusting your filters or create a new target for the team.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {milestones.map((milestone) => (
-                        <div key={milestone.id} className="card-jira p-5 bg-white border border-[#DFE1E6] rounded-sm shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden">
-                            {/* Status Stripe */}
-                            <div className={`absolute top-0 left-0 w-1 h-full ${milestone.status === 'COMPLETED' ? 'bg-green-500' :
-                                milestone.status === 'IN_PROGRESS' ? 'bg-blue-500' :
-                                    'bg-slate-300'
-                                }`} />
+                    {milestones.map((m) => (
+                        <div key={m.id} className={`group relative bg-white border ${m.isFlagged ? 'border-red-200 shadow-red-100' : 'border-[#DFE1E6]'} rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col`}>
+                            {/* Flag Indicator */}
+                            {m.isFlagged && (
+                                <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr-lg flex items-center gap-1 z-10 animate-pulse">
+                                    <Flag className="w-3 h-3 fill-white" /> FLAGGED
+                                </div>
+                            )}
 
-                            <div className="flex justify-between items-start mb-3 pl-2">
-                                <div className="flex items-center gap-2">
-                                    <span className={`px-2 py-0.5 roundedElement text-[10px] font-bold uppercase tracking-wide border ${getStatusColor(milestone.status)}`}>
-                                        {milestone.status.replace('_', ' ')}
+                            <div className="p-5 flex-1">
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${getStatusColor(m.status)}`}>
+                                        {m.status.replace('_', ' ')}
                                     </span>
-                                    {milestone.category === 'MOU' && <span className="text-xs">💼</span>}
-                                    {milestone.category === 'EUSAI_LOGO' && <span className="text-xs">🏆</span>}
+                                    <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-lg">
+                                        {getPriorityIcon(m.priority)}
+                                        <span className="text-[10px] font-bold text-[#6B778C]">{m.priority}</span>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-1" title={`Priority: ${milestone.priority}`}>
-                                    {getPriorityIcon(milestone.priority)}
+
+                                <h3 className="text-lg font-bold text-[#172B4D] mb-1 line-clamp-1" title={m.title}>{m.title}</h3>
+                                <p className="text-sm text-[#5E6C84] line-clamp-2 h-10 mb-4">{m.description || 'Deliverables and next steps...'}</p>
+
+                                <div className="space-y-2.5">
+                                    <div className="flex items-center gap-2 text-xs font-medium text-[#6B778C]">
+                                        <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center">
+                                            <Calendar className="w-3 h-3" />
+                                        </div>
+                                        Target: {new Date(m.targetDate).toLocaleDateString()}
+                                    </div>
+                                    {m.category === 'MOU' && m.mouType && (
+                                        <div className="flex items-center gap-2 text-xs font-medium text-[#0052CC] bg-blue-50 px-2 py-1 rounded-lg">
+                                            <GraduationCap className="w-3.5 h-3.5" />
+                                            {m.mouType}
+                                        </div>
+                                    )}
+                                    {m.project && (
+                                        <div className="flex items-center gap-2 text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">
+                                            <Briefcase className="w-3.5 h-3.5" />
+                                            {m.project.name}
+                                        </div>
+                                    )}
                                 </div>
+
+                                {m.remarks && (
+                                    <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-100 italic text-[11px] text-amber-900 flex gap-2">
+                                        <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+                                        "{m.remarks}"
+                                    </div>
+                                )}
                             </div>
 
-                            <h3 className="text-base font-bold text-[#172B4D] mb-1 pl-2 truncate" title={milestone.title}>
-                                {milestone.title}
-                            </h3>
-                            <p className="text-sm text-[#5E6C84] mb-4 pl-2 line-clamp-2 h-10">
-                                {milestone.description || 'No description provided.'}
-                            </p>
-
-                            <div className="pl-2 space-y-3">
-                                <div className="flex items-center gap-2 text-xs text-[#6B778C]">
-                                    <Calendar className="w-3.5 h-3.5" />
-                                    <span>Due: {new Date(milestone.targetDate).toLocaleDateString()}</span>
-                                </div>
-                                {milestone.project && (
-                                    <div className="flex items-center gap-2 text-xs text-[#6B778C]">
-                                        <Briefcase className="w-3.5 h-3.5" />
-                                        <span className="truncate max-w-[150px]">{milestone.project.name}</span>
-                                    </div>
-                                )}
-                                {milestone.university && (
-                                    <div className="flex items-center gap-2 text-xs text-[#6B778C]">
-                                        <GraduationCap className="w-3.5 h-3.5" />
-                                        <span className="truncate max-w-[150px]">{milestone.university.name}</span>
-                                    </div>
-                                )}
-                                <div className="w-full bg-[#EBECF0] h-1.5 rounded-full overflow-hidden">
+                            {/* Progress Footer */}
+                            <div className="px-5 pb-5 shrink-0">
+                                <div className="w-full bg-[#EBECF0] h-1.5 rounded-full overflow-hidden mb-2">
                                     <div
-                                        className="bg-[#0052CC] h-full transition-all duration-500"
-                                        style={{ width: `${milestone.progress}%` }}
+                                        className={`h-full transition-all duration-700 ${m.status === 'COMPLETED' ? 'bg-green-500' : 'bg-[#0052CC]'}`}
+                                        style={{ width: `${m.progress}%` }}
                                     />
                                 </div>
-                                <div className="flex justify-between text-[10px] text-[#6B778C] font-mono">
-                                    <span>Progress</span>
-                                    <span>{milestone.progress}%</span>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">Progress</span>
+                                    <span className="text-xs font-bold text-[#172B4D]">{m.progress}%</span>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="mt-4 flex gap-2">
+                                    {m.owner === userId && m.status !== 'COMPLETED' && (
+                                        <button
+                                            onClick={() => handleUpdateStatus(m.id, 'COMPLETED', 100)}
+                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-green-600/20"
+                                        >
+                                            <Check className="w-3.5 h-3.5" /> Mark Completed
+                                        </button>
+                                    )}
+                                    {canCreate && (
+                                        <button
+                                            onClick={() => {
+                                                setSelectedMilestone(m);
+                                                setRemarkText(m.remarks || '');
+                                                setIsFlaggedChecked(m.isFlagged);
+                                            }}
+                                            className="px-3 bg-slate-100 hover:bg-slate-200 text-[#172B4D] text-xs font-bold py-2 rounded-lg transition-all"
+                                            title="Add Remark/Flag"
+                                        >
+                                            <Flag className={`w-3.5 h-3.5 ${m.isFlagged ? 'fill-red-500 text-red-500' : ''}`} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -320,175 +309,70 @@ export default function MilestonesPage() {
                 </div>
             )}
 
-            {/* Create Modal */}
-            {isCreateModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="card-eusai w-full max-w-lg bg-white rounded-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 h-[90vh] flex flex-col">
-                        <div className="p-6 border-b border-[#DFE1E6] flex items-center justify-between bg-[#FAFBFC] shrink-0">
-                            <h3 className="text-lg font-bold text-[#172B4D]">Create New Milestone</h3>
-                            <button
-                                onClick={() => setIsCreateModalOpen(false)}
-                                className="p-1 hover:bg-[#EBECF0] rounded-sm text-[#6B778C]"
-                            >
+            {/* Create Modal Component */}
+            <CreateMilestoneModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSuccess={fetchMilestones}
+            />
+
+            {/* Remark/Flag Modal */}
+            {selectedMilestone && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6 border-b border-[#DFE1E6] flex items-center justify-between bg-red-50">
+                            <h3 className="text-lg font-bold text-red-900 flex items-center gap-2">
+                                <Flag className="w-5 h-5 fill-red-600 text-red-600" />
+                                Add Remark / Flag
+                            </h3>
+                            <button onClick={() => setSelectedMilestone(null)} className="text-red-900/60 hover:text-red-900 h-8 w-8 flex items-center justify-center hover:bg-red-100 rounded-lg">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
+                        <form onSubmit={handleAddRemark} className="p-6 space-y-4">
+                            <p className="text-sm text-slate-600">Enter a remark or reason for flagging the milestone: <span className="font-bold text-slate-900">"{selectedMilestone.title}"</span></p>
+                            <textarea
+                                required
+                                autoFocus
+                                value={remarkText}
+                                onChange={e => setRemarkText(e.target.value)}
+                                className="w-full bg-slate-50 border border-[#DFE1E6] rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-200 outline-none min-h-[120px]"
+                                placeholder="e.g. Missing deliverables, needs urgent review..."
+                            />
 
-                        <div className="flex-1 overflow-y-auto p-6">
-                            <form id="create-milestone-form" onSubmit={handleCreate} className="space-y-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-[#6B778C] uppercase">Title</label>
-                                    <input
-                                        required
-                                        value={formData.title}
-                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                        placeholder="e.g. Sign MOU with University X"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-[#6B778C] uppercase">Category</label>
-                                        <select
-                                            value={formData.category}
-                                            onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                            className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                        >
-                                            <option value="EUSAI_LOGO">EUSAI Logo</option>
-                                            <option value="MOU">MOU</option>
-                                            <option value="BUSINESS_ORDER">Business/Order</option>
-                                            <option value="CUSTOM">Custom</option>
-                                        </select>
-                                    </div>
-
-                                    {formData.category === 'MOU' && (
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-bold text-[#6B778C] uppercase">MOU Type</label>
-                                            <select
-                                                value={formData.mouType}
-                                                onChange={e => setFormData({ ...formData, mouType: e.target.value })}
-                                                className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                            >
-                                                <option value="">Select Type...</option>
-                                                <option value="Merchandise Store MOU">Merchandise Store MOU</option>
-                                                <option value="School Spirit Agreement">School Spirit Agreement</option>
-                                                <option value="FGSN Studio Agreement">FGSN Studio Agreement</option>
-                                                <option value="Outgoing Program MOU">Outgoing Program MOU</option>
-                                                <option value="Alumni Establishment MOU">Alumni Establishment MOU</option>
-                                                <option value="Scholarship Transfer Letter">Scholarship Transfer Letter</option>
-                                                <option value="Scholarship Valuation Letter">Scholarship Valuation Letter</option>
-                                                <option value="Other">Other</option>
-                                            </select>
-                                        </div>
-                                    )}
-
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-[#6B778C] uppercase">University</label>
-                                        <select
-                                            value={formData.universityId}
-                                            onChange={e => setFormData({ ...formData, universityId: e.target.value })}
-                                            className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                        >
-                                            <option value="">No University</option>
-                                            {universities.map(uni => (
-                                                <option key={uni.id} value={uni.id}>{uni.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-[#6B778C] uppercase">Priority</label>
-                                        <select
-                                            value={formData.priority}
-                                            onChange={e => setFormData({ ...formData, priority: e.target.value })}
-                                            className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                        >
-                                            <option value="LOW">Low</option>
-                                            <option value="MEDIUM">Medium</option>
-                                            <option value="HIGH">High</option>
-                                            <option value="CRITICAL">Critical</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-[#6B778C] uppercase">Target Date</label>
-                                    <input
-                                        type="date"
-                                        required
-                                        value={formData.targetDate}
-                                        onChange={e => setFormData({ ...formData, targetDate: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                    />
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-[#6B778C] uppercase">Description</label>
-                                    <textarea
-                                        rows={3}
-                                        value={formData.description}
-                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none resize-none"
-                                        placeholder="Add details about deliverables..."
-                                    />
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
-                                        <User className="w-3 h-3" /> Assign To
-                                    </label>
-                                    <select
-                                        value={formData.assignedTo}
-                                        onChange={e => setFormData({ ...formData, assignedTo: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                    >
-                                        <option value="">Me (Self)</option>
-                                        {teamMembers.map(u => (
-                                            <option key={u.id} value={u.id}>{u.name}</option>
-                                        ))}
-                                    </select>
-                                    <p className="text-[10px] text-[#6B778C]">Select the employee responsible for this deliverable.</p>
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
-                                        <Briefcase className="w-3 h-3" /> Link Project (Optional)
-                                    </label>
-                                    <select
-                                        value={formData.projectId}
-                                        onChange={e => setFormData({ ...formData, projectId: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                    >
-                                        <option value="">No Project</option>
-                                        {projects.map(p => (
-                                            <option key={p.id} value={p.id}>{p.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </form>
-                        </div>
-
-                        <div className="p-4 border-t border-[#DFE1E6] bg-[#FAFBFC] flex justify-end gap-2 shrink-0">
-                            <button
-                                onClick={() => setIsCreateModalOpen(false)}
-                                className="px-4 py-2 hover:bg-[#EBECF0] rounded-sm text-[#42526E] font-medium text-sm"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                form="create-milestone-form"
-                                className="btn-eusai-create flex items-center gap-2 px-4 py-2"
-                            >
-                                <CheckCircle2 className="w-4 h-4" />
-                                Create Milestone
-                            </button>
-                        </div>
-                    </div >
-                </div >
-            )
-            }
-        </div >
+                            <div className="flex items-center gap-3 p-3 bg-red-50/50 rounded-lg border border-red-100">
+                                <input
+                                    type="checkbox"
+                                    id="modal-flag-toggle"
+                                    checked={isFlaggedChecked}
+                                    onChange={e => setIsFlaggedChecked(e.target.checked)}
+                                    className="w-4 h-4 rounded border-red-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                                />
+                                <label htmlFor="modal-flag-toggle" className="text-sm font-bold text-red-900 cursor-pointer flex items-center gap-2">
+                                    <Flag className="w-4 h-4 fill-red-600" />
+                                    Flag for Attention
+                                </label>
+                            </div>
+                            <div className="flex gap-2 justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedMilestone(null)}
+                                    className="px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isRemarking}
+                                    className="px-6 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 transition-all shadow-lg shadow-red-600/20 disabled:opacity-50"
+                                >
+                                    {isRemarking ? 'Adding...' : 'Post Flag/Remark'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }
