@@ -11,11 +11,13 @@ import {
     Hash,
     Briefcase,
     Maximize2,
-    Minimize2
+    Minimize2,
+    GripHorizontal
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/context/ToastContext';
+import { motion, useDragControls } from 'framer-motion';
 
 interface Message {
     id: string;
@@ -35,6 +37,7 @@ interface Channel {
 export default function FloatingChat() {
     const { data: session } = useSession();
     const { showToast } = useToast();
+    const dragControls = useDragControls();
     const [isOpen, setIsOpen] = useState(false);
     const [isMaximized, setIsMaximized] = useState(false);
     const [view, setView] = useState<'channels' | 'messages'>('channels');
@@ -136,18 +139,28 @@ export default function FloatingChat() {
     if (!session) return null;
 
     return (
-        <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[60] flex flex-col items-end gap-4 pointer-events-none">
+        <motion.div
+            drag
+            dragMomentum={false}
+            dragControls={dragControls}
+            dragListener={false}
+            className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[60] flex flex-col items-end gap-4 pointer-events-none"
+        >
             {/* Chat Window */}
             {isOpen && (
                 <div className={cn(
                     "bg-white shadow-2xl border border-[#DFE1E6] flex flex-col overflow-hidden transition-all duration-300 pointer-events-auto",
-                    "fixed bottom-0 right-0 w-full h-full rounded-none z-[70] md:relative md:w-80 md:h-[500px] md:rounded-2xl md:bottom-auto md:right-auto",
+                    "w-80 h-[500px] rounded-2xl relative",
+                    isMaximized && "fixed inset-4 w-auto h-auto md:relative md:w-[600px] md:h-[700px]"
                 )}>
-                    {/* Header */}
-                    <div className="h-14 px-4 bg-[#0052CC] text-white flex items-center justify-between shrink-0">
+                    {/* Header - DRAG HANDLE */}
+                    <div
+                        onPointerDown={(e) => dragControls.start(e)}
+                        className="h-14 px-4 bg-[#0052CC] text-white flex items-center justify-between shrink-0 cursor-move"
+                    >
                         <div className="flex items-center gap-2">
                             {view === 'messages' && (
-                                <button onClick={() => setView('channels')} className="p-1 hover:bg-white/20 rounded-md">
+                                <button onPointerDown={(e) => e.stopPropagation()} onClick={() => setView('channels')} className="p-1 hover:bg-white/20 rounded-md pointer-events-auto">
                                     <ChevronLeft className="w-4 h-4" />
                                 </button>
                             )}
@@ -158,11 +171,11 @@ export default function FloatingChat() {
                                 {view === 'messages' && <span className="text-[10px] opacity-80">Online Collaboration</span>}
                             </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                            <button onClick={() => setIsMaximized(!isMaximized)} className="p-1.5 hover:bg-white/20 rounded-md transition-colors">
+                        <div className="flex items-center gap-1 pointer-events-auto">
+                            <button onPointerDown={(e) => e.stopPropagation()} onClick={() => setIsMaximized(!isMaximized)} className="p-1.5 hover:bg-white/20 rounded-md transition-colors">
                                 {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
                             </button>
-                            <button onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-white/20 rounded-md transition-colors">
+                            <button onPointerDown={(e) => e.stopPropagation()} onClick={() => setIsOpen(false)} className="p-1.5 hover:bg-white/20 rounded-md transition-colors">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
@@ -243,11 +256,12 @@ export default function FloatingChat() {
                 </div>
             )}
 
-            {/* Floating Bubble */}
+            {/* Floating Bubble - ALSO A DRAG HANDLE */}
             <button
+                onPointerDown={(e) => dragControls.start(e)}
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "p-4 rounded-full shadow-2xl transition-all duration-300 pointer-events-auto group relative",
+                    "p-4 rounded-full shadow-2xl transition-all duration-300 pointer-events-auto group relative cursor-move",
                     isOpen ? "bg-red-500 scale-90 rotate-45" : "bg-[#0052CC] hover:bg-[#0065FF] hover:-translate-y-1 active:scale-95"
                 )}
             >
@@ -258,6 +272,6 @@ export default function FloatingChat() {
                     </div>
                 )}
             </button>
-        </div>
+        </motion.div>
     );
 }

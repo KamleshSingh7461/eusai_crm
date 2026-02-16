@@ -179,6 +179,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                onClick={closeMobileMenu}
                                 className={cn(
                                     "sidebar-link-eusai relative group",
                                     pathname === item.href && "active",
@@ -219,6 +220,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                     onClick={() => {
                                         setActiveSpace(space);
                                         router.push(`/spaces/${space.id}`);
+                                        closeMobileMenu?.();
                                     }}
                                     className={cn(
                                         "sidebar-link-eusai cursor-pointer group relative",
@@ -262,6 +264,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                onClick={closeMobileMenu}
                                 className={cn(
                                     "sidebar-link-eusai group",
                                     pathname === item.href && "active",
@@ -280,6 +283,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                         {utilityNav.map((item) => (
                             <div
                                 key={item.name}
+                                onClick={closeMobileMenu}
                                 className={cn("sidebar-link-eusai group cursor-pointer", isCollapsed && "justify-center px-0 py-2")}
                                 title={isCollapsed ? item.name : undefined}
                             >
@@ -318,11 +322,14 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                 )}
                             </div>
                         )}
-                        <Link href="/profile" className={cn(
-                            "sidebar-link-eusai",
-                            pathname === '/profile' && "active",
-                            isCollapsed && "justify-center px-0 py-2"
-                        )} title={isCollapsed ? "Profile" : undefined}>
+                        <Link
+                            href="/profile"
+                            onClick={closeMobileMenu}
+                            className={cn(
+                                "sidebar-link-eusai",
+                                pathname === '/profile' && "active",
+                                isCollapsed && "justify-center px-0 py-2"
+                            )} title={isCollapsed ? "Profile" : undefined}>
                             <User className={cn("w-4 h-4 flex-shrink-0", pathname === '/profile' ? "text-[#0052CC]" : "text-[#42526E]")} />
                             {!isCollapsed && <span className="text-xs font-medium whitespace-nowrap">Profile</span>}
                         </Link>
