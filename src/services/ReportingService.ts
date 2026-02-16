@@ -1,6 +1,4 @@
 import prisma from '@/lib/prisma';
-import dbConnect from '@/lib/mongodb';
-import { Activity } from '@/models/MongoModels';
 
 export class ReportingService {
     static async generateProjectSummary(projectId: string) {
@@ -12,9 +10,12 @@ export class ReportingService {
 
         if (!project) throw new Error('Project not found');
 
-        // 2. Get activity logs from NoSQL
-        await dbConnect();
-        const activities = await Activity.find({ projectId }).sort({ timestamp: -1 }).limit(10);
+        // 2. Get activity logs from Prisma
+        const activities = await (prisma as any).activity.findMany({
+            where: { projectId },
+            orderBy: { timestamp: 'desc' },
+            take: 10
+        });
 
         // 3. Calculate metrics
         const totalTasks = project.tasks.length;

@@ -40,6 +40,8 @@ model User {
   sessions     Session[]
   sentMessages Message[] @relation("SentMessages")
   notifications Notification[] @relation("UserNotifications")
+  activities    Activity[]
+  comments      Comment[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }
@@ -129,6 +131,8 @@ model Project {
   issues       Issue[]
   milestones   Milestone[]
   dailyReports DailyReport[]
+  activities   Activity[]
+  comments     Comment[]
   spaceId      String?
   space        Space?        @relation(fields: [spaceId], references: [id])
   createdAt    DateTime      @default(now())
@@ -161,6 +165,7 @@ model Task {
   assignedTo  User?    @relation("AssignedTo", fields: [userId], references: [id])
   userId      String?
   project     Project  @relation(fields: [projectId], references: [id])
+  comments    Comment[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -359,4 +364,35 @@ model WeeklyReport {
   updatedAt           DateTime @updatedAt
 
   @@unique([userId, weekStartDate])
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  metadata  Json?
+  timestamp DateTime @default(now())
+
+  @@index([projectId])
+  @@index([userId])
+}
+
+model Comment {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskId      String?
+  task        Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  text        String
+  attachments Json? // Stored as array of strings
+  timestamp   DateTime @default(now())
+
+  @@index([projectId])
+  @@index([taskId])
+  @@index([userId])
 }

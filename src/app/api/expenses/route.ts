@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import dbConnect from '@/lib/mongodb';
-import { Activity } from '@/models/MongoModels';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
@@ -33,18 +31,18 @@ export async function POST(request: Request) {
             }
         });
 
-        // 2. Log activity
-        await dbConnect();
-        await Activity.create({
-            projectId,
-            userId: userId,
-            action: 'EXPENSE_LOGGED',
-            metadata: {
-                category,
-                amount,
-                status: 'PENDING'
-            },
-            timestamp: new Date()
+        // 2. Log activity in Relational DB (PostgreSQL)
+        await prisma.activity.create({
+            data: {
+                projectId,
+                userId: userId,
+                action: 'EXPENSE_LOGGED',
+                metadata: {
+                    category,
+                    amount,
+                    status: 'PENDING'
+                }
+            }
         });
 
         return NextResponse.json(expense, { status: 201 });

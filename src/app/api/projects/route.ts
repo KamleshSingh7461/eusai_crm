@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import dbConnect from '@/lib/mongodb';
-import { Activity } from '@/models/MongoModels';
-import { AutomationService } from '@/services/AutomationService';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { AutomationService } from '@/services/AutomationService';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,17 +23,18 @@ export async function POST(request: Request) {
             }
         });
 
-        // 2. Log activity in NoSQL DB (MongoDB)
-        await dbConnect();
-        await Activity.create({
-            projectId: project.id,
-            userId: 'SYSTEM_ADMIN', // Placeholder for authenticated user
-            action: 'PROJECT_INITIATED',
-            metadata: {
-                managerAssigned: data.managerName,
-                initialBudget: data.budget
-            },
-            timestamp: new Date()
+        // 2. Log activity in Relational DB (PostgreSQL)
+        const session = await getServerSession(authOptions);
+        await prisma.activity.create({
+            data: {
+                projectId: project.id,
+                userId: (session?.user as any)?.id || 'SYSTEM_ADMIN',
+                action: 'PROJECT_INITIATED',
+                metadata: {
+                    managerAssigned: data.managerName,
+                    initialBudget: data.budget
+                }
+            }
         });
 
         // 3. Trigger Automation Workflows

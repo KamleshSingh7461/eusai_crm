@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import dbConnect from '@/lib/mongodb';
-import { Activity } from '@/models/MongoModels';
 
 export async function GET(request: Request) {
     try {
@@ -40,16 +38,16 @@ export async function POST(request: Request) {
             }
         });
 
-        // Log activity in MongoDB
-        await dbConnect();
-        await Activity.create({
-            projectId,
-            userId: authorId || 'SYSTEM_ADMIN',
-            action: 'WIKI_PAGE_CREATED',
-            metadata: {
-                title
-            },
-            timestamp: new Date()
+        // Log activity in Relational DB (PostgreSQL)
+        await prisma.activity.create({
+            data: {
+                projectId,
+                userId: authorId || 'SYSTEM_ADMIN',
+                action: 'WIKI_PAGE_CREATED',
+                metadata: {
+                    title
+                }
+            }
         });
 
         return NextResponse.json(page, { status: 201 });

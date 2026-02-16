@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import prisma from '@/lib/prisma';
-import dbConnect from '@/lib/mongodb';
-import { Activity } from '@/models/MongoModels';
 
 export async function POST(request: Request) {
     try {
@@ -51,9 +49,12 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Project not found' }, { status: 404 });
         }
 
-        console.log("[AI Insights] Connecting to MongoDB for activity stream...");
-        await dbConnect();
-        const activities = await Activity.find({ projectId }).sort({ timestamp: -1 }).limit(20);
+        console.log("[AI Insights] Fetching activities from Prisma...");
+        const activities = await (prisma as any).activity.findMany({
+            where: { projectId },
+            orderBy: { timestamp: 'desc' },
+            take: 20
+        });
         console.log(`[AI Insights] Found ${activities.length} activity records`);
 
         const dataContext = `
