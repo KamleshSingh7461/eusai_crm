@@ -18,14 +18,12 @@ export default function SpaceBreakdown({ projects }: SpaceBreakdownProps) {
                 name: spaceName,
                 color: spaceColor,
                 count: 0,
-                budget: 0,
-                spent: 0
+
             };
         }
 
         acc[spaceName].count += 1;
-        acc[spaceName].budget += Number(p.budget || 0);
-        acc[spaceName].spent += Number(p.stats?.financial?.spent || 0);
+        acc[spaceName].count += 1;
 
         return acc;
     }, {});
@@ -50,27 +48,7 @@ export default function SpaceBreakdown({ projects }: SpaceBreakdownProps) {
                     </div>
 
                     <div className="space-y-3">
-                        <div>
-                            <div className="flex justify-between text-[10px] text-[#6B778C] font-bold mb-1">
-                                <span>Financial Health</span>
-                                <span>{item.budget > 0 ? Math.round((item.spent / item.budget) * 100) : 0}%</span>
-                            </div>
-                            <div className="h-1 bg-[#F4F5F7] rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-[#0052CC] transition-all"
-                                    style={{
-                                        width: `${Math.min(100, item.budget > 0 ? (item.spent / item.budget) * 100 : 0)}%`,
-                                        backgroundColor: item.color
-                                    }}
-                                />
-                            </div>
-                        </div>
-                        <div className="flex justify-between items-end">
-                            <div className="text-sm font-bold text-[#172B4D]">
-                                ₹{Math.round(item.spent / 100000)}L <span className="text-[10px] text-[#6B778C] font-normal">spent</span>
-                            </div>
-                            <TrendingUp className="w-3 h-3 text-[#36B37E]" />
-                        </div>
+
                     </div>
                 </div>
             ))}

@@ -1,0 +1,143 @@
+/**
+ * Notion-Inspired Design Tokens
+ * Created for EUSAI CRM Redesign
+ */
+
+:root {
+    /* ===== BACKGROUNDS ===== */
+    --notion-bg-primary: #191919;
+    /* Main background */
+    --notion-bg-blue: #2383e2;
+    --notion-bg-blue-hover: #1a6fcc;
+    --notion-bg-red: #e03e3e;
+    --notion-bg-orange: #d9730d;
+    --notion-bg-yellow: #dfab01;
+    --notion-bg-green: #0f7b6c;
+    --notion-bg-purple: #6940a5;
+    --notion-bg-pink: #ad1a72;
+    --notion-bg-gray: #ebeced;
+    --notion-bg-secondary: #1e1e1e;
+    /* Cards, elevated surfaces */
+    --notion-bg-tertiary: #2a2a2a;
+    /* Hover states */
+    --notion-bg-sidebar: #191919;
+    /* Sidebar */
+    --notion-bg-hover: rgba(255, 255, 255, 0.03);
+    /* Subtle hover */
+
+    /* ===== TEXT COLORS ===== */
+    --notion-text-primary: rgba(255, 255, 255, 0.9);
+    /* Headings, important text */
+    --notion-text-secondary: rgba(255, 255, 255, 0.7);
+    /* Body text */
+    --notion-text-tertiary: rgba(255, 255, 255, 0.5);
+    /* Muted text, labels */
+    --notion-text-disabled: rgba(255, 255, 255, 0.3);
+    /* Disabled state */
+
+    /* ===== BORDERS ===== */
+    --notion-border-default: rgba(255, 255, 255, 0.08);
+    --notion-border-hover: rgba(255, 255, 255, 0.12);
+    --notion-border-focus: rgba(35, 131, 226, 0.5);
+
+    /* ===== STATUS COLORS (Notion-style badges) ===== */
+    --status-done-bg: rgba(76, 175, 80, 0.15);
+    --status-done-text: #4caf50;
+    --status-done-border: rgba(76, 175, 80, 0.3);
+
+    --status-progress-bg: rgba(33, 150, 243, 0.15);
+    --status-progress-text: #2196f3;
+    --status-progress-border: rgba(33, 150, 243, 0.3);
+
+    --status-not-started-bg: rgba(158, 158, 158, 0.15);
+    --status-not-started-text: #9e9e9e;
+    --status-not-started-border: rgba(158, 158, 158, 0.3);
+
+    --status-review-bg: rgba(255, 152, 0, 0.15);
+    --status-review-text: #ff9800;
+    --status-review-border: rgba(255, 152, 0, 0.3);
+
+    --status-planned-bg: rgba(156, 39, 176, 0.15);
+    --status-planned-text: #9c27b0;
+    --status-planned-border: rgba(156, 39, 176, 0.3);
+
+    /* ===== ACCENT COLORS ===== */
+    --notion-accent-blue: #2383e2;
+    --notion-accent-blue-hover: #1a6fcc;
+    --notion-accent-red: #eb5757;
+    --notion-accent-yellow: #f2c94c;
+    --notion-accent-green: #27ae60;
+
+    /* ===== TYPOGRAPHY ===== */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    --font-mono: 'Jetbrains Mono', 'Fira Code', 'Consolas', monospace;
+
+    /* Font Sizes */
+    --text-xs: 11px;
+    --text-sm: 13px;
+    --text-base: 14px;
+    --text-lg: 16px;
+    --text-xl: 20px;
+    --text-2xl: 24px;
+    --text-3xl: 30px;
+
+    /* Line Heights */
+    --leading-tight: 1.25;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.75;
+
+    /* Font Weights */
+    --font-normal: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+
+    /* ===== SPACING ===== */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* ===== RADIUS ===== */
+    --radius-sm: 3px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+    --radius-full: 9999px;
+
+    /* ===== SHADOWS ===== */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.6);
+
+    /* ===== TRANSITIONS ===== */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ===== Z-INDEX ===== */
+    --z-dropdown: 1000;
+    --z-modal: 1100;
+    --z-popover: 1200;
+    --z-tooltip: 1300;
+}
+
+/* ===== TEXT HIERARCHY UTILITIES ===== */
+.text-heading {
+    color: var(--notion-text-primary) !important;
+}
+
+.text-subheading {
+    color: var(--notion-text-secondary) !important;
+}
+
+.text-body {
+    color: var(--notion-text-tertiary) !important;
+}

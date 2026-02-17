@@ -135,7 +135,7 @@ export default function MilestonesPage() {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'COMPLETED': return 'bg-green-100 text-green-700 border-green-200';
-            case 'IN_PROGRESS': return 'bg-blue-100 text-blue-700 border-blue-200';
+            case 'IN_PROGRESS': return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
             case 'DELAYED': return 'bg-red-100 text-red-700 border-red-200';
             default: return 'bg-slate-100 text-slate-700 border-slate-200';
         }
@@ -245,7 +245,7 @@ export default function MilestonesPage() {
                                         Target: {new Date(m.targetDate).toLocaleDateString()}
                                     </div>
                                     {m.category === 'MOU' && m.mouType && (
-                                        <div className="flex items-center gap-2 text-xs font-medium text-[#0052CC] bg-blue-50 px-2 py-1 rounded-lg">
+                                        <div className="flex items-center gap-2 text-xs font-medium text-[#0052CC] bg-blue-500/10 px-2 py-1 rounded-lg">
                                             <GraduationCap className="w-3.5 h-3.5" />
                                             {m.mouType}
                                         </div>

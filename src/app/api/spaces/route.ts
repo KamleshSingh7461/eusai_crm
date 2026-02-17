@@ -5,7 +5,58 @@ import { authOptions } from "@/lib/auth";
 
 export async function GET() {
     try {
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { role, id: userId } = session.user as any;
+        let whereClause: any = {};
+
+        if (role === 'DIRECTOR') {
+            // Directors see all spaces
+            whereClause = {};
+        } else if (role === 'MANAGER') {
+            // Managers see spaces they created OR spaces containing projects they manage/team works on
+            const userWithTeam = await prisma.user.findUnique({
+                where: { id: userId },
+                include: { subordinates: true }
+            }) as any;
+            const teamIds = userWithTeam?.subordinates?.map((s: any) => s.id) || [];
+            const allTeamIds = [userId, ...teamIds];
+
+            whereClause = {
+                OR: [
+                    { managerId: userId }, // Created by me
+                    {
+                        projects: {
+                            some: {
+                                OR: [
+                                    { managerId: userId }, // Managed by me
+                                    { tasks: { some: { userId: { in: allTeamIds } } } },
+                                    { milestones: { some: { owner: { in: allTeamIds } } } }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            };
+        } else {
+            // Employees/Team Leaders see spaces where they have assignments
+            whereClause = {
+                projects: {
+                    some: {
+                        OR: [
+                            { tasks: { some: { userId: userId } } },
+                            { milestones: { some: { owner: userId } } }
+                        ]
+                    }
+                }
+            };
+        }
+
         const spaces = await prisma.space.findMany({
+            where: whereClause,
             include: {
                 _count: {
                     select: { projects: true, resources: true }
@@ -28,7 +79,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { role } = session.user as any;
+        const { role, id: userId } = session.user as any;
         if (role !== 'DIRECTOR' && role !== 'MANAGER') {
             return NextResponse.json({ error: 'Forbidden: Only executives can create spaces' }, { status: 403 });
         }
@@ -45,7 +96,8 @@ export async function POST(request: Request) {
                 name,
                 description,
                 color: color || '#0052CC',
-                type: type || 'STANDARD'
+                type: type || 'STANDARD',
+                managerId: userId // Track who created it
             }
         });
 

@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x", "linux-musl", "linux-musl-openssl-3.0.x"]
 }
 
@@ -15,35 +15,64 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  name         String?
-  image        String?
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String?
+  image         String?
   emailVerified DateTime?
-  role         String    @default("EMPLOYEE") // DIRECTOR, MANAGER, TEAM_LEADER, EMPLOYEE, INTERN
-  department   String? // Optional department/team assignment
-  managerId    String? // Reports to (for hierarchy)
-  manager      User?     @relation("ManagerToEmployees", fields: [managerId], references: [id], onDelete: SetNull)
-  subordinates User[]    @relation("ManagerToEmployees")
-  projects     Project[] @relation("ProjectManager")
-  
+  role          String    @default("EMPLOYEE") // DIRECTOR, MANAGER, TEAM_LEADER, EMPLOYEE, INTERN
+  department    String? // Optional department/team assignment
+  managerId     String? // Reports to (for hierarchy)
+  manager       User?     @relation("ManagerToEmployees", fields: [managerId], references: [id], onDelete: SetNull)
+  subordinates  User[]    @relation("ManagerToEmployees")
+  projects      Project[] @relation("ProjectManager")
+  managedSpaces Space[]   @relation("SpaceManager")
+
   // Compliance
-  flagCount    Int       @default(0)
+  flagCount     Int       @default(0)
   lastFlaggedAt DateTime?
 
-  tasks        Task[]    @relation("AssignedTo")
-  milestones   Milestone[] @relation("MilestoneOwner")
-  dailyReports DailyReport[] @relation("UserDailyReports")
+  tasks         Task[]         @relation("AssignedTo")
+  milestones    Milestone[]    @relation("MilestoneOwner")
+  dailyReports  DailyReport[]  @relation("UserDailyReports")
   weeklyReports WeeklyReport[] @relation("UserWeeklyReports")
   expenses      Expense[]      @relation("UserExpenses")
-  accounts     Account[]
-  sessions     Session[]
-  sentMessages Message[] @relation("SentMessages")
+  accounts      Account[]
+  sessions      Session[]
+  sentMessages  Message[]      @relation("SentMessages")
   notifications Notification[] @relation("UserNotifications")
   activities    Activity[]
   comments      Comment[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+
+  // Meetings
+  organizedMeetings Meeting[] @relation("OrganizedMeetings")
+  meetingAttendance Meeting[] @relation("MeetingAttendees")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Meeting {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime
+  location    String?
+  meetingLink String? // Zoom/Google Meet link
+
+  organizerId String
+  organizer   User   @relation("OrganizedMeetings", fields: [organizerId], references: [id])
+
+  attendees User[] @relation("MeetingAttendees")
+
+  googleEventId String? // For checking sync status
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Notification {
@@ -57,7 +86,6 @@ model Notification {
   link      String?
   createdAt DateTime @default(now())
 }
-
 
 model Account {
   id                String  @id @default(uuid())
@@ -106,19 +134,21 @@ model Space {
   documents   Document[]
   issues      Issue[]
   milestones  Milestone[]
+  managerId   String?
+  manager     User?       @relation("SpaceManager", fields: [managerId], references: [id])
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
 
 model Project {
-  id           String        @id @default(uuid())
-  name         String
-  description  String?
-  startDate    DateTime
-  endDate      DateTime
-  budget       Decimal
-  status       String        @default("INITIATION") // INITIATION, PLANNING, EXECUTION, MONITORING, CLOSED
-  
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  budget      Decimal
+  status      String   @default("INITIATION") // INITIATION, PLANNING, EXECUTION, MONITORING, CLOSED
+
   managerId    String?
   manager      User?         @relation("ProjectManager", fields: [managerId], references: [id])
   tasks        Task[]
@@ -132,6 +162,7 @@ model Project {
   dailyReports DailyReport[]
   activities   Activity[]
   comments     Comment[]
+  meetings     Meeting[]
   spaceId      String?
   space        Space?        @relation(fields: [spaceId], references: [id])
   createdAt    DateTime      @default(now())
@@ -154,20 +185,20 @@ model Expense {
 }
 
 model Task {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   description String?
   deadline    DateTime
-  status      String   @default("TODO") // TODO, IN_PROGRESS, REVIEW, DONE
-  priority    Int      @default(1) // 1: Low, 2: Medium, 3: High
+  status      String    @default("TODO") // TODO, IN_PROGRESS, REVIEW, DONE
+  priority    Int       @default(1) // 1: Low, 2: Medium, 3: High
   projectId   String?
-  assignedTo  User?    @relation("AssignedTo", fields: [userId], references: [id])
+  assignedTo  User?     @relation("AssignedTo", fields: [userId], references: [id])
   userId      String?
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  category    String?  // EUSAI_AGREEMENT, SPORTS_LOGO, MOU, BUSINESS_ORDER, CUSTOM
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  category    String? // EUSAI_AGREEMENT, SPORTS_LOGO, MOU, BUSINESS_ORDER, CUSTOM
   comments    Comment[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Resource {
@@ -246,58 +277,58 @@ model Issue {
 }
 
 model Message {
-  id        String   @id @default(uuid())
-  content   String
-  
-  senderId  String
-  sender    User     @relation("SentMessages", fields: [senderId], references: [id])
-  
+  id      String @id @default(uuid())
+  content String
+
+  senderId String
+  sender   User   @relation("SentMessages", fields: [senderId], references: [id])
+
   channelId String
-  type      String   @default("TEXT") // TEXT, SYSTEM, ALERT, FILE
-  
+  type      String @default("TEXT") // TEXT, SYSTEM, ALERT, FILE
+
   attachments String? // JSON string: [{ url: string, name: string, type: string }]
-  
+
   createdAt DateTime @default(now())
 }
 
 model University {
-  id            String    @id @default(uuid())
-  name          String    
+  id            String  @id @default(uuid())
+  name          String
   location      String?
-  status        String    @default("PROSPECT") // PROSPECT, PARTNER, INACTIVE
+  status        String  @default("PROSPECT") // PROSPECT, PARTNER, INACTIVE
   contactPerson String?
   email         String?
   phone         String?
   website       String?
-  
-  milestones    Milestone[]
+
+  milestones     Milestone[]
   businessOrders BusinessOrder[]
-  
-  description   String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model BusinessOrder {
-  id            String    @id @default(uuid())
-  title         String
-  amount        Decimal
-  currency      String    @default("INR")
-  date          DateTime  @default(now())
-  status        String    @default("PENDING") // PENDING, PAID, CANCELLED
-  
-  milestoneId   String?
-  milestone     Milestone? @relation(fields: [milestoneId], references: [id])
-  
-  universityId  String
-  university    University @relation(fields: [universityId], references: [id])
-  
+  id       String   @id @default(uuid())
+  title    String
+  amount   Decimal
+  currency String   @default("INR")
+  date     DateTime @default(now())
+  status   String   @default("PENDING") // PENDING, PAID, CANCELLED
+
+  milestoneId String?
+  milestone   Milestone? @relation(fields: [milestoneId], references: [id])
+
+  universityId String
+  university   University @relation(fields: [universityId], references: [id])
+
   universityName String? // Cached university name for quick access
-  orderType     String?   // School Spirit, Outgoing Packages, Merchandise Jersey
-  
-  description   String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  orderType      String? // School Spirit, Outgoing Packages, Merchandise Jersey
+
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Milestone {
@@ -310,29 +341,29 @@ model Milestone {
   completedDate DateTime?
   progress      Int       @default(0) // 0-100%
   status        String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, DELAYED
-  
-  projectId     String?
-  project       Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
-  universityId  String?
-  university    University? @relation(fields: [universityId], references: [id])
-  
-  spaceId       String?
-  space         Space?    @relation(fields: [spaceId], references: [id])
-  
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  universityId String?
+  university   University? @relation(fields: [universityId], references: [id])
+
+  spaceId String?
+  space   Space?  @relation(fields: [spaceId], references: [id])
+
   businessOrders BusinessOrder[]
-  
-  priority      String    @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
-  owner         String    // UserId assigned to this
-  ownerUser     User      @relation("MilestoneOwner", fields: [owner], references: [id])
-  
-  isFlagged     Boolean   @default(false)
-  remarks       String?   // For flagging or quick notes
-  comments      Comment[]
-  
-  metadata      String? // Flexible field for category-specific data
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+
+  priority  String @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  owner     String // UserId assigned to this
+  ownerUser User   @relation("MilestoneOwner", fields: [owner], references: [id])
+
+  isFlagged Boolean   @default(false)
+  remarks   String? // For flagging or quick notes
+  comments  Comment[]
+
+  metadata  String? // Flexible field for category-specific data
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model DailyReport {
@@ -389,18 +420,18 @@ model Activity {
 }
 
 model Comment {
-  id          String   @id @default(uuid())
+  id          String     @id @default(uuid())
   projectId   String?
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project     Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   taskId      String?
-  task        Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  task        Task?      @relation(fields: [taskId], references: [id], onDelete: SetNull)
   milestoneId String?
   milestone   Milestone? @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  user        User       @relation(fields: [userId], references: [id])
   text        String
   attachments Json? // Stored as array of strings
-  timestamp   DateTime @default(now())
+  timestamp   DateTime   @default(now())
 
   @@index([projectId])
   @@index([taskId])

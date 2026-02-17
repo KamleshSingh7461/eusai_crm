@@ -96,7 +96,7 @@ export default function WorkActivityFeed({ data }: WorkActivityFeedProps) {
                             "px-4 py-3 text-sm font-bold transition-all relative whitespace-nowrap",
                             activeTab === tab
                                 ? "text-[#0052CC] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[3px] after:bg-[#0052CC]"
-                                : "text-[#42526E] hover:text-[#172B4D] hover:bg-[#F4F5F7]"
+                                : "text-subheading hover:text-subheading hover:bg-[#F4F5F7]"
                         )}
                     >
                         {tab}
@@ -111,22 +111,22 @@ export default function WorkActivityFeed({ data }: WorkActivityFeedProps) {
                 {renderData.length === 0 ? (
                     <div className="p-10 text-center">
                         <Calendar className="w-8 h-8 text-[#DFE1E6] mx-auto mb-3" />
-                        <p className="text-sm text-[#6B778C]">No recent activity found in this segment.</p>
+                        <p className="text-sm text-body">No recent activity found in this segment.</p>
                     </div>
                 ) : (
                     renderData.map((item: any) => (
                         <div key={item.id} className="flex items-center gap-4 p-3 hover:bg-[#F4F5F7] rounded-sm cursor-pointer group transition-colors">
                             <div className={cn("p-2 border border-[#DFE1E6] rounded-sm bg-white shadow-sm border-l-2",
                                 item.priority === 'High' ? 'border-l-[#FF5630]' : 'border-l-[#0052CC]')}>
-                                <item.icon className={cn("w-4 h-4", activeTab === 'Organization Milestones' ? "text-[#36B37E]" : "text-[#42526E]")} />
+                                <item.icon className={cn("w-4 h-4", activeTab === 'Organization Milestones' ? "text-[#36B37E]" : "text-subheading")} />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 md:gap-4">
-                                    <span className="text-sm font-bold text-[#172B4D] group-hover:text-[#0052CC] truncate md:whitespace-nowrap">{item.title}</span>
-                                    <span className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider flex-shrink-0">{item.time}</span>
+                                    <span className="text-sm font-bold text-subheading group-hover:text-[#0052CC] truncate md:whitespace-nowrap">{item.title}</span>
+                                    <span className="text-[10px] font-bold text-body uppercase tracking-wider flex-shrink-0">{item.time}</span>
                                 </div>
                                 <div className="flex items-center gap-2 mt-0.5">
-                                    <span className="text-[11px] text-[#6B778C] font-medium">{item.type}</span>
+                                    <span className="text-[11px] text-body font-medium">{item.type}</span>
                                     {item.owner && (
                                         <>
                                             <span className="w-1 h-1 rounded-full bg-[#DFE1E6]" />

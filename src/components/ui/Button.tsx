@@ -25,11 +25,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         const baseStyles = "inline-flex items-center justify-center gap-2 font-semibold rounded transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
 
         const variants = {
-            primary: "bg-[#0052CC] text-white hover:bg-[#0747A6] active:bg-[#003884] focus:ring-[#0052CC]/50 shadow-sm",
-            secondary: "bg-[#FAFBFC] text-[#172B4D] border border-[#DFE1E6] hover:bg-[#EBECF0] active:bg-[#DFE1E6] focus:ring-[#0052CC]/30",
-            ghost: "text-[#42526E] hover:bg-[#EBECF0] active:bg-[#DFE1E6] focus:ring-[#0052CC]/30",
-            danger: "bg-[#FF5630] text-white hover:bg-[#DE350B] active:bg-[#BF2600] focus:ring-[#FF5630]/50",
-            success: "bg-[#36B37E] text-white hover:bg-[#00875A] active:bg-[#006644] focus:ring-[#36B37E]/50"
+            primary: "bg-[var(--notion-bg-blue)] text-white hover:bg-[var(--notion-bg-blue-hover)] active:opacity-90 focus:ring-[var(--notion-bg-blue)]/50 shadow-sm",
+            secondary: "bg-[var(--notion-bg-secondary)] text-[var(--notion-text-primary)] border border-[var(--notion-border-default)] hover:bg-[var(--notion-bg-tertiary)] active:bg-[var(--notion-bg-secondary)] focus:ring-[var(--notion-border-focus)]/30",
+            ghost: "text-[var(--notion-text-secondary)] hover:bg-[var(--notion-bg-hover)] active:bg-[var(--notion-bg-tertiary)] focus:ring-[var(--notion-border-focus)]/30",
+            danger: "bg-[var(--notion-red)] text-white hover:opacity-90 active:opacity-80 focus:ring-[var(--notion-red)]/50",
+            success: "bg-[var(--notion-green)] text-white hover:opacity-90 active:opacity-80 focus:ring-[var(--notion-green)]/50"
         };
 
         const sizes = {

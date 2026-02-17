@@ -20,11 +20,14 @@ export async function GET() {
             users,
             projects,
             partnerCount,
+            totalUniversities,
             totalRevenueData,
             spaces,
             recentMilestones,
             issueStats,
-            globalActivity
+            globalActivity,
+            recentOrders,
+            tasks
         ] = await Promise.all([
             // All Users with their task summaries
             (prisma as any).user.findMany({
@@ -35,13 +38,13 @@ export async function GET() {
                     image: true,
                     _count: {
                         select: {
-                            tasks: { where: { status: { not: 'COMPLETED' } } },
+                            tasks: { where: { status: { not: 'DONE' } } },
                             milestones: { where: { status: { not: 'COMPLETED' } } }
                         }
                     }
                 }
             }),
-            // All Projects with their details
+            // All Projects with their details and milestone completion
             (prisma as any).project.findMany({
                 include: {
                     _count: {
@@ -50,10 +53,16 @@ export async function GET() {
                             milestones: true
                         }
                     },
+                    milestones: {
+                        select: {
+                            status: true
+                        }
+                    },
                     manager: { select: { name: true } }
                 }
             }),
             (prisma as any).university.count({ where: { status: 'PARTNER' } }),
+            (prisma as any).university.count(),
             (prisma as any).businessOrder.aggregate({
                 where: { status: 'PAID' },
                 _sum: { amount: true }
@@ -79,18 +88,40 @@ export async function GET() {
                 _count: true
             }),
             (prisma as any).task.findMany({
-                orderBy: { createdAt: 'desc' },
-                take: 10,
+                orderBy: { updatedAt: 'desc' },
+                take: 15,
                 include: {
-                    assignedTo: { select: { name: true } },
+                    assignedTo: { select: { name: true, image: true } },
                     project: { select: { name: true } }
+                }
+            }),
+            (prisma as any).businessOrder.findMany({
+                where: { status: 'PAID' },
+                orderBy: { createdAt: 'desc' },
+                take: 5,
+                select: {
+                    id: true,
+                    amount: true,
+                    createdAt: true,
+                    client: { select: { name: true } }
+                }
+            }),
+            (prisma as any).task.findMany({
+                select: {
+                    status: true,
+                    createdAt: true
                 }
             })
         ]);
 
         const totalRevenue = Number(totalRevenueData._sum.amount || 0);
 
-        // 2. Space Distribution for Portfolio Pulse
+        // 2. Calculate Market Coverage (% of universities that are partners)
+        const marketCoverage = totalUniversities > 0
+            ? Math.round((partnerCount / totalUniversities) * 100)
+            : 0;
+
+        // 3. Space Distribution for Portfolio Pulse
         const spaceDistribution = spaces.map((space: any) => ({
             id: space.id,
             name: space.name,
@@ -98,18 +129,66 @@ export async function GET() {
             projectCount: space._count.projects
         })).sort((a: any, b: any) => b.projectCount - a.projectCount);
 
-        // 3. Health Metrics (Calculated)
+        // 4. Calculate Project Progress (based on completed milestones)
+        const projectsWithProgress = projects.map((p: any) => {
+            const totalMilestones = p._count.milestones;
+            const completedMilestones = p.milestones.filter((m: any) => m.status === 'COMPLETED').length;
+            const progress = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
+
+            return {
+                id: p.id,
+                name: p.name,
+                status: p.status,
+                managerName: p.manager?.name || 'Unassigned',
+                taskCount: p._count.tasks,
+                milestoneCount: totalMilestones,
+                completedMilestones,
+                progress
+            };
+        });
+
+        // 5. Health Metrics (Calculated)
         const criticalIssues = issueStats.find((s: any) => s.severity === 'CRITICAL')?._count || 0;
         const totalOpenIssues = issueStats.reduce((acc: any, curr: any) => acc + curr._count, 0);
+
+        // 6. Task Completion Metrics
+        const completedTasks = tasks.filter((t: any) => t.status === 'DONE').length;
+        const taskCompletionRate = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
+
+        // 7. Revenue Trend (Last 3 months)
+        const now = new Date();
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const revenueTrend = [];
+
+        for (let i = 2; i >= 0; i--) {
+            const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const nextMonthDate = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
+
+            const monthOrders = recentOrders.filter((order: any) => {
+                const orderDate = new Date(order.createdAt);
+                return orderDate >= monthDate && orderDate < nextMonthDate;
+            });
+
+            const monthRevenue = monthOrders.reduce((sum: number, order: any) => sum + Number(order.amount), 0);
+
+            revenueTrend.push({
+                month: `${monthNames[monthDate.getMonth()]} ${monthDate.getFullYear().toString().slice(-2)}`,
+                revenue: monthRevenue
+            });
+        }
 
         return NextResponse.json({
             stats: {
                 partnerCount,
                 totalRevenue,
                 staffCount: users.length,
-                marketCoverage: 0,
+                marketCoverage,
                 criticalIssues,
-                totalOpenIssues
+                totalOpenIssues,
+                taskCompletionRate,
+                // Fixed: Only exclude 'CLOSED' projects (CANCELLED doesn't exist in schema)
+                // Active projects are: INITIATION, PLANNING, EXECUTION, MONITORING
+                activeProjects: projects.filter((p: any) => p.status !== 'CLOSED').length
             },
             employees: users.map((u: any) => ({
                 id: u.id,
@@ -119,15 +198,7 @@ export async function GET() {
                 pendingTasks: u._count.tasks,
                 pendingMilestones: u._count.milestones
             })),
-            projects: projects.map((p: any) => ({
-                id: p.id,
-                name: p.name,
-                status: p.status,
-                managerName: p.manager?.name || 'Unassigned',
-                taskCount: p._count.tasks,
-                milestoneCount: p._count.milestones,
-                progress: p._count.milestones > 0 ? 0 : 0 // Progress logic can be refined later
-            })),
+            projects: projectsWithProgress,
             spaceDistribution,
             recentMilestones: recentMilestones.map((m: any) => ({
                 id: m.id,
@@ -136,7 +207,8 @@ export async function GET() {
                 ownerName: m.ownerUser?.name || 'System',
                 ownerImage: m.ownerUser?.image,
                 status: m.status,
-                completedAt: m.completedDate
+                completedAt: m.completedDate,
+                createdAt: m.createdAt
             })),
             globalActivity: globalActivity.map((t: any) => ({
                 id: t.id,
@@ -145,7 +217,16 @@ export async function GET() {
                 status: t.status,
                 dueDate: t.deadline,
                 assignedTo: t.assignedTo?.name,
-                projectName: t.project?.name
+                assignedToImage: t.assignedTo?.image,
+                projectName: t.project?.name,
+                updatedAt: t.updatedAt
+            })),
+            revenueTrend,
+            recentOrders: recentOrders.map((o: any) => ({
+                id: o.id,
+                amount: o.amount,
+                client: o.client?.name || 'Unknown',
+                date: o.createdAt
             })),
             role: 'DIRECTOR'
         });

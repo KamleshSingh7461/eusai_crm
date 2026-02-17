@@ -1,13 +1,19 @@
 "use client";
 
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { Send, CheckCircle2, Clock, Target } from 'lucide-react';
+import { Send, CheckCircle2, Clock, Target, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
+import Link from 'next/link';
 
 export default function SubmitReportPage() {
+    const { data: session } = useSession();
+    const router = useRouter();
     const { showToast } = useToast();
+
     const [currentDate, setCurrentDate] = useState('');
     const [tasksCompleted, setTasksCompleted] = useState('');
     const [hoursWorked, setHoursWorked] = useState('');
@@ -22,6 +28,12 @@ export default function SubmitReportPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!session?.user) {
+            showToast('You must be logged in to submit a report', 'error');
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
@@ -29,7 +41,7 @@ export default function SubmitReportPage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    userId: 'current-user-id', // Replace with actual session user ID
+                    userId: (session.user as any).id,
                     tasksCompleted: parseInt(tasksCompleted),
                     hoursWorked: parseFloat(hoursWorked),
                     accomplishments,
@@ -46,6 +58,7 @@ export default function SubmitReportPage() {
                 setAccomplishments('');
                 setChallenges('');
                 setTomorrowPlan('');
+                router.push('/reports');
             } else {
                 showToast('Failed to submit report', 'error');
             }
@@ -57,116 +70,125 @@ export default function SubmitReportPage() {
     };
 
     return (
-        <div className="p-8 max-w-4xl mx-auto space-y-8">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-[#172B4D] mb-2">Daily Report Submission</h1>
-                    <p className="text-[#6B778C]">Submit your daily accomplishments and plans for {currentDate}</p>
+        <div className="min-h-screen bg-[var(--notion-bg-primary)] text-[var(--notion-text-primary)] p-4 md:p-8">
+            <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
+                {/* Header */}
+                <div className="flex items-center gap-4">
+                    <Link href="/reports" className="p-2 hover:bg-[var(--notion-bg-hover)] rounded-sm transition-colors text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]">
+                        <ArrowLeft className="w-5 h-5" />
+                    </Link>
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-bold text-[var(--notion-text-primary)] mb-1 font-display">Daily Mission Log</h1>
+                        <p className="text-[var(--notion-text-tertiary)]">Submit your daily accomplishments and plans for {currentDate}</p>
+                    </div>
                 </div>
+
+                {/* Stats Banner */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm p-4 hover:bg-[var(--notion-bg-tertiary)] transition-colors group">
+                        <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle2 className="w-5 h-5 text-[#36B37E] group-hover:scale-110 transition-transform" />
+                            <span className="text-sm font-bold text-[var(--notion-text-tertiary)] uppercase">Tasks</span>
+                        </div>
+                        <p className="text-2xl font-bold text-[var(--notion-text-primary)]">{tasksCompleted || '0'}</p>
+                    </div>
+                    <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm p-4 hover:bg-[var(--notion-bg-tertiary)] transition-colors group">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Clock className="w-5 h-5 text-[#2383e2] group-hover:scale-110 transition-transform" />
+                            <span className="text-sm font-bold text-[var(--notion-text-tertiary)] uppercase">Hours</span>
+                        </div>
+                        <p className="text-2xl font-bold text-[var(--notion-text-primary)]">{hoursWorked || '0.0'}</p>
+                    </div>
+                    <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm p-4 hover:bg-[var(--notion-bg-tertiary)] transition-colors group">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Target className="w-5 h-5 text-[#FFAB00] group-hover:scale-110 transition-transform" />
+                            <span className="text-sm font-bold text-[var(--notion-text-tertiary)] uppercase">Progress</span>
+                        </div>
+                        <p className="text-2xl font-bold text-[var(--notion-text-primary)]">{accomplishments.length > 0 ? 'Active' : 'Pending'}</p>
+                    </div>
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm p-6 md:p-8 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="block text-sm font-bold text-[var(--notion-text-secondary)]">Tasks Completed</label>
+                            <input
+                                type="number"
+                                placeholder="e.g. 5"
+                                value={tasksCompleted}
+                                onChange={(e) => setTasksCompleted(e.target.value)}
+                                className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm px-3 py-2 text-[var(--notion-text-primary)] placeholder-[var(--notion-text-disabled)] focus:outline-none focus:ring-1 focus:ring-[#2383e2] transition-colors"
+                                required
+                                min="0"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="block text-sm font-bold text-[var(--notion-text-secondary)]">Hours Worked</label>
+                            <input
+                                type="number"
+                                placeholder="e.g. 8.5"
+                                value={hoursWorked}
+                                onChange={(e) => setHoursWorked(e.target.value)}
+                                className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm px-3 py-2 text-[var(--notion-text-primary)] placeholder-[var(--notion-text-disabled)] focus:outline-none focus:ring-1 focus:ring-[#2383e2] transition-colors"
+                                required
+                                min="0"
+                                step="0.5"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="block text-sm font-bold text-[var(--notion-text-secondary)]">
+                            Today's Accomplishments <span className="text-red-400">*</span>
+                        </label>
+                        <textarea
+                            className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm px-4 py-3 text-[var(--notion-text-primary)] placeholder-[var(--notion-text-disabled)] focus:outline-none focus:ring-1 focus:ring-[#2383e2] transition-colors min-h-[120px]"
+                            placeholder="List what you accomplished today..."
+                            value={accomplishments}
+                            onChange={(e) => setAccomplishments(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="block text-sm font-bold text-[var(--notion-text-secondary)]">
+                            Challenges Faced
+                        </label>
+                        <textarea
+                            className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm px-4 py-3 text-[var(--notion-text-primary)] placeholder-[var(--notion-text-disabled)] focus:outline-none focus:ring-1 focus:ring-[#2383e2] transition-colors min-h-[80px]"
+                            placeholder="Any blockers or challenges?"
+                            value={challenges}
+                            onChange={(e) => setChallenges(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="block text-sm font-bold text-[var(--notion-text-secondary)]">
+                            Tomorrow's Plan
+                        </label>
+                        <textarea
+                            className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm px-4 py-3 text-[var(--notion-text-primary)] placeholder-[var(--notion-text-disabled)] focus:outline-none focus:ring-1 focus:ring-[#2383e2] transition-colors min-h-[80px]"
+                            placeholder="What do you plan to work on tomorrow?"
+                            value={tomorrowPlan}
+                            onChange={(e) => setTomorrowPlan(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex justify-end pt-4">
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            size="lg"
+                            leftIcon={<Send className="w-4 h-4" />}
+                            isLoading={isSubmitting}
+                            className="bg-[#2383e2] hover:bg-[#1a6fcc] text-white rounded-sm font-bold px-6"
+                        >
+                            Submit Daily Report
+                        </Button>
+                    </div>
+                </form>
             </div>
-
-            {/* Stats Banner */}
-            <div className="grid grid-cols-3 gap-4">
-                <div className="bg-gradient-to-br from-[#36B37E] to-[#00875A] text-white rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                        <CheckCircle2 className="w-5 h-5" />
-                        <span className="text-sm opacity-90">Tasks</span>
-                    </div>
-                    <p className="text-2xl font-bold">{tasksCompleted || '0'}</p>
-                </div>
-                <div className="bg-gradient-to-br from-[#0052CC] to-[#0747A6] text-white rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                        <Clock className="w-5 h-5" />
-                        <span className="text-sm opacity-90">Hours</span>
-                    </div>
-                    <p className="text-2xl font-bold">{hoursWorked || '0.0'}</p>
-                </div>
-                <div className="bg-gradient-to-br from-[#FFAB00] to-[#FF991F] text-white rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                        <Target className="w-5 h-5" />
-                        <span className="text-sm opacity-90">Progress</span>
-                    </div>
-                    <p className="text-2xl font-bold">{accomplishments.length > 0 ? '👍' : '⏳'}</p>
-                </div>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="bg-white border border-[#DFE1E6] rounded-lg p-8 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                    <Input
-                        type="number"
-                        label="Tasks Completed"
-                        placeholder="e.g. 5"
-                        value={tasksCompleted}
-                        onChange={(e) => setTasksCompleted(e.target.value)}
-                        required
-                        min="0"
-                    />
-                    <Input
-                        type="number"
-                        label="Hours Worked"
-                        placeholder="e.g. 8.5"
-                        value={hoursWorked}
-                        onChange={(e) => setHoursWorked(e.target.value)}
-                        required
-                        min="0"
-                        step="0.5"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-bold text-[#172B4D] mb-2">
-                        Today's Accomplishments *
-                    </label>
-                    <textarea
-                        className="w-full px-4 py-3 border border-[#DFE1E6] rounded-lg focus:outline-none focus:border-[#0052CC] focus:ring-2 focus:ring-[#0052CC]/20 transition-all text-[#172B4D]"
-                        rows={4}
-                        placeholder="List what you accomplished today..."
-                        value={accomplishments}
-                        onChange={(e) => setAccomplishments(e.target.value)}
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-bold text-[#172B4D] mb-2">
-                        Challenges Faced
-                    </label>
-                    <textarea
-                        className="w-full px-4 py-3 border border-[#DFE1E6] rounded-lg focus:outline-none focus:border-[#0052CC] focus:ring-2 focus:ring-[#0052CC]/20 transition-all text-[#172B4D]"
-                        rows={3}
-                        placeholder="Any blockers or challenges?"
-                        value={challenges}
-                        onChange={(e) => setChallenges(e.target.value)}
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-bold text-[#172B4D] mb-2">
-                        Tomorrow's Plan
-                    </label>
-                    <textarea
-                        className="w-full px-4 py-3 border border-[#DFE1E6] rounded-lg focus:outline-none focus:border-[#0052CC] focus:ring-2 focus:ring-[#0052CC]/20 transition-all text-[#172B4D]"
-                        rows={3}
-                        placeholder="What do you plan to work on tomorrow?"
-                        value={tomorrowPlan}
-                        onChange={(e) => setTomorrowPlan(e.target.value)}
-                    />
-                </div>
-
-                <div className="flex justify-end pt-4">
-                    <Button
-                        type="submit"
-                        variant="primary"
-                        size="lg"
-                        leftIcon={<Send className="w-5 h-5" />}
-                        isLoading={isSubmitting}
-                    >
-                        Submit Daily Report
-                    </Button>
-                </div>
-            </form>
         </div>
     );
 }

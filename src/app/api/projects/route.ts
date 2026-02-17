@@ -77,6 +77,7 @@ export async function GET(request: Request) {
 
             whereClause = {
                 OR: [
+                    { managerId: userId }, // Managed by me (Explicit project ownership)
                     { tasks: { some: { userId: { in: allTeamIds } } } },
                     { milestones: { some: { owner: { in: allTeamIds } } } },
                     { dailyReports: { some: { userId: { in: allTeamIds } } } }
@@ -157,9 +158,10 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { role } = session.user as any;
-    if (role !== 'DIRECTOR') {
-        return NextResponse.json({ error: 'Forbidden: Only Directors can decommission projects' }, { status: 403 });
+    const { role, id: userId } = session.user as any;
+    // Directors have full access. Managers can delete ONLY their own projects.
+    if (role !== 'DIRECTOR' && role !== 'MANAGER') {
+        return NextResponse.json({ error: 'Forbidden: Only Directors and Project Managers can decommission projects' }, { status: 403 });
     }
 
     try {
@@ -168,6 +170,18 @@ export async function DELETE(request: Request) {
 
         if (!id) {
             return NextResponse.json({ error: 'Project ID required' }, { status: 400 });
+        }
+
+        // Check ownership if not Director
+        if (role === 'MANAGER') {
+            const project = await prisma.project.findUnique({
+                where: { id },
+                select: { managerId: true }
+            });
+
+            if (!project || project.managerId !== userId) {
+                return NextResponse.json({ error: 'Forbidden: You can only delete projects you manage' }, { status: 403 });
+            }
         }
 
         await prisma.project.delete({

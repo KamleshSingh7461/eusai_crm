@@ -24,12 +24,13 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
 
     return (
         <>
-            <nav className="h-16 border-b border-[#EBECF0] bg-white/80 backdrop-blur-md sticky top-0 z-40 px-4 flex items-center justify-between transition-all duration-300">
+            <nav className="h-16 border-b backdrop-blur-md sticky top-0 z-40 px-4 flex items-center justify-between transition-all duration-300" style={{ backgroundColor: 'var(--notion-bg-primary)', borderColor: 'var(--notion-border-default)' }}>
                 <div className="flex items-center gap-3 flex-1">
                     {/* Mobile Menu Toggle - More refined */}
                     <button
                         onClick={onMenuClick}
-                        className="p-2 -ml-1 text-[#42526E] hover:bg-[#F4F5F7] active:bg-[#DEEBFF] active:text-[#0052CC] rounded-lg lg:hidden transition-all"
+                        className="p-2 -ml-1 rounded-lg lg:hidden transition-all hover:bg-[var(--notion-bg-hover)]"
+                        style={{ color: 'var(--notion-text-secondary)' }}
                         aria-label="Toggle Menu"
                     >
                         <Menu className="w-5 h-5" />
@@ -86,7 +87,8 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                             const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
                             document.dispatchEvent(event);
                         }}
-                        className="p-2 text-[#42526E] hover:bg-[#F4F5F7] rounded-lg transition-all"
+                        className="p-2 rounded-lg transition-all hover:bg-[var(--notion-bg-hover)]"
+                        style={{ color: 'var(--notion-text-secondary)' }}
                     >
                         <Search className="w-5 h-5" />
                     </button>
@@ -113,15 +115,16 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                         <button
                             onClick={() => setShowAssistant(!showAssistant)}
                             className={cn(
-                                "p-2 rounded-lg hover:bg-[#F4F5F7] transition-all relative font-medium",
-                                showAssistant ? "bg-blue-50 text-[#0052CC]" : "text-[#42526E]"
+                                "p-2 rounded-lg transition-all relative font-medium hover:bg-[var(--notion-bg-hover)]",
+                                showAssistant ? "bg-[var(--notion-bg-tertiary)]" : ""
                             )}
+                            style={{ color: showAssistant ? 'var(--notion-accent-blue)' : 'var(--notion-text-secondary)' }}
                             title="AI Help Assistant"
                         >
                             <HelpCircle className="w-5 h-5" />
                         </button>
 
-                        <button onClick={() => router.push('/settings')} className="p-2 rounded-lg hover:bg-[#F4F5F7] text-[#42526E] transition-all">
+                        <button onClick={() => router.push('/settings')} className="p-2 rounded-lg transition-all hover:bg-[var(--notion-bg-hover)]" style={{ color: 'var(--notion-text-secondary)' }}>
                             <Settings className="w-5 h-5" />
                         </button>
 

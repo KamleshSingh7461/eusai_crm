@@ -22,8 +22,8 @@ export default function Dashboard() {
 
   if (status === 'loading') {
     return (
-      <div className="flex bg-[#FAFBFC] h-screen items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#0052CC]" />
+      <div className="flex bg-[#191919] h-screen items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#2383e2]" />
       </div>
     );
   }

@@ -39,13 +39,13 @@ export default function PortfolioPulse({ data }: PortfolioPulseProps) {
                     >
                         {activeSpace.name.split(' ').map((word: string) => word[0]).join('').substring(0, 2).toUpperCase()}
                     </div>
-                    <span className="text-xs text-[#42526E]">Showing data for <span className="font-bold text-[#0052CC]">{activeSpace.name}</span></span>
+                    <span className="text-xs text-subheading">Showing data for <span className="font-bold text-[#0052CC]">{activeSpace.name}</span></span>
                 </div>
             )}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {stats.length === 0 ? (
                     <div className="col-span-1 md:col-span-3 py-12 text-center bg-white border border-dashed border-[#DFE1E6] rounded-sm">
-                        <p className="text-[#6B778C] text-sm">No space intelligence available yet.</p>
+                        <p className="text-body text-sm">No space intelligence available yet.</p>
                     </div>
                 ) : (
                     stats.map((stat) => (
@@ -59,8 +59,8 @@ export default function PortfolioPulse({ data }: PortfolioPulseProps) {
                                     {stat.trend}
                                 </span>
                             </div>
-                            <div className="text-2xl font-bold text-[#172B4D]">{stat.value}</div>
-                            <div className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider truncate">{stat.label}</div>
+                            <div className="text-2xl font-bold text-subheading">{stat.value}</div>
+                            <div className="text-[11px] font-bold text-body uppercase tracking-wider truncate">{stat.label}</div>
                         </div>
                     ))
                 )}

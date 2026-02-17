@@ -25,7 +25,7 @@ import {
     AlertCircle,
     Briefcase,
     Users,
-    DollarSign,
+
     RefreshCw
 } from 'lucide-react';
 import AIInsights from '@/components/AIInsights';
@@ -53,6 +53,78 @@ export default function AnalyticsPage() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const exportReport = () => {
+        if (!data) return;
+
+        // Generate CSV content
+        const timestamp = new Date().toISOString().split('T')[0];
+        let csvContent = "EUSAI CRM - Analytics Report\n";
+        csvContent += `Generated: ${new Date().toLocaleString()}\n\n`;
+
+        // KPI Stats
+        csvContent += "KEY PERFORMANCE INDICATORS\n";
+        csvContent += "Metric,Value\n";
+        csvContent += `Total Revenue,₹${data.stats.totalRevenue}\n`;
+        csvContent += `Active Projects,${data.stats.activeProjects}\n`;
+        csvContent += `Completion Rate,${data.stats.completionRate}%\n`;
+        csvContent += `Critical Issues,${data.stats.criticalIssues}\n`;
+
+        csvContent += `High Priority Tasks,${data.stats.highPriorityTasks || 0}\n`;
+        csvContent += `Overdue Tasks,${data.stats.overdueTasks || 0}\n\n`;
+
+        // Insights
+        if (data.insights) {
+            csvContent += "INSIGHTS\n";
+            csvContent += "Metric,Value\n";
+            csvContent += `Revenue Growth,${data.insights.revenueGrowth}%\n`;
+
+            csvContent += `Team Size,${data.insights.teamSize}\n`;
+            csvContent += `Avg Tasks Per User,${data.insights.avgTasksPerUser}\n\n`;
+        }
+
+        // Revenue Trend
+        csvContent += "REVENUE TREND (Last 6 Months)\n";
+        csvContent += "Month,Amount\n";
+        data.revenueTrend.forEach((item: any) => {
+            csvContent += `${item.month},₹${item.amount}\n`;
+        });
+        csvContent += "\n";
+
+        // Task Status
+        csvContent += "TASK STATUS DISTRIBUTION\n";
+        csvContent += "Status,Count\n";
+        Object.entries(data.taskStatus || {}).forEach(([status, count]) => {
+            csvContent += `${status},${count}\n`;
+        });
+        csvContent += "\n";
+
+        // Velocity
+        csvContent += "EXECUTION VELOCITY (Weekly)\n";
+        csvContent += "Week,Predicted,Actual\n";
+        data.velocity.forEach((item: any) => {
+            csvContent += `${item.week},${item.predicted},${item.actual}\n`;
+        });
+        csvContent += "\n";
+
+        // Team Leaderboard
+        csvContent += "HIGH PERFORMERS\n";
+        csvContent += "Name,Role,Completed Tasks\n";
+        data.leaderboard.forEach((member: any) => {
+            csvContent += `${member.name},${member.role || 'N/A'},${member.points}\n`;
+        });
+
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `EUSAI_CRM_Analytics_${timestamp}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     useEffect(() => {
@@ -86,6 +158,7 @@ export default function AnalyticsPage() {
                     <Button
                         variant="secondary"
                         size="sm"
+                        onClick={exportReport}
                         leftIcon={<Download className="w-4 h-4" />}
                         className="bg-white border-[#DFE1E6]"
                     >
@@ -107,8 +180,7 @@ export default function AnalyticsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-6">
                     {[
-                        { label: 'Total Revenue', value: `₹${(data.stats.totalRevenue / 1000).toFixed(1)}K`, icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                        { label: 'Project Health', value: data.stats.activeProjects, icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-50' },
+                        { label: 'Project Health', value: data.stats.activeProjects, icon: Briefcase, color: 'text-blue-400', bg: 'bg-blue-500/10' },
                         { label: 'Velocity', value: `${data.stats.completionRate}%`, icon: Zap, color: 'text-orange-500', bg: 'bg-orange-50' },
                         { label: 'System Risks', value: data.stats.criticalIssues, icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-50' },
                     ].map((stat, i) => (
@@ -125,15 +197,6 @@ export default function AnalyticsPage() {
                     {/* Secondary Insights or Mini-Stats */}
                     <div className="col-span-2 md:col-span-4 bg-white p-4 md:p-6 rounded-sm border border-[#DFE1E6] shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6 w-full md:w-auto">
-                            <div className="text-center sm:text-left">
-                                <span className="text-[10px] font-bold text-[#6B778C] uppercase tracking-widest block mb-1">Portfolio Budget</span>
-                                <span className="text-lg font-bold text-[#172B4D]">₹{(data.stats.totalBudget / 100000).toFixed(1)}L</span>
-                            </div>
-                            <div className="hidden sm:block h-10 w-px bg-[#DFE1E6]" />
-                            <div className="text-center sm:text-left">
-                                <span className="text-[10px] font-bold text-[#6B778C] uppercase tracking-widest block mb-1">Total Burn</span>
-                                <span className="text-lg font-bold text-[#172B4D]">₹{(data.stats.totalExpenses / 1000).toFixed(1)}K</span>
-                            </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="flex flex-col items-end">
@@ -153,37 +216,7 @@ export default function AnalyticsPage() {
             {/* Main Visuals Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Revenue Trend */}
-                <div className="bg-white p-6 rounded-sm border border-[#DFE1E6] shadow-sm flex flex-col min-h-[400px]">
-                    <div className="flex items-center justify-between mb-8 cursor-default">
-                        <div>
-                            <h3 className="text-sm font-bold text-[#172B4D] flex items-center gap-2 uppercase tracking-wide">
-                                <TrendingUp className="w-4 h-4 text-[#36B37E]" /> Revenue Stream
-                            </h3>
-                            <p className="text-[10px] font-medium text-[#6B778C] mt-1">Growth projection based on paid orders</p>
-                        </div>
-                        <Filter className="w-4 h-4 text-[#6B778C] hover:text-[#0052CC]" />
-                    </div>
-                    <div className="flex-1">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={data.revenueTrend}>
-                                <defs>
-                                    <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#0052CC" stopOpacity={0.1} />
-                                        <stop offset="95%" stopColor="#0052CC" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#F4F5F7" vertical={false} />
-                                <XAxis dataKey="month" stroke="#6B778C" fontSize={10} axisLine={false} tickLine={false} />
-                                <YAxis stroke="#6B778C" fontSize={10} axisLine={false} tickLine={false} tickFormatter={(val) => `₹${val / 1000}K`} />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: '3px', border: 'none', boxShadow: '0 4px 12px rgba(9, 30, 66, 0.15)' }}
-                                    formatter={(val) => [`₹${Number(val).toLocaleString()}`, 'Revenue']}
-                                />
-                                <Area type="monotone" dataKey="amount" stroke="#0052CC" strokeWidth={2} fillOpacity={1} fill="url(#colorAmount)" />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+
 
                 {/* Execution Velocity */}
                 <div className="bg-white p-6 rounded-sm border border-[#DFE1E6] shadow-sm flex flex-col min-h-[400px]">

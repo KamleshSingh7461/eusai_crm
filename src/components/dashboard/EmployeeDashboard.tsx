@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import ExpenseModal from '../ExpenseModal';
+// import ExpenseModal from '../ExpenseModal'; // TODO: Create ExpenseModal component
 
 interface DashboardData {
     hasSubmittedReport: boolean;
@@ -157,7 +157,7 @@ export default function EmployeeDashboard() {
                     {/* Pending Tasks */}
                     <section className="bg-white border border-[#DFE1E6] rounded-sm shadow-sm overflow-hidden">
                         <div className="p-4 border-b border-[#DFE1E6] bg-[#FAFBFC] flex items-center justify-between">
-                            <h3 className="font-bold text-[#172B4D] flex items-center gap-2">
+                            <h3 className="font-bold text-heading flex items-center gap-2">
                                 <CheckCircle2 className="w-4 h-4 text-orange-500" />
                                 Pending Tasks
                             </h3>
@@ -165,7 +165,7 @@ export default function EmployeeDashboard() {
                         </div>
                         <div className="divide-y divide-[#EBECF0]">
                             {!data?.recentTasks || data.recentTasks.length === 0 ? (
-                                <div className="p-6 text-center text-[#6B778C] text-sm italic">
+                                <div className="p-6 text-center text-body text-sm italic">
                                     No pending tasks. You're all caught up!
                                 </div>
                             ) : (
@@ -175,8 +175,8 @@ export default function EmployeeDashboard() {
                                             <div className={`mt-1 w-4 h-4 rounded-full border-2 transition-colors ${task.priority > 1 ? 'border-red-400' : 'border-[#DFE1E6] group-hover:border-[#0052CC]'
                                                 }`} />
                                             <div>
-                                                <div className="font-medium text-[#172B4D]">{task.title}</div>
-                                                <div className="text-xs text-[#6B778C] flex items-center gap-1">
+                                                <div className="font-medium text-subheading">{task.title}</div>
+                                                <div className="text-xs text-body flex items-center gap-1">
                                                     <FileText className="w-3 h-3" />
                                                     {task.project?.name || 'General Task'}
                                                 </div>
@@ -194,15 +194,15 @@ export default function EmployeeDashboard() {
                     {/* Pending Expenses */}
                     <section className="bg-white border border-[#DFE1E6] rounded-sm shadow-sm overflow-hidden">
                         <div className="p-4 border-b border-[#DFE1E6] bg-[#FAFBFC] flex items-center justify-between">
-                            <h3 className="font-bold text-[#172B4D] flex items-center gap-2">
+                            <h3 className="font-bold text-heading flex items-center gap-2">
                                 <DollarSign className="w-4 h-4 text-emerald-500" />
                                 My Pending Approvals
                             </h3>
-                            <span className="text-xs font-medium text-[#6B778C]">Syncing Live</span>
+                            <span className="text-xs font-medium text-body">Syncing Live</span>
                         </div>
                         <div className="divide-y divide-[#EBECF0]">
                             {!data?.pendingExpenses || data.pendingExpenses.length === 0 ? (
-                                <div className="p-6 text-center text-[#6B778C] text-sm italic">
+                                <div className="p-6 text-center text-body text-sm italic">
                                     No pending expense approvals.
                                 </div>
                             ) : (
@@ -213,14 +213,14 @@ export default function EmployeeDashboard() {
                                                 <DollarSign className="w-3 h-3 text-emerald-600" />
                                             </div>
                                             <div>
-                                                <div className="font-medium text-[#172B4D]">{expense.description || `Expense: ${expense.category}`}</div>
-                                                <div className="text-xs text-[#6B778C] flex items-center gap-1">
+                                                <div className="font-medium text-subheading">{expense.description || `Expense: ${expense.category}`}</div>
+                                                <div className="text-xs text-body flex items-center gap-1">
                                                     {expense.project?.name} • {new Date(expense.date).toLocaleDateString()}
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="font-bold text-[#172B4D]">₹{Number(expense.amount).toLocaleString()}</div>
+                                            <div className="font-bold text-subheading">₹{Number(expense.amount).toLocaleString()}</div>
                                             <div className="text-[10px] uppercase font-bold text-orange-600">Pending</div>
                                         </div>
                                     </div>
@@ -234,23 +234,23 @@ export default function EmployeeDashboard() {
                 <div className="space-y-6">
                     {/* Quick Links */}
                     <div className="bg-white border border-[#DFE1E6] rounded-sm shadow-sm p-4">
-                        <h3 className="font-bold text-[#172B4D] mb-3 text-sm uppercase tracking-wide">Quick Access</h3>
+                        <h3 className="font-bold text-heading mb-3 text-sm uppercase tracking-wide">Quick Access</h3>
                         <div className="space-y-2">
-                            <Link href="/universities" className="block p-2 hover:bg-[#EBECF0] rounded-sm text-sm text-[#42526E] font-medium flex items-center gap-2">
+                            <Link href="/universities" className="block p-2 hover:bg-[#EBECF0] rounded-sm text-sm text-subheading font-medium flex items-center gap-2">
                                 <Search className="w-4 h-4" />
                                 Find University
                             </Link>
-                            <Link href="/reports/submit" className="block p-2 hover:bg-[#EBECF0] rounded-sm text-sm text-[#42526E] font-medium flex items-center gap-2">
+                            <Link href="/reports/submit" className="block p-2 hover:bg-[#EBECF0] rounded-sm text-sm text-subheading font-medium flex items-center gap-2">
                                 <FileText className="w-4 h-4" />
                                 {data?.hasSubmittedReport ? 'Update Today\'s Report' : 'Submit Daily Report'}
                             </Link>
-                            <Link href="/milestones" className="block p-2 hover:bg-[#EBECF0] rounded-sm text-sm text-[#42526E] font-medium flex items-center gap-2">
+                            <Link href="/milestones" className="block p-2 hover:bg-[#EBECF0] rounded-sm text-sm text-subheading font-medium flex items-center gap-2">
                                 <TrendingUp className="w-4 h-4" />
                                 Log New Deal
                             </Link>
                             <button
                                 onClick={() => setIsExpenseModalOpen(true)}
-                                className="w-full text-left p-2 hover:bg-[#EBECF0] rounded-sm text-sm text-[#42526E] font-medium flex items-center gap-2"
+                                className="w-full text-left p-2 hover:bg-[#EBECF0] rounded-sm text-sm text-subheading font-medium flex items-center gap-2"
                             >
                                 <DollarSign className="w-4 h-4" />
                                 Seek Expense Approval
@@ -259,16 +259,17 @@ export default function EmployeeDashboard() {
                     </div>
                 </div>
 
-                {isExpenseModalOpen && myProjects.length > 0 && (
+                {/* TODO: Add ExpenseModal component */}
+                {/* {isExpenseModalOpen && myProjects.length > 0 && (
                     <ExpenseModal
-                        projectId={myProjects[0].id} // Defaulting to first project for now
+                        projectId={myProjects[0].id}
                         onClose={() => setIsExpenseModalOpen(false)}
                         onSuccess={() => {
                             fetchDashboardData();
                             setIsExpenseModalOpen(false);
                         }}
                     />
-                )}
+                )} */}
             </div>
         </div>
     );

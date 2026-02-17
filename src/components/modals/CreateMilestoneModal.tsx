@@ -66,12 +66,15 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [users, setUsers] = useState<User[]>([]);
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+    const [projects, setProjects] = useState<any[]>([]);
+    const [isLoadingProjects, setIsLoadingProjects] = useState(false);
 
     const currentUser = session?.user as any;
 
     useEffect(() => {
         if (isOpen) {
             fetchUsers();
+            fetchProjects();
         }
     }, [isOpen]);
 
@@ -92,6 +95,21 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
             console.error('Failed to fetch users:', error);
         } finally {
             setIsLoadingUsers(false);
+        }
+    };
+
+    const fetchProjects = async () => {
+        setIsLoadingProjects(true);
+        try {
+            const response = await fetch('/api/projects');
+            if (response.ok) {
+                const data = await response.json();
+                setProjects(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch projects:', error);
+        } finally {
+            setIsLoadingProjects(false);
         }
     };
 
@@ -215,12 +233,24 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                             />
                         )}
 
-                        <Input
-                            label="Link Project (Optional)"
-                            placeholder="Enter project ID"
-                            value={projectId}
-                            onChange={(e) => setProjectId(e.target.value)}
-                        />
+                        {isLoadingProjects ? (
+                            <div className="text-sm text-[#6B778C] flex items-center gap-2">
+                                <span className="animate-spin text-blue-600">🌀</span> Loading projects...
+                            </div>
+                        ) : (
+                            <Select
+                                label="Link Project (Optional)"
+                                value={projectId}
+                                onChange={(e) => setProjectId(e.target.value)}
+                                options={[
+                                    { value: '', label: 'Select Project...' },
+                                    ...projects.map(project => ({
+                                        value: project.id,
+                                        label: project.name
+                                    }))
+                                ]}
+                            />
+                        )}
                     </div>
 
                     <div className="h-px bg-[#DFE1E6]" />
