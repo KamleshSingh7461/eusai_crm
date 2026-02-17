@@ -5,11 +5,11 @@ import Sidebar from "@/components/Sidebar";
 import Navbar from "@/components/Navbar";
 import CommandCenter from "@/components/CommandCenter";
 import NotificationCenter from "@/components/NotificationCenter";
-import FloatingChat from "@/components/FloatingChat";
 import { ToastProvider } from "@/context/ToastContext";
 import { useState } from 'react';
 import { cn } from "@/lib/utils";
 import { SpaceProvider } from "@/context/SpaceContext";
+import MobileDock from "@/components/MobileDock";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -32,7 +32,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <SpaceProvider>
             <ToastProvider>
                 <CommandCenter />
-                <div className="flex min-h-screen relative" style={{ backgroundColor: 'var(--notion-bg-primary)' }}>
+                <div className="flex min-h-screen relative max-w-full overflow-x-hidden" style={{ backgroundColor: 'var(--notion-bg-primary)' }}>
                     {/* Sidebar: Fixed position always */}
                     <aside className={cn(
                         "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out",
@@ -56,18 +56,28 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     {/* Main Content - Add left margin to account for fixed sidebar */}
                     <div
                         className={cn(
-                            "flex-1 flex flex-col min-h-screen transition-all duration-300",
+                            "flex-1 flex flex-col min-h-screen transition-all duration-300 max-w-full overflow-x-hidden",
                             isSidebarCollapsed ? "lg:ml-16" : "lg:ml-60"
                         )}
                         style={{ backgroundColor: 'var(--notion-bg-primary)' }}
                     >
                         <Navbar onMenuClick={() => setIsMobileMenuOpen(true)} />
-                        <main className="flex-1 overflow-y-auto p-4 md:p-8" style={{ backgroundColor: 'var(--notion-bg-primary)' }}>
+                        <main
+                            className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-8 pb-24 lg:pb-8"
+                            style={{ backgroundColor: 'var(--notion-bg-primary)' }}
+                        >
                             {children}
                         </main>
                     </div>
                 </div>
-                <FloatingChat />
+                {/* Mobile Dock - Superb Navigation */}
+                {/* Mobile Dock - Superb Navigation */}
+                <div className="lg:hidden">
+                    <MobileDock
+                        onMenuClick={() => setIsMobileMenuOpen(true)}
+                        closeMenu={() => setIsMobileMenuOpen(false)}
+                    />
+                </div>
             </ToastProvider>
         </SpaceProvider>
     );

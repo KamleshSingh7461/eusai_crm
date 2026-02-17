@@ -64,15 +64,21 @@ export const authOptions: NextAuthOptions = {
             console.log("🔵 SignIn Callback:", { user, account, profile });
             return true;
         },
-        async jwt({ token, user, account, trigger, session }: any) {
+        async jwt({ token, user, account, profile }: any) {
             if (account) {
                 token.accessToken = account.access_token;
                 token.refreshToken = account.refresh_token;
+            }
+            if (profile?.picture) {
+                token.picture = profile.picture;
             }
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
                 token.managerId = user.managerId;
+                if (!token.picture && user.image) {
+                    token.picture = user.image;
+                }
             }
             return token;
         },
@@ -80,14 +86,21 @@ export const authOptions: NextAuthOptions = {
             if (session.user && token.id) {
                 (session.user as any).id = token.id;
                 (session as any).accessToken = token.accessToken;
+                if (token.picture) {
+                    session.user.image = token.picture;
+                }
 
                 try {
                     const user = await prisma.user.findUnique({
                         where: { id: token.id },
-                        select: { role: true, managerId: true }
+                        select: { role: true, managerId: true, image: true }
                     });
                     (session.user as any).role = user?.role || "EMPLOYEE";
                     (session.user as any).managerId = user?.managerId || null;
+                    // If no token picture (e.g. credentials login), fallback to DB image
+                    if (!session.user.image && user?.image) {
+                        session.user.image = user.image;
+                    }
                 } catch (error) {
                     console.error("🔴 Error fetching user role:", error);
                     (session.user as any).role = "EMPLOYEE";

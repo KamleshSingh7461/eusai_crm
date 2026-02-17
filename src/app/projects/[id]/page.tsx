@@ -147,7 +147,7 @@ export default function ProjectDetailPage() {
                                                 project.status === 'MONITORING' ? 'bg-orange-500/20 text-orange-400' :
                                                     'bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.7)]'
                                     )}>
-                                        {project.status}
+                                        {project.status === 'CLOSED' ? 'COMPLETED' : project.status}
                                     </span>
                                 </div>
                             </div>
@@ -156,6 +156,38 @@ export default function ProjectDetailPage() {
                         <div className="flex gap-3 flex-wrap">
                             {(userRole === 'DIRECTOR' || (userRole === 'MANAGER' && project.manager?.id === userId)) && (
                                 <>
+                                    {project.status !== 'CLOSED' && (
+                                        <Button
+                                            onClick={async () => {
+                                                if (confirm('Mark this mission as COMPLETED?')) {
+                                                    try {
+                                                        const res = await fetch(`/api/projects/${project.id}`, {
+                                                            method: 'PATCH',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({
+                                                                ...project,
+                                                                status: 'CLOSED',
+                                                                startDate: project.startDate,
+                                                                endDate: project.endDate
+                                                            })
+                                                        });
+                                                        if (res.ok) {
+                                                            showToast('Mission marked as COMPLETED', 'success');
+                                                            fetchProjectDetails();
+                                                        } else {
+                                                            showToast('Failed to update status', 'error');
+                                                        }
+                                                    } catch (err) {
+                                                        showToast('Network error', 'error');
+                                                    }
+                                                }
+                                            }}
+                                            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-900/20"
+                                            leftIcon={<CheckCircle2 className="w-4 h-4" />}
+                                        >
+                                            Complete Mission
+                                        </Button>
+                                    )}
                                     <Button
                                         onClick={handleGenerateReport}
                                         variant="secondary"

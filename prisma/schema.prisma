@@ -39,10 +39,14 @@ model User {
   expenses      Expense[]      @relation("UserExpenses")
   accounts      Account[]
   sessions      Session[]
-  sentMessages  Message[]      @relation("SentMessages")
   notifications Notification[] @relation("UserNotifications")
   activities    Activity[]
   comments      Comment[]
+
+  // Issue Tracking
+  reportedIssues Issue[] @relation("IssueReporter")
+  assignedIssues Issue[] @relation("IssueAssignee")
+  resolvedIssues Issue[] @relation("IssueResolver")
 
   // Meetings
   organizedMeetings Meeting[] @relation("OrganizedMeetings")
@@ -50,6 +54,38 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ... existing models ...
+
+model Issue {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  projectId     String?
+  project       Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  spaceId       String?
+  space         Space?   @relation(fields: [spaceId], references: [id])
+  severity      String // CRITICAL, HIGH, MEDIUM, LOW
+  status        String   @default("OPEN") // OPEN, RESOLVING, CLOSED, RESOLVED
+  
+  reporterId    String?
+  reporter      User?    @relation("IssueReporter", fields: [reporterId], references: [id])
+  
+  assignedToId  String?
+  assignedTo    User?    @relation("IssueAssignee", fields: [assignedToId], references: [id])
+
+  resolvedById  String?
+  resolvedBy    User?    @relation("IssueResolver", fields: [resolvedById], references: [id])
+  
+  resolution    String? // Remarks/Solution
+  resolutionDate DateTime?
+
+  owner         String? // Keeping for backward compatibility (display name)
+  
+  daysOpen      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Meeting {
@@ -261,35 +297,7 @@ model WikiPage {
   updatedAt DateTime @updatedAt
 }
 
-model Issue {
-  id        String   @id @default(uuid())
-  title     String
-  projectId String?
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  spaceId   String?
-  space     Space?   @relation(fields: [spaceId], references: [id])
-  severity  String // CRITICAL, HIGH, MEDIUM, LOW
-  status    String   @default("OPEN") // OPEN, RESOLVING, CLOSED
-  owner     String
-  daysOpen  Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
 
-model Message {
-  id      String @id @default(uuid())
-  content String
-
-  senderId String
-  sender   User   @relation("SentMessages", fields: [senderId], references: [id])
-
-  channelId String
-  type      String @default("TEXT") // TEXT, SYSTEM, ALERT, FILE
-
-  attachments String? // JSON string: [{ url: string, name: string, type: string }]
-
-  createdAt DateTime @default(now())
-}
 
 model University {
   id            String  @id @default(uuid())

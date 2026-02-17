@@ -17,15 +17,63 @@ export async function PATCH(
         const body = await request.json();
         const { status, progress, remarks, isFlagged } = body;
         const milestoneId = params.id;
+        const userRole = (session.user as any).role;
+        const userId = (session.user as any).id;
 
-        const updatedMilestone = await (prisma as any).milestone.update({
+        // Fetch milestone to check ownership
+        const milestone = await prisma.milestone.findUnique({
             where: { id: milestoneId },
-            data: {
-                ...(status && { status }),
-                ...(progress !== undefined && { progress }),
-                ...(remarks !== undefined && { remarks }),
-                ...(isFlagged !== undefined && { isFlagged })
+            include: {
+                project: { select: { managerId: true } },
+                space: { select: { managerId: true } }
             }
+        });
+
+        if (!milestone) {
+            return NextResponse.json({ error: 'Milestone not found' }, { status: 404 });
+        }
+
+        // Authorization Logic
+        const isOwner = milestone.owner === userId;
+        const isDirector = userRole === 'DIRECTOR';
+
+        // Check if user is manager of the project or space
+        const isProjectManager = milestone.project?.managerId === userId;
+        const isSpaceManager = milestone.space?.managerId === userId;
+
+        // Check if user is the direct manager of the owner
+        let isDirectManager = false;
+        if (userRole === 'MANAGER' || userRole === 'TEAM_LEADER') {
+            const manager = await prisma.user.findUnique({
+                where: { id: userId },
+                include: { subordinates: { select: { id: true } } }
+            });
+            isDirectManager = manager?.subordinates.some(s => s.id === milestone.owner) || false;
+        }
+
+        const canUpdateStatus = isOwner || isDirector || isProjectManager || isSpaceManager || isDirectManager;
+        const canUpdateGovernance = isDirector || isProjectManager || isSpaceManager || isDirectManager;
+
+        // Data to update based on permissions
+        const dataToUpdate: any = {};
+        if (canUpdateStatus) {
+            if (status) dataToUpdate.status = status;
+            if (progress !== undefined) dataToUpdate.progress = progress;
+            if (status === 'COMPLETED') dataToUpdate.completedDate = new Date();
+        }
+
+        if (canUpdateGovernance) {
+            if (remarks !== undefined) dataToUpdate.remarks = remarks;
+            if (isFlagged !== undefined) dataToUpdate.isFlagged = isFlagged;
+        }
+
+        if (Object.keys(dataToUpdate).length === 0) {
+            return NextResponse.json({ error: 'Forbidden: No authorized fields to update' }, { status: 403 });
+        }
+
+        const updatedMilestone = await prisma.milestone.update({
+            where: { id: milestoneId },
+            data: dataToUpdate
         });
 
         return NextResponse.json(updatedMilestone);

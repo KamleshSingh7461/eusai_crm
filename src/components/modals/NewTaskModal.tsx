@@ -10,7 +10,8 @@ import {
     Flag,
     Briefcase,
     User as UserIcon,
-    Loader2
+    Loader2,
+    Plus
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/context/ToastContext';
@@ -52,7 +53,7 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoadingData, setIsLoadingData] = useState(false);
 
-    const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<TaskFormValues>({
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<TaskFormValues>({
         resolver: zodResolver(taskSchema),
         defaultValues: {
             priority: '1',
@@ -117,137 +118,178 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="relative bg-[#191919]/95 border border-[rgba(255,255,255,0.08)] rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-in zoom-in-95 duration-300">
+                {/* Glossy background detail */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl -ml-24 -mb-24 pointer-events-none" />
+
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-[#DFE1E6]">
-                    <h2 className="text-lg font-bold text-[#172B4D]">Create New Task</h2>
-                    <button onClick={onClose} className="text-[#6B778C] hover:text-[#172B4D] transition-colors">
+                <div className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-[rgba(255,255,255,0.06)]">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0052CC] to-[#0747A6] flex items-center justify-center shadow-lg shadow-blue-900/20">
+                            <Briefcase className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-white tracking-tight">Create New Task</h2>
+                            <p className="text-xs text-gray-400 font-medium">Define mission objectives and requirements</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                    >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-
+                <form onSubmit={handleSubmit(onSubmit)} className="relative z-10 p-8 space-y-6">
                     {/* Title */}
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[#6B778C] uppercase">Task Title</label>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Task Title
+                        </label>
                         <input
                             {...register('title')}
                             placeholder="What needs to be done?"
-                            className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#4C9AFF]/20 focus:border-[#4C9AFF] outline-none transition-all"
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-medium"
                         />
-                        {errors.title && <p className="text-xs text-red-500">{errors.title.message}</p>}
+                        {errors.title && <p className="text-[10px] font-bold text-red-400 uppercase ml-1 animate-pulse">{errors.title.message}</p>}
                     </div>
 
                     {/* Description */}
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[#6B778C] uppercase">Description</label>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500" /> Description
+                        </label>
                         <textarea
                             {...register('description')}
                             rows={3}
-                            placeholder="Add details..."
-                            className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#4C9AFF]/20 focus:border-[#4C9AFF] outline-none transition-all resize-none"
+                            placeholder="Add mission details and context..."
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-none font-medium leading-relaxed"
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-6">
                         {/* Project */}
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
-                                <Briefcase className="w-3 h-3" /> Project
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <Briefcase className="w-3 h-3 text-blue-400" /> Project
                             </label>
-                            <select
-                                {...register('projectId')}
-                                className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#4C9AFF]/20 focus:border-[#4C9AFF] outline-none transition-all"
-                            >
-                                <option value="">No Project</option>
-                                {projects.map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
-                            </select>
+                            <div className="relative">
+                                <select
+                                    {...register('projectId')}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
+                                >
+                                    <option value="" className="bg-[#191919]">No Project</option>
+                                    {projects.map(p => (
+                                        <option key={p.id} value={p.id} className="bg-[#191919]">{p.name}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
                         {/* Assignee */}
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
-                                <UserIcon className="w-3 h-3" /> Assign To
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <UserIcon className="w-3 h-3 text-purple-400" /> Assignee
                             </label>
-                            <select
-                                {...register('assignedToId')}
-                                className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#4C9AFF]/20 focus:border-[#4C9AFF] outline-none transition-all"
-                            >
-                                <option value="">Select Member...</option>
-                                <option value={(session?.user as any)?.id}>Me (Self)</option>
-                                {teamMembers.map(u => (
-                                    <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
-                                ))}
-                            </select>
-                            {errors.assignedToId && <p className="text-xs text-red-500">{errors.assignedToId.message}</p>}
+                            <div className="relative">
+                                <select
+                                    {...register('assignedToId')}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
+                                >
+                                    <option value="" className="bg-[#191919]">Select Member...</option>
+                                    <option value={(session?.user as any)?.id} className="bg-[#191919]">Assign to Me</option>
+                                    {teamMembers.map(u => (
+                                        <option key={u.id} value={u.id} className="bg-[#191919]">{u.name} ({u.role})</option>
+                                    ))}
+                                </select>
+                                {errors.assignedToId && <p className="text-[10px] font-bold text-red-400 uppercase mt-1">{errors.assignedToId.message}</p>}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-6">
                         {/* Deadline */}
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
-                                <Calendar className="w-3 h-3" /> Due Date
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <Calendar className="w-3 h-3 text-green-400" /> Due Date
                             </label>
                             <input
                                 type="date"
                                 {...register('deadline')}
-                                className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#4C9AFF]/20 focus:border-[#4C9AFF] outline-none transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all cursor-pointer text-sm font-medium [color-scheme:dark]"
                             />
                         </div>
 
                         {/* Category */}
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-[#6B778C] uppercase">Category</label>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <Flag className="w-3 h-3 text-yellow-400" /> Category
+                            </label>
                             <select
                                 {...register('category')}
-                                className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#4C9AFF]/20 focus:border-[#4C9AFF] outline-none transition-all"
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
                             >
-                                <option value="EUSAI_AGREEMENT">EUSAI Agreement</option>
-                                <option value="SPORTS_LOGO">Sports Logo Agreement</option>
-                                <option value="MOU">MOU</option>
-                                <option value="BUSINESS_ORDER">Business Order</option>
-                                <option value="CUSTOM">Custom Task</option>
+                                <option value="EUSAI_AGREEMENT" className="bg-[#191919]">EUSAI Agreement</option>
+                                <option value="SPORTS_LOGO" className="bg-[#191919]">Sports Logo Agreement</option>
+                                <option value="MOU" className="bg-[#191919]">MOU Integration</option>
+                                <option value="BUSINESS_ORDER" className="bg-[#191919]">Business Order</option>
+                                <option value="CUSTOM" className="bg-[#191919]">Custom Task</option>
                             </select>
                         </div>
                     </div>
 
-                    {/* Priority */}
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
-                            <Flag className="w-3 h-3" /> Priority
-                        </label>
-                        <select
-                            {...register('priority')}
-                            className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#4C9AFF]/20 focus:border-[#4C9AFF] outline-none transition-all"
-                        >
-                            <option value="1">Low</option>
-                            <option value="2">Medium</option>
-                            <option value="3">High</option>
-                        </select>
-                    </div>
+                    {/* Form Controls */}
+                    <div className="flex items-center justify-between pt-6 border-t border-[rgba(255,255,255,0.06)]">
+                        {/* Priority Section */}
+                        <div className="flex items-center gap-4">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Priority:</label>
+                            <div className="flex gap-2">
+                                {[
+                                    { val: '1', label: 'Low', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+                                    { val: '2', label: 'Med', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
+                                    { val: '3', label: 'High', color: 'bg-red-500/20 text-red-400 border-red-500/30' }
+                                ].map(p => (
+                                    <button
+                                        key={p.val}
+                                        type="button"
+                                        onClick={() => setValue('priority', p.val)}
+                                        className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase border transition-all ${watch('priority') === p.val
+                                                ? `${p.color} ring-2 ring-white/10 scale-105 shadow-lg`
+                                                : 'bg-white/5 text-gray-500 border-white/5 hover:bg-white/10'
+                                            }`}
+                                    >
+                                        {p.label}
+                                    </button>
+                                ))}
+                            </div>
+                            <input type="hidden" {...register('priority')} />
+                        </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#DFE1E6]">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 text-sm font-medium text-[#42526E] hover:bg-gray-100 rounded transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="px-6 py-2 text-sm font-medium text-white bg-[#0052CC] hover:bg-[#0065FF] rounded shadow-sm disabled:opacity-50 transition-colors flex items-center gap-2"
-                        >
-                            {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                            Create Task
-                        </button>
+                        <div className="flex items-center gap-4">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="px-6 py-2.5 text-xs font-bold text-gray-400 hover:text-white transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="relative group px-8 py-2.5 bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-900/20 disabled:opacity-50 transition-all flex items-center gap-2 overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                                {isSubmitting ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Plus className="w-4 h-4" />
+                                )}
+                                {isSubmitting ? 'Synchronizing...' : 'Initialize Task'}
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

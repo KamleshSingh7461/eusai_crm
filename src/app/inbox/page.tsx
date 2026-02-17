@@ -1,7 +1,8 @@
 "use client";
 
-import { Inbox, Bell, MessageSquare, CheckCircle2, Filter, AlertCircle, Clock, Search, Loader2 } from 'lucide-react';
+import { Inbox, Bell, CheckCircle2, AlertCircle, Clock, Search, Loader2, ArrowRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -16,20 +17,10 @@ interface Notification {
     link?: string;
 }
 
-interface Message {
-    id: string;
-    content: string;
-    senderName: string;
-    senderRole?: string;
-    type: 'TEXT' | 'SYSTEM' | 'ALERT' | 'FILE';
-    createdAt: string;
-    isMe: boolean;
-}
-
 // Unified Inbox Item
 interface InboxItemData {
     id: string;
-    type: 'notification' | 'message' | 'alert';
+    type: 'notification' | 'alert';
     title: string;
     message: string;
     time: string;
@@ -40,7 +31,6 @@ interface InboxItemData {
 }
 
 export default function InboxPage() {
-    const [activeTab, setActiveTab] = useState<'all' | 'notifications' | 'messages'>('all');
     const [searchQuery, setSearchQuery] = useState('');
 
     // State for data
@@ -53,14 +43,8 @@ export default function InboxPage() {
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                // Parallel fetching
-                const [notifRes, msgRes] = await Promise.all([
-                    fetch('/api/notifications'),
-                    fetch('/api/messages?channelId=global-announcements') // Fetch announcements as "messages" for now
-                ]);
-
+                const notifRes = await fetch('/api/notifications');
                 const notifData = await notifRes.json();
-                const msgData = await msgRes.json();
 
                 // Process Notifications
                 const notifications: InboxItemData[] = (notifData.notifications || []).map((n: Notification) => ({
@@ -75,24 +59,7 @@ export default function InboxPage() {
                     link: n.link
                 }));
 
-                // Process Messages (Announcements)
-                const messages: InboxItemData[] = (Array.isArray(msgData) ? msgData : []).map((m: Message) => ({
-                    id: m.id,
-                    type: m.type === 'ALERT' ? 'alert' : 'message',
-                    title: m.senderName || 'Announcement',
-                    message: m.content,
-                    time: formatDistanceToNow(new Date(m.createdAt), { addSuffix: true }),
-                    timestamp: new Date(m.createdAt),
-                    unread: false, // Messages don't have read status index yet
-                    sender: m.senderName,
-                }));
-
-                // Combine and Sort
-                const combined = [...notifications, ...messages].sort((a, b) =>
-                    b.timestamp.getTime() - a.timestamp.getTime()
-                );
-
-                setInboxItems(combined);
+                setInboxItems(notifications.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime()));
                 setUnreadCount(notifData.unreadCount || 0);
 
             } catch (error) {
@@ -106,17 +73,12 @@ export default function InboxPage() {
     }, []);
 
     const filteredItems = inboxItems.filter(item => {
-        // Filter by tab
-        if (activeTab === 'notifications' && item.type === 'message') return false;
-        if (activeTab === 'messages' && item.type !== 'message') return false;
-
         // Filter by search
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             return (
                 item.title.toLowerCase().includes(query) ||
-                item.message.toLowerCase().includes(query) ||
-                (item.sender && item.sender.toLowerCase().includes(query))
+                item.message.toLowerCase().includes(query)
             );
         }
         return true;
@@ -129,7 +91,7 @@ export default function InboxPage() {
                 body: JSON.stringify({ markAll: true })
             });
             // Optimistic update
-            setInboxItems(prev => prev.map(i => i.type === 'notification' || i.type === 'alert' ? { ...i, unread: false } : i));
+            setInboxItems(prev => prev.map(i => ({ ...i, unread: false })));
             setUnreadCount(0);
         } catch (error) {
             console.error("Failed to mark all read", error);
@@ -149,7 +111,7 @@ export default function InboxPage() {
                             </span>
                         )}
                     </h1>
-                    <p className="text-subheading text-sm">Manage your notifications and messages.</p>
+                    <p className="text-subheading text-sm">Manage your notifications and alerts.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <button
@@ -163,36 +125,13 @@ export default function InboxPage() {
                         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-subheading" />
                         <input
                             type="text"
-                            placeholder="Search inbox..."
+                            placeholder="Search notifications..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="pl-9 pr-4 py-1.5 text-sm bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-md focus:ring-1 focus:ring-[var(--notion-border-active)] focus:outline-none placeholder:text-subheading w-64 transition-all"
                         />
                     </div>
                 </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex border-b border-[var(--notion-border-default)] gap-6 overflow-x-auto scrollbar-none">
-                {[
-                    { id: 'all', label: 'All', icon: Inbox },
-                    { id: 'notifications', label: 'Notifications', icon: Bell },
-                    { id: 'messages', label: 'Messages', icon: MessageSquare },
-                ].map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
-                        className={cn(
-                            "pb-3 text-sm font-medium flex items-center gap-2 transition-all border-b-2 whitespace-nowrap",
-                            activeTab === tab.id
-                                ? "text-heading border-heading"
-                                : "text-subheading border-transparent hover:text-heading hover:border-[var(--notion-border-default)]"
-                        )}
-                    >
-                        <tab.icon className="w-4 h-4" />
-                        {tab.label}
-                    </button>
-                ))}
             </div>
 
             {/* Mobile Search - Visible only on mobile */}
@@ -232,24 +171,24 @@ export default function InboxPage() {
 }
 
 function InboxItem({ item }: { item: InboxItemData }) {
-    const getIcon = () => {
-        switch (item.type) {
-            case 'notification': return Bell;
-            case 'message': return MessageSquare;
-            case 'alert': return AlertCircle;
-            default: return Inbox;
+    const Icon = item.type === 'alert' ? AlertCircle : Bell;
+    const router = useRouter();
+
+    const handleClick = () => {
+        if (item.link) {
+            router.push(item.link);
         }
     };
 
-    const Icon = getIcon();
-
     return (
-        <div className={cn(
-            "group p-4 border border-[var(--notion-border-default)] rounded-lg transition-all cursor-pointer relative overflow-hidden",
-            item.unread
-                ? "bg-[var(--notion-bg-secondary)] border-l-4 border-l-blue-500 shadow-sm"
-                : "bg-[var(--notion-bg-primary)] hover:bg-[var(--notion-bg-secondary)] opacity-80 hover:opacity-100"
-        )}>
+        <div
+            onClick={handleClick}
+            className={cn(
+                "group p-4 border border-[var(--notion-border-default)] rounded-lg transition-all cursor-pointer relative overflow-hidden",
+                item.unread
+                    ? "bg-[var(--notion-bg-secondary)] border-l-4 border-l-blue-500 shadow-sm"
+                    : "bg-[var(--notion-bg-primary)] hover:bg-[var(--notion-bg-secondary)] opacity-80 hover:opacity-100"
+            )}>
             <div className="flex items-start gap-4">
                 <div className={cn(
                     "p-2 rounded-md flex-shrink-0",
@@ -262,7 +201,7 @@ function InboxItem({ item }: { item: InboxItemData }) {
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
                         <h3 className={cn(
-                            "text-sm font-medium truncate pr-2",
+                            "text-sm font-medium truncate pr-2 group-hover:text-blue-500 transition-colors",
                             item.unread ? "text-heading" : "text-[var(--notion-text-primary)]"
                         )}>
                             {item.title}
@@ -277,6 +216,13 @@ function InboxItem({ item }: { item: InboxItemData }) {
                         <span className="font-medium text-heading mr-1">{item.sender}:</span>
                         {item.message}
                     </p>
+
+                    {item.link && (
+                        <div className="mt-2 flex items-center gap-1 text-xs text-blue-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span>View details</span>
+                            <ArrowRight className="w-3 h-3" />
+                        </div>
+                    )}
                 </div>
 
                 {item.unread && (

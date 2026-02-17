@@ -129,7 +129,7 @@ function ProjectCard({ project, userRole, onDelete, onClick }: ProjectCardProps)
                                 project.status === 'MONITORING' ? "bg-orange-500/20 text-orange-400" :
                                     "bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.7)]"
                     )}>
-                        {project.status}
+                        {project.status === 'CLOSED' ? 'COMPLETED' : project.status}
                     </span>
                     <div className="text-[10px] font-medium text-[rgba(255,255,255,0.5)] flex items-center gap-1">
                         <Clock className="w-3 h-3" />

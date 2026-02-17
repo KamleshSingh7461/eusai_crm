@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import { X, Flag } from 'lucide-react';
+import { X, Flag, Briefcase, Plus, Trash2, Layout, Calendar, AlertCircle } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
 interface CreateMilestoneModalProps {
@@ -193,184 +193,244 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300 p-4">
+            <div className="relative bg-[#191919]/95 border border-[rgba(255,255,255,0.08)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+                {/* Glossy background detail */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl -ml-24 -mb-24 pointer-events-none" />
+
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-[#DFE1E6] bg-slate-50">
-                    <div>
-                        <h2 className="text-xl font-bold text-[#172B4D]">Strategic Deliverables</h2>
-                        <p className="text-xs text-[#6B778C] mt-1">Assign multiple milestones for this team member</p>
+                <div className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-[rgba(255,255,255,0.06)]">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0052CC] to-[#0747A6] flex items-center justify-center shadow-lg shadow-blue-900/20">
+                            <Layout className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-white tracking-tight">Strategic Deliverables</h2>
+                            <p className="text-xs text-gray-400 font-medium">Define high-impact milestones and objectives</p>
+                        </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-[#6B778C] hover:text-[#172B4D] hover:bg-slate-200 rounded-lg transition-all"
+                        className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-8">
-                    {/* Global Settings */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                        {isLoadingUsers ? (
-                            <div className="text-sm text-[#6B778C] flex items-center gap-2">
-                                <span className="animate-spin text-blue-600">🌀</span> Loading available juniors...
-                            </div>
-                        ) : (
-                            <Select
-                                label="Assign All To *"
-                                value={ownerId}
-                                onChange={(e) => setOwnerId(e.target.value)}
-                                required
-                                options={[
-                                    { value: '', label: 'Select Assignee...' },
-                                    ...users.map(user => ({
-                                        value: user.id,
-                                        label: `${user.name || user.email} (${user.role})`
-                                    }))
-                                ]}
-                            />
-                        )}
+                <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto p-8 space-y-8 scrollbar-thin scrollbar-thumb-white/10">
 
-                        {isLoadingProjects ? (
-                            <div className="text-sm text-[#6B778C] flex items-center gap-2">
-                                <span className="animate-spin text-blue-600">🌀</span> Loading projects...
-                            </div>
-                        ) : (
-                            <Select
-                                label="Link Project (Optional)"
-                                value={projectId}
-                                onChange={(e) => setProjectId(e.target.value)}
-                                options={[
-                                    { value: '', label: 'Select Project...' },
-                                    ...projects.map(project => ({
-                                        value: project.id,
-                                        label: project.name
-                                    }))
-                                ]}
-                            />
-                        )}
+                    {/* Global Settings */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-white/5 border border-white/10 rounded-2xl">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                Assign All To
+                            </label>
+                            {isLoadingUsers ? (
+                                <div className="h-11 flex items-center text-xs text-gray-500 gap-2">
+                                    <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                    Synchronizing Member List...
+                                </div>
+                            ) : (
+                                <select
+                                    value={ownerId}
+                                    onChange={(e) => setOwnerId(e.target.value)}
+                                    required
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
+                                >
+                                    <option value="" className="bg-[#191919]">Select Assignee...</option>
+                                    {users.map(user => (
+                                        <option key={user.id} value={user.id} className="bg-[#191919]">
+                                            {user.name || user.email} ({user.role})
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                Project Context
+                            </label>
+                            {isLoadingProjects ? (
+                                <div className="h-11 flex items-center text-xs text-gray-500 gap-2">
+                                    <span className="w-4 h-4 border-2 border-[#0052CC] border-t-transparent rounded-full animate-spin" />
+                                    Fetching Projects...
+                                </div>
+                            ) : (
+                                <select
+                                    value={projectId}
+                                    onChange={(e) => setProjectId(e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
+                                >
+                                    <option value="" className="bg-[#191919]">Link Project (Optional)</option>
+                                    {projects.map(project => (
+                                        <option key={project.id} value={project.id} className="bg-[#191919]">
+                                            {project.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="h-px bg-[#DFE1E6]" />
-
-                    {/* Milestone List */}
+                    {/* Milestone Entries */}
                     <div className="space-y-12">
                         {entries.map((entry, index) => (
-                            <div key={entry.id} className="relative space-y-6 pt-4">
-                                {entries.length > 1 && (
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-black text-blue-600 uppercase tracking-widest italic">Milestone #{index + 1}</span>
+                            <div key={entry.id} className="relative p-6 bg-white/5 border border-white/10 rounded-2xl group animate-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-[10px] font-bold text-white border border-white/10">
+                                            {index + 1}
+                                        </div>
+                                        <h3 className="text-xs font-bold text-white uppercase tracking-widest">Milestone Objective</h3>
+                                    </div>
+                                    {entries.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => removeEntry(entry.id)}
-                                            className="text-xs text-red-500 hover:text-red-700 font-bold"
+                                            className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
                                         >
-                                            Remove Entry
+                                            <Trash2 className="w-4 h-4" />
                                         </button>
-                                    </div>
-                                )}
-
-                                <Input
-                                    label="Milestone Title *"
-                                    placeholder="e.g. Sign MOU with University X"
-                                    value={entry.title}
-                                    onChange={(e) => updateEntry(entry.id, 'title', e.target.value)}
-                                    required
-                                />
-
-                                <div>
-                                    <label className="block text-sm font-bold text-[#172B4D] mb-1.5 font-['Outfit']">
-                                        Description
-                                    </label>
-                                    <textarea
-                                        className="w-full px-4 py-3 border border-[#DFE1E6] rounded-lg focus:outline-none focus:border-[#0052CC] focus:ring-2 focus:ring-[#0052CC]/20 transition-all text-[#172B4D] min-h-[80px] text-sm"
-                                        placeholder="Add details about deliverables..."
-                                        value={entry.description}
-                                        onChange={(e) => updateEntry(entry.id, 'description', e.target.value)}
-                                    />
+                                    )}
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Select
-                                        label="Category *"
-                                        value={entry.category}
-                                        onChange={(e) => updateEntry(entry.id, 'category', e.target.value)}
-                                        options={MILESTONE_CATEGORIES}
-                                        required
-                                    />
-
-                                    {entry.category === 'MOU' && (
-                                        <Select
-                                            label="MOU Type *"
-                                            value={entry.mouType}
-                                            onChange={(e) => updateEntry(entry.id, 'mouType', e.target.value)}
-                                            options={MOU_TYPES.map(type => ({ value: type, label: type }))}
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Title</label>
+                                        <input
+                                            placeholder="e.g. Phase 1 Completion"
+                                            value={entry.title}
+                                            onChange={(e) => updateEntry(entry.id, 'title', e.target.value)}
                                             required
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-medium"
                                         />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Description</label>
+                                        <textarea
+                                            placeholder="Mission critical deliverables..."
+                                            value={entry.description}
+                                            onChange={(e) => updateEntry(entry.id, 'description', e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-none font-medium leading-relaxed min-h-[100px]"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Category</label>
+                                            <select
+                                                value={entry.category}
+                                                onChange={(e) => updateEntry(entry.id, 'category', e.target.value)}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white transition-all appearance-none cursor-pointer text-sm font-medium"
+                                            >
+                                                {MILESTONE_CATEGORIES.map(c => (
+                                                    <option key={c.value} value={c.value} className="bg-[#191919]">{c.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Target Date</label>
+                                            <input
+                                                type="date"
+                                                value={entry.targetDate}
+                                                onChange={(e) => updateEntry(entry.id, 'targetDate', e.target.value)}
+                                                required
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white transition-all cursor-pointer text-sm font-medium [color-scheme:dark]"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Sub-selectors */}
+                                    {entry.category === 'MOU' && (
+                                        <div className="space-y-2 animate-in fade-in duration-300">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">MOU Type</label>
+                                            <select
+                                                value={entry.mouType}
+                                                onChange={(e) => updateEntry(entry.id, 'mouType', e.target.value)}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none cursor-pointer text-sm font-medium"
+                                            >
+                                                <option value="" className="bg-[#191919]">Select MOU Type...</option>
+                                                {MOU_TYPES.map(type => <option key={type} value={type} className="bg-[#191919]">{type}</option>)}
+                                            </select>
+                                        </div>
                                     )}
 
                                     {entry.category === 'BUSINESS_ORDER' && (
-                                        <>
-                                            <Input
-                                                label="University Name *"
-                                                placeholder="Enter university"
-                                                value={entry.universityName}
-                                                onChange={(e) => updateEntry(entry.id, 'universityName', e.target.value)}
-                                                required
-                                            />
-                                            <Select
-                                                label="Order Type *"
-                                                value={entry.orderType}
-                                                onChange={(e) => updateEntry(entry.id, 'orderType', e.target.value)}
-                                                options={BUSINESS_ORDER_TYPES.map(type => ({ value: type, label: type }))}
-                                                required
-                                            />
-                                        </>
+                                        <div className="grid grid-cols-2 gap-6 animate-in fade-in duration-300">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">University Name</label>
+                                                <input
+                                                    placeholder="Enter university..."
+                                                    value={entry.universityName}
+                                                    onChange={(e) => updateEntry(entry.id, 'universityName', e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-medium"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Order Type</label>
+                                                <select
+                                                    value={entry.orderType}
+                                                    onChange={(e) => updateEntry(entry.id, 'orderType', e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none cursor-pointer text-sm font-medium"
+                                                >
+                                                    <option value="" className="bg-[#191919]">Select Order Type...</option>
+                                                    {BUSINESS_ORDER_TYPES.map(type => <option key={type} value={type} className="bg-[#191919]">{type}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
                                     )}
 
-                                    <Select
-                                        label="Priority *"
-                                        value={entry.priority}
-                                        onChange={(e) => updateEntry(entry.id, 'priority', e.target.value)}
-                                        options={[
-                                            { value: 'LOW', label: 'Low' },
-                                            { value: 'MEDIUM', label: 'Medium' },
-                                            { value: 'HIGH', label: 'High' },
-                                            { value: 'CRITICAL', label: 'Critical' }
-                                        ]}
-                                        required
-                                    />
+                                    <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
+                                        <div className="flex items-center gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Priority</label>
+                                                <div className="flex gap-2">
+                                                    {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map(p => (
+                                                        <button
+                                                            key={p}
+                                                            type="button"
+                                                            onClick={() => updateEntry(entry.id, 'priority', p)}
+                                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all border ${entry.priority === p
+                                                                ? 'bg-[#0052CC] border-blue-500 text-white shadow-lg shadow-blue-900/40 scale-105'
+                                                                : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10'
+                                                                }`}
+                                                        >
+                                                            {p}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
 
-                                    <Input
-                                        type="date"
-                                        label="Target Date *"
-                                        value={entry.targetDate}
-                                        onChange={(e) => updateEntry(entry.id, 'targetDate', e.target.value)}
-                                        required
-                                    />
-                                </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => updateEntry(entry.id, 'isFlagged', !entry.isFlagged)}
+                                            className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${entry.isFlagged
+                                                ? 'bg-red-500/20 border-red-500/30 text-red-400 shadow-lg shadow-red-900/20'
+                                                : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10'
+                                                }`}
+                                        >
+                                            <Flag className={`w-4 h-4 ${entry.isFlagged ? 'fill-red-400' : ''}`} />
+                                            <span className="text-[10px] font-bold uppercase tracking-widest">Attention</span>
+                                        </button>
+                                    </div>
 
-                                <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
-                                    <label className="flex items-center gap-2 cursor-pointer mb-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={entry.isFlagged}
-                                            onChange={(e) => updateEntry(entry.id, 'isFlagged', e.target.checked)}
-                                            className="w-4 h-4 text-[#0052CC] border-gray-300 rounded focus:ring-[#0052CC]"
-                                        />
-                                        <Flag className={entry.isFlagged ? "w-4 h-4 text-red-500 fill-red-500" : "w-4 h-4 text-gray-400"} />
-                                        <span className="text-sm font-bold text-amber-900">Attention Needed</span>
-                                    </label>
-                                    <Input
-                                        placeholder="Flag reason..."
-                                        value={entry.remarks}
-                                        onChange={(e) => updateEntry(entry.id, 'remarks', e.target.value)}
-                                        disabled={!entry.isFlagged}
-                                    />
+                                    {entry.isFlagged && (
+                                        <div className="animate-in slide-in-from-top-2 duration-300">
+                                            <input
+                                                placeholder="Describe the critical concern..."
+                                                value={entry.remarks}
+                                                onChange={(e) => updateEntry(entry.id, 'remarks', e.target.value)}
+                                                className="w-full bg-red-500/5 border border-red-500/20 rounded-xl px-4 py-3 text-red-200 placeholder:text-red-900/50 text-sm italic"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
-                                {index < entries.length - 1 && <div className="h-px bg-slate-100" />}
                             </div>
                         ))}
                     </div>
@@ -378,29 +438,31 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                     <button
                         type="button"
                         onClick={addEntry}
-                        className="w-full py-4 border-2 border-dashed border-slate-200 rounded-xl text-[#0052CC] hover:bg-blue-50 hover:border-blue-300 transition-all font-bold text-sm flex items-center justify-center gap-2 group"
+                        className="w-full py-6 bg-white/5 border-2 border-dashed border-white/10 rounded-2xl text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3 group"
                     >
-                        <span className="text-lg group-hover:scale-125 transition-transform">+</span> Add Another Milestone for this Employee
+                        <Plus className="w-5 h-5 group-hover:scale-125 transition-transform" />
+                        Add New Objective to Workspace
                     </button>
 
-                    {/* Actions */}
-                    <div className="flex justify-end gap-3 pt-6 border-t border-[#DFE1E6] sticky bottom-0 bg-white pb-2 z-10">
-                        <Button
+                    {/* Footer Actions */}
+                    <div className="flex justify-end gap-6 pt-8 border-t border-[rgba(255,255,255,0.06)] sticky bottom-0 bg-[#191919] pb-0 mt-8 z-10 box-content">
+                        <button
                             type="button"
-                            variant="secondary"
                             onClick={onClose}
-                            className="bg-slate-100 hover:bg-slate-200 border-none px-6"
+                            className="px-6 py-3 text-xs font-bold text-gray-400 hover:text-white transition-colors"
                         >
-                            Cancel
-                        </Button>
-                        <Button
+                            Abort Changes
+                        </button>
+                        <button
                             type="submit"
-                            variant="primary"
-                            isLoading={isSubmitting}
-                            className="bg-[#0052CC] hover:bg-[#0747A6] px-8 shadow-lg shadow-blue-600/20"
+                            disabled={isSubmitting}
+                            className="relative group px-10 py-3 bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-bold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden"
                         >
-                            {entries.length > 1 ? `Create ${entries.length} Milestones` : 'Create Milestone'}
-                        </Button>
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                            <span className="relative z-10">
+                                {isSubmitting ? 'Synchronizing...' : (entries.length > 1 ? `Execute ${entries.length} Deployments` : 'Initialize Milestone')}
+                            </span>
+                        </button>
                     </div>
                 </form>
             </div>

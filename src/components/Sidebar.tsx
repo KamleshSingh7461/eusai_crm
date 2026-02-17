@@ -8,8 +8,6 @@ import {
     CheckSquare,
     FileText,
     Home,
-    MessageSquare,
-    Settings,
     Users,
     User,
     Plus,
@@ -38,7 +36,8 @@ import {
     Library as LibraryIcon,
     FileEdit,
     Zap,
-    StickyNote
+    StickyNote,
+    AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSpace } from '@/context/SpaceContext';
@@ -75,7 +74,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
     const canManageTeam = ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole);
     const canCreateSpace = ['DIRECTOR', 'MANAGER'].includes(userRole);
 
-    const canViewAnalytics = ['DIRECTOR', 'MANAGER'].includes(userRole);
+
     const canViewResources = ['DIRECTOR', 'MANAGER'].includes(userRole);
 
     const handleCreateSpace = async (e: React.FormEvent) => {
@@ -110,6 +109,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
         { name: 'Meetings', href: '/meetings', icon: Video },
         { name: 'EUSAI AI', href: '/ai-assistant', icon: Sparkles },
         { name: 'Inbox', href: '/inbox', icon: InboxIcon },
+        { name: 'Issues', href: '/issues', icon: AlertTriangle },
         { name: 'Library', href: '/library', icon: LibraryIcon },
         { name: 'Report', href: '/reports', icon: Table },
         { name: 'Recents', href: '/recent', icon: Clock },
@@ -122,10 +122,10 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
     return (
         <>
             <aside className={cn(
-                "bg-[#191919] h-screen flex flex-col p-0 border-r border-[#2f2f2f] transition-all duration-300 ease-in-out overscroll-contain",
+                "h-screen flex flex-col p-0 border-r border-[#2f2f2f] transition-all duration-300 ease-in-out overscroll-contain backdrop-blur-xl bg-[#191919]/90 supports-[backdrop-filter]:bg-[#191919]/80",
                 isCollapsed ? "w-16" : "w-60"
             )}>
-                <div className={cn("flex flex-col mb-4", isCollapsed ? "p-2" : "pt-3 px-4 pb-2")}>
+                <div className={cn("flex flex-col mb-4", isCollapsed ? "pt-3 px-2 pb-2" : "pt-3 px-4 pb-2")}>
                     <div className="flex items-center justify-between">
                         <div />
 
@@ -134,7 +134,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                 onClick={toggleSidebar}
                                 className={cn(
                                     "text-[rgba(255,255,255,0.6)] p-1 h-8 w-8 hover:bg-[#2c2c2c] rounded-sm transition-transform hidden lg:flex items-center justify-center",
-                                    isCollapsed ? "absolute -right-3 top-4 bg-[#191919] border border-[#2f2f2f] rounded-full p-0.5 shadow-sm rotate-180" : ""
+                                    isCollapsed ? "absolute -right-3 top-14 bg-[#191919] border border-[#2f2f2f] rounded-full p-0.5 shadow-sm rotate-180" : ""
                                 )}
                             >
                                 <ChevronLeft className="w-4 h-4" />
@@ -150,14 +150,15 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                         </div>
                     </div>
 
-                    {!isCollapsed && (
-                        <div className="flex items-center gap-3 px-2 py-1 rounded-sm hover:bg-[#2c2c2c] cursor-pointer mb-2">
-                            <div className="w-15 h-15 rounded-md bg-[#0f0f0f] border border-[#2f2f2f] flex items-center justify-center overflow-hidden flex-shrink-0 shadow-sm">
-                                <img src="/EUSAI-LOGO.png" alt="EUSAI" className="w-full h-full object-contain p-1" />
-                            </div>
-                            <span className="font-bold text-base text-[rgba(255,255,255,0.9)] whitespace-nowrap tracking-tight">EUSAI TEAM</span>
+                    {/* Logo Section */}
+                    <div className={cn("flex items-center gap-3 px-2 py-1 mb-2 transition-all duration-300", isCollapsed ? "justify-center" : "")}>
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                            <img src="/EUSAI-LOGO.png" alt="EUSAI" className="w-full h-full object-contain" />
                         </div>
-                    )}
+                        {!isCollapsed && (
+                            <span className="font-bold text-base text-[rgba(255,255,255,0.9)] whitespace-nowrap tracking-tight animate-in fade-in duration-300">EUSAI TEAM</span>
+                        )}
+                    </div>
                 </div>
 
                 <nav
@@ -295,18 +296,6 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                     </div>
                                 </ExpandableSection>
 
-                                {/* Messages */}
-                                <Link
-                                    href="/messages"
-                                    onClick={closeMobileMenu}
-                                    className={cn(
-                                        "sidebar-link-eusai text-xs pl-6",
-                                        pathname === '/messages' && "active"
-                                    )}
-                                >
-                                    <MessageSquare className={cn("w-3.5 h-3.5 flex-shrink-0", pathname === '/messages' ? "text-[#0052CC]" : "text-[#6B778C]")} />
-                                    <span className="whitespace-nowrap">Messages</span>
-                                </Link>
 
                                 {/* Notes Maker */}
                                 <Link
@@ -384,32 +373,9 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                     {/* Additional Sections based on Role */}
                     {!isCollapsed && (
                         <div className="pt-4 border-t border-[#EBECF0] space-y-0.5">
-                            {canViewAnalytics && (
-                                <Link
-                                    href="/analytics"
-                                    onClick={closeMobileMenu}
-                                    className={cn(
-                                        "sidebar-link-eusai",
-                                        pathname === '/analytics' && "active"
-                                    )}
-                                >
-                                    <BarChart3 className={cn("w-4 h-4 flex-shrink-0", pathname === '/analytics' ? "text-[#0052CC]" : "text-[#42526E]")} />
-                                    <span className="whitespace-nowrap">Analytics</span>
-                                </Link>
-                            )}
+
                             {canViewResources && (
                                 <>
-                                    <Link
-                                        href="/issues"
-                                        onClick={closeMobileMenu}
-                                        className={cn(
-                                            "sidebar-link-eusai",
-                                            pathname === '/issues' && "active"
-                                        )}
-                                    >
-                                        <FileText className={cn("w-4 h-4 flex-shrink-0", pathname === '/issues' ? "text-[#0052CC]" : "text-[#42526E]")} />
-                                        <span className="whitespace-nowrap">Issues</span>
-                                    </Link>
                                     <Link
                                         href="/resources"
                                         onClick={closeMobileMenu}
@@ -470,7 +436,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                         {session?.user && (
                             <div className={cn("rounded-sm transition-colors", isCollapsed ? "p-1 flex justify-center hover:bg-[#2c2c2c]" : "px-3 py-2")}>
                                 <div className={cn("flex items-center gap-2", !isCollapsed && "mb-1")}>
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs overflow-hidden flex-shrink-0">
+                                    <div className="w-8 h-8 rounded-full bg-[#191919] border border-[rgba(255,255,255,0.1)] flex items-center justify-center text-white font-bold text-xs overflow-hidden flex-shrink-0">
                                         {(session.user as any).image ? <img src={(session.user as any).image} alt="" className="w-full h-full object-cover" /> : (session.user.name?.charAt(0) || 'U').toUpperCase()}
                                     </div>
                                     {!isCollapsed && (

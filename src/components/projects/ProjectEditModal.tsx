@@ -89,7 +89,7 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
                                         : 'bg-[var(--notion-bg-tertiary)] border-[var(--notion-border-default)] text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]'
                                         }`}
                                 >
-                                    {s}
+                                    {s === 'CLOSED' ? 'COMPLETED' : s}
                                 </button>
                             ))}
                         </div>

@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,13 +11,24 @@ import {
     Loader2
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { cn } from '@/lib/utils';
 
 const issueSchema = z.object({
     title: z.string().min(3, 'Summary is required'),
+    description: z.string().optional(),
     projectId: z.string().optional().or(z.literal('')),
     severity: z.string().min(1, 'Severity is required'),
     owner: z.string().min(1, 'Assignee/Owner is required'),
-    status: z.string().optional().or(z.literal('OPEN'))
+    status: z.string().optional().or(z.literal('OPEN')),
+    resolution: z.string().optional()
+}).refine(data => {
+    if (['CLOSED', 'RESOLVED'].includes(data.status || '') && (!data.resolution || data.resolution.length < 5)) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Resolution remarks are required when closing (min 5 chars)",
+    path: ["resolution"]
 });
 
 type IssueFormValues = z.infer<typeof issueSchema>;
@@ -41,7 +50,7 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoadingData, setIsLoadingData] = useState(false);
 
-    const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<IssueFormValues>({
+    const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<IssueFormValues>({
         resolver: zodResolver(issueSchema),
         defaultValues: {
             severity: 'MEDIUM',
@@ -50,14 +59,18 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
         }
     });
 
+    const statusObj = watch('status');
+
     useEffect(() => {
         if (initialData) {
             reset({
                 title: initialData.title,
+                description: initialData.description || '',
                 projectId: initialData.projectId || '',
                 severity: initialData.severity,
                 owner: initialData.owner,
-                status: initialData.status
+                status: initialData.status,
+                resolution: initialData.resolution || ''
             });
         }
     }, [initialData, reset]);
@@ -108,42 +121,54 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 border border-[#DFE1E6]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-[#2f3437] rounded-lg shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 border border-[rgba(255,255,255,0.08)] max-h-[90vh] overflow-y-auto">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-[#DFE1E6]">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(255,255,255,0.08)] bg-[#2b3033]">
                     <div className="flex items-center gap-2">
-                        <AlertTriangle className="w-5 h-5 text-[#DE350B]" />
-                        <h2 className="text-lg font-bold text-[#172B4D]">{initialData ? 'Update Issue' : 'Report New Impediment'}</h2>
+                        <h2 className="text-lg font-bold text-[rgba(255,255,255,0.9)] tracking-tight">
+                            {initialData ? 'Update Issue' : 'Report Impediment'}
+                        </h2>
                     </div>
-                    <button onClick={onClose} className="text-[#6B778C] hover:text-[#172B4D] transition-colors">
+                    <button onClick={onClose} className="text-[rgba(255,255,255,0.4)] hover:text-white transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
                     {/* Title */}
                     <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-[#6B778C] uppercase">Summary</label>
+                        <label className="text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-wider">Summary</label>
                         <input
                             {...register('title')}
                             placeholder="Briefly describe the blocker..."
-                            className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#DE350B]/20 focus:border-[#DE350B] outline-none transition-all"
+                            className="w-full bg-[#1D2125] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-[#4C9AFF]/40 focus:border-[#4C9AFF] transition-all"
                         />
-                        {errors.title && <p className="text-xs text-red-500">{errors.title.message}</p>}
+                        {errors.title && <p className="text-xs text-[#FF5630] font-medium mt-1">{errors.title.message}</p>}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Description */}
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-wider">Description</label>
+                        <textarea
+                            {...register('description')}
+                            placeholder="Provide operational context..."
+                            rows={3}
+                            className="w-full bg-[#1D2125] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-[#4C9AFF]/40 focus:border-[#4C9AFF] transition-all resize-y min-h-[80px]"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-5">
                         {/* Project */}
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
-                                <Briefcase className="w-3 h-3" /> Project
+                            <label className="text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-wider flex items-center gap-1.5">
+                                <Briefcase className="w-3 h-3" /> Project Link
                             </label>
                             <select
                                 {...register('projectId')}
-                                className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#DE350B]/20 focus:border-[#DE350B] outline-none transition-all"
+                                className="w-full bg-[#1D2125] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#4C9AFF]/40 focus:border-[#4C9AFF] transition-all appearance-none"
                             >
-                                <option value="">No Project</option>
+                                <option value="">No Linked Project</option>
                                 {projects.map(p => (
                                     <option key={p.id} value={p.id}>{p.name}</option>
                                 ))}
@@ -152,67 +177,82 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
 
                         {/* Owner/Assignee */}
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
-                                <UserIcon className="w-3 h-3" /> Reporter / Owner
+                            <label className="text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-wider flex items-center gap-1.5">
+                                <UserIcon className="w-3 h-3" /> Owner
                             </label>
                             <input
                                 {...register('owner')}
-                                placeholder="Name of owner"
-                                className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#DE350B]/20 focus:border-[#DE350B] outline-none transition-all"
+                                placeholder="Assignee"
+                                className="w-full bg-[#1D2125] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-[#4C9AFF]/40 focus:border-[#4C9AFF] transition-all"
                             />
-                            {errors.owner && <p className="text-xs text-red-500">{errors.owner.message}</p>}
+                            {errors.owner && <p className="text-xs text-[#FF5630] font-medium mt-1">{errors.owner.message}</p>}
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-5">
                         {/* Severity */}
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
-                                <Flag className="w-3 h-3" /> Severity
+                            <label className="text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-wider flex items-center gap-1.5">
+                                <Flag className="w-3 h-3" /> Severity Level
                             </label>
                             <select
                                 {...register('severity')}
-                                className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#DE350B]/20 focus:border-[#DE350B] outline-none transition-all"
+                                className="w-full bg-[#1D2125] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#4C9AFF]/40 focus:border-[#4C9AFF] transition-all appearance-none"
                             >
-                                <option value="CRITICAL">Critical</option>
-                                <option value="HIGH">High</option>
-                                <option value="MEDIUM">Medium</option>
-                                <option value="LOW">Low</option>
+                                <option value="CRITICAL">🔴 Critical Setup</option>
+                                <option value="HIGH">🟠 High Priority</option>
+                                <option value="MEDIUM">🟡 Medium</option>
+                                <option value="LOW">🔵 Low</option>
                             </select>
                         </div>
 
                         {/* Status */}
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
+                            <label className="text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-wider flex items-center gap-1.5">
                                 <AlertTriangle className="w-3 h-3" /> Status
                             </label>
                             <select
                                 {...register('status')}
-                                className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#DE350B]/20 focus:border-[#DE350B] outline-none transition-all"
+                                className="w-full bg-[#1D2125] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#4C9AFF]/40 focus:border-[#4C9AFF] transition-all appearance-none"
                             >
-                                <option value="OPEN">Open</option>
-                                <option value="RESOLVING">Resolving</option>
+                                <option value="OPEN">Open Issue</option>
+                                <option value="RESOLVING">In Progress</option>
+                                <option value="RESOLVED">Resolved</option>
                                 <option value="CLOSED">Closed</option>
                             </select>
                         </div>
                     </div>
 
+                    {/* Resolution Remarks (Conditional) */}
+                    {['CLOSED', 'RESOLVED'].includes(statusObj || '') && (
+                        <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-200 pt-2 border-t border-[rgba(255,255,255,0.08)]">
+                            <label className="text-[10px] font-bold text-[#36B37E] uppercase tracking-wider">Resolution Remarks <span className='text-[#FF5630]'>*</span></label>
+                            <textarea
+                                {...register('resolution')}
+                                placeholder="Details of resolution strategy..."
+                                rows={3}
+                                className="w-full bg-[#1D2125] border border-[#36B37E]/30 rounded-md px-3 py-2.5 text-sm text-white placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-[#36B37E]/40 focus:border-[#36B37E] transition-all resize-y"
+                            />
+                            {errors.resolution && <p className="text-xs text-[#FF5630] font-medium mt-1">{errors.resolution.message}</p>}
+                        </div>
+                    )}
+
                     {/* Actions */}
-                    <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#DFE1E6]">
+                    <div className="flex items-center justify-end gap-3 pt-6 border-t border-[rgba(255,255,255,0.08)]">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-sm font-medium text-[#42526E] hover:bg-gray-100 rounded transition-colors"
+                            className="px-4 py-2 text-sm font-bold text-[rgba(255,255,255,0.5)] hover:text-white hover:bg-[rgba(255,255,255,0.05)] rounded-md transition-colors uppercase tracking-wide"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="px-6 py-2 text-sm font-medium text-white bg-[#DE350B] hover:bg-[#BF2600] rounded shadow-sm disabled:opacity-50 transition-colors flex items-center gap-2"
+                            className="px-6 py-2 text-sm font-bold text-white bg-[#0052CC] hover:bg-[#0065FF] rounded-md shadow-[0_0_15px_rgba(0,82,204,0.3)] disabled:opacity-50 transition-all flex items-center gap-2 uppercase tracking-wide hover:transform hover:scale-105 active:scale-95"
                         >
                             {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                            {initialData ? 'Update Issue' : 'Report Issue'}
+                            {initialData ? 'Update Record' : 'Log Impediment'}
                         </button>
                     </div>
                 </form>

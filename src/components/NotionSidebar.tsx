@@ -8,7 +8,7 @@ import {
     Search,
     Video,
     Sparkles,
-    Inbox,
+
     Library,
     FileText,
     Clock,
@@ -17,7 +17,8 @@ import {
     ChevronRight,
     Plus,
     MoreHorizontal,
-    LogOut
+    LogOut,
+    AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSession, signOut } from 'next-auth/react';
@@ -64,7 +65,8 @@ export default function NotionSidebar({ isCollapsed, toggleSidebar, closeMobileM
         { name: 'Home', href: '/', icon: Home },
         { name: 'Meetings', href: '/meetings', icon: Video },
         { name: 'EUSAI AI', href: '/ai-assistant', icon: Sparkles },
-        { name: 'Inbox', href: '/inbox', icon: Inbox },
+
+        { name: 'Issues', href: '/issues', icon: AlertTriangle },
         { name: 'Library', href: '/library', icon: Library },
     ];
 
