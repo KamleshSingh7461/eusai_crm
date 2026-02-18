@@ -18,6 +18,7 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
         name: project.name,
         description: project.description || '',
         status: project.status,
+
         startDate: project.startDate.split('T')[0],
         endDate: project.endDate.split('T')[0],
     });
@@ -31,7 +32,10 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
             const response = await fetch(`/api/projects/${project.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    ...formData,
+
+                }),
             });
 
             if (response.ok) {
@@ -48,35 +52,57 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-sm w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in duration-200">
-                <div className="p-4 border-b border-[#DFE1E6] flex items-center justify-between">
-                    <h2 className="font-bold text-[#172B4D]">Edit Initiative: {project.name}</h2>
-                    <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-sm">
-                        <X className="w-5 h-5 text-[#6B778C]" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] w-full max-w-2xl rounded-sm shadow-xl animate-in zoom-in-95 duration-200">
+                <div className="flex items-center justify-between p-6 border-b border-[var(--notion-border-default)]">
+                    <div>
+                        <h2 className="text-xl font-bold text-[var(--notion-text-primary)]">Edit Mission Details</h2>
+                        <p className="text-xs text-[var(--notion-text-tertiary)] mt-1">Update core parameters for {project.name}</p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-[var(--notion-bg-tertiary)] rounded-sm text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)] transition-colors"
+                    >
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     <Input
-                        label="Project Name"
+                        label="Mission Name"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
+                        className="bg-[var(--notion-bg-tertiary)] border-[var(--notion-border-default)] text-[var(--notion-text-primary)]"
                     />
 
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-[#6B778C] uppercase tracking-wider">Status</label>
-                        <select
-                            value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                            className="w-full h-10 px-3 bg-white border border-[#DFE1E6] rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#0052CC]"
-                        >
-                            <option value="PLANNING">Planning</option>
-                            <option value="EXECUTION">Execution</option>
-                            <option value="MONITORING">Monitoring</option>
-                            <option value="CLOSED">Closed</option>
-                        </select>
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider">Mission Status</label>
+                        <div className="grid grid-cols-4 gap-2">
+                            {['PLANNING', 'EXECUTION', 'MONITORING', 'CLOSED'].map((s) => (
+                                <button
+                                    key={s}
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, status: s })}
+                                    className={`px-3 py-2 text-xs font-bold rounded-sm border transition-all ${formData.status === s
+                                        ? 'bg-[#2383e2]/20 border-[#2383e2] text-[#2383e2]'
+                                        : 'bg-[var(--notion-bg-tertiary)] border-[var(--notion-border-default)] text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]'
+                                        }`}
+                                >
+                                    {s === 'CLOSED' ? 'COMPLETED' : s}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider">Strategic Objectives</label>
+                        <textarea
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm py-2 px-3 min-h-[100px] text-sm focus:outline-none focus:ring-1 focus:ring-[#2383e2] transition-colors text-[var(--notion-text-primary)] placeholder-[var(--notion-text-disabled)] resize-none"
+                            placeholder="Enter mission description..."
+                        />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -86,30 +112,34 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
                             value={formData.startDate}
                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                             required
+                            className="bg-[var(--notion-bg-tertiary)] border-[var(--notion-border-default)] text-[var(--notion-text-primary)]"
                         />
                         <Input
-                            label="End Date"
+                            label="Target Date"
                             type="date"
                             value={formData.endDate}
                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                             required
+                            className="bg-[var(--notion-bg-tertiary)] border-[var(--notion-border-default)] text-[var(--notion-text-primary)]"
                         />
                     </div>
 
-
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-bold text-[#6B778C] uppercase tracking-wider">Description</label>
-                        <textarea
-                            rows={3}
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full p-3 bg-white border border-[#DFE1E6] rounded-sm text-sm focus:outline-none focus:ring-2 focus:ring-[#0052CC]"
-                        />
-                    </div>
-
-                    <div className="flex justify-end gap-3 pt-4">
-                        <Button variant="secondary" onClick={onClose} type="button">Cancel</Button>
-                        <Button type="submit" isLoading={isLoading}>Save Changes</Button>
+                    <div className="flex justify-end gap-3 pt-4 border-t border-[var(--notion-border-default)]">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={onClose}
+                            className="bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-primary)] hover:bg-[var(--notion-bg-hover)] border-0"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            isLoading={isLoading}
+                            className="bg-[#2383e2] hover:bg-[#1a6fcc] text-white shadow-sm"
+                        >
+                            Save Changes
+                        </Button>
                     </div>
                 </form>
             </div>

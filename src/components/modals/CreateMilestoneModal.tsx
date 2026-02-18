@@ -4,13 +4,14 @@ import React, { useState, useEffect } from 'react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X, Flag, Briefcase, Plus, Trash2, Layout, Calendar, AlertCircle } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
 interface CreateMilestoneModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    defaultProjectId?: string;
 }
 
 interface User {
@@ -18,70 +19,62 @@ interface User {
     email: string;
     name?: string;
     role: string;
+    managerId?: string;
 }
 
-interface MilestoneRow {
-    id: string;
-    title: string;
-    description: string;
-    category: string;
-    mouType: string;
-    universityName: string;
-    priority: string;
-    targetDate: string;
-    assignedTo: string;
-    projectId: string;
-}
-
-const CATEGORIES = [
-    { value: 'EUSAI_MAIN_AGREEMENT', label: 'EUSAI Main Agreement' },
-    { value: 'MOU', label: 'MOU' },
-    { value: 'BUSINESS_ORDER', label: 'Business/Order' },
-    { value: 'UNIVERSITY_SPORTS_LOGO', label: 'University Sports Logo' }
+const MILESTONE_CATEGORIES = [
+    { value: 'EUSAI_AGREEMENT', label: 'EUSAI Agreement' },
+    { value: 'SPORTS_LOGO', label: 'Sports Logo Agreement' },
+    { value: 'MOU', label: "MOU's" },
+    { value: 'BUSINESS_ORDER', label: 'Business Order' },
+    { value: 'CUSTOM', label: 'Custom' }
 ];
 
 const MOU_TYPES = [
-    { value: 'MERCHANDISE_STORE_MOU', label: 'Merchandise Store MOU' },
-    { value: 'SCHOOL_SPIRIT_MOU', label: 'School Spirit Agreement/MOU' },
-    { value: 'FGSN_STUDIO_MOU', label: 'FGSN Studio Agreement/MOU' },
-    { value: 'OUTGOING_PROGRAM_MOU', label: 'Outgoing Program MOU' },
-    { value: 'SCHOLARSHIP_TRANSFER_LETTER', label: 'Scholarship Transfer Letter' },
-    { value: 'ALUMNI_ESTABLISHMENT_MOU', label: 'Alumni Establishment MOU' },
-    { value: 'SCHOLARSHIP_VALUATION_LETTER', label: 'Scholarship Valuation Letter' }
+    "Merchandise Store MOU",
+    "School Spirit Agreement/MOU",
+    "FGSN Studio Agreement/MOU",
+    "Outgoing Program MOU",
+    "Scholarship Transfer Letter",
+    "Alumni Establishment MOU",
+    "Scholarship Valuation Letter"
 ];
 
 const BUSINESS_ORDER_TYPES = [
-    { value: 'OUTGOING_PROGRAM', label: 'Outgoing Program' },
-    { value: 'SCHOOL_SPIRIT', label: 'School Spirit' },
-    { value: 'MERCHANDISE_JERSEY', label: 'Merchandise Jersey' }
+    "School Spirit",
+    "Outgoing Packages",
+    "Merchandise Jersey"
 ];
 
-export default function CreateMilestoneModal({ isOpen, onClose, onSuccess }: CreateMilestoneModalProps) {
+export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defaultProjectId }: CreateMilestoneModalProps) {
     const { data: session } = useSession();
-    const [milestones, setMilestones] = useState<MilestoneRow[]>([createEmptyRow()]);
+    const [entries, setEntries] = useState([{
+        id: crypto.randomUUID(),
+        title: '',
+        description: '',
+        category: 'CUSTOM',
+        mouType: '',
+        universityName: '',
+        orderType: '',
+        targetDate: '',
+        priority: 'MEDIUM',
+        isFlagged: false,
+        remarks: ''
+    }]);
+    const [ownerId, setOwnerId] = useState('');
+    const [projectId, setProjectId] = useState(defaultProjectId || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [users, setUsers] = useState<User[]>([]);
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+    const [projects, setProjects] = useState<any[]>([]);
+    const [isLoadingProjects, setIsLoadingProjects] = useState(false);
 
-    function createEmptyRow(): MilestoneRow {
-        return {
-            id: Math.random().toString(36).substr(2, 9),
-            title: '',
-            description: '',
-            category: 'MOU',
-            mouType: '',
-            universityName: '',
-            priority: 'MEDIUM',
-            targetDate: '',
-            assignedTo: '',
-            projectId: ''
-        };
-    }
+    const currentUser = session?.user as any;
 
-    // Fetch users when modal opens
     useEffect(() => {
         if (isOpen) {
             fetchUsers();
+            fetchProjects();
         }
     }, [isOpen]);
 
@@ -91,16 +84,12 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess }: Cre
             const response = await fetch('/api/users');
             if (response.ok) {
                 const data = await response.json();
-                // Filter users based on hierarchy: Directors/Managers shouldn't see themselves as assignees
-                const currentUserId = (session?.user as any)?.id;
-                const currentUserRole = (session?.user as any)?.role;
-
-                let filteredUsers = data;
-                if (currentUserRole === 'DIRECTOR' || currentUserRole === 'MANAGER') {
-                    filteredUsers = data.filter((u: any) => u.id !== currentUserId);
+                if (currentUser?.role === 'DIRECTOR') {
+                    setUsers(data);
+                } else {
+                    const juniors = data.filter((u: User) => u.managerId === currentUser?.id);
+                    setUsers(juniors);
                 }
-
-                setUsers(filteredUsers);
             }
         } catch (error) {
             console.error('Failed to fetch users:', error);
@@ -109,18 +98,45 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess }: Cre
         }
     };
 
-    const addRow = () => {
-        setMilestones([...milestones, createEmptyRow()]);
-    };
-
-    const removeRow = (id: string) => {
-        if (milestones.length > 1) {
-            setMilestones(milestones.filter(m => m.id !== id));
+    const fetchProjects = async () => {
+        setIsLoadingProjects(true);
+        try {
+            const response = await fetch('/api/projects');
+            if (response.ok) {
+                const data = await response.json();
+                setProjects(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch projects:', error);
+        } finally {
+            setIsLoadingProjects(false);
         }
     };
 
-    const updateRow = (id: string, field: keyof MilestoneRow, value: any) => {
-        setMilestones(milestones.map(m => m.id === id ? { ...m, [field]: value } : m));
+    const addEntry = () => {
+        setEntries([...entries, {
+            id: crypto.randomUUID(),
+            title: '',
+            description: '',
+            category: 'CUSTOM',
+            mouType: '',
+            universityName: '',
+            orderType: '',
+            targetDate: entries[entries.length - 1].targetDate, // Carry over date for convenience
+            priority: 'MEDIUM',
+            isFlagged: false,
+            remarks: ''
+        }]);
+    };
+
+    const removeEntry = (id: string) => {
+        if (entries.length > 1) {
+            setEntries(entries.filter(e => e.id !== id));
+        }
+    };
+
+    const updateEntry = (id: string, field: string, value: any) => {
+        setEntries(entries.map(e => e.id === id ? { ...e, [field]: value } : e));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -128,17 +144,39 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess }: Cre
         setIsSubmitting(true);
 
         try {
+            const submissionData = entries.map(entry => ({
+                ...entry,
+                targetDate: new Date(entry.targetDate).toISOString(),
+                ownerId: ownerId || undefined,
+                projectId: projectId || undefined,
+                mouType: entry.category === 'MOU' ? entry.mouType : undefined,
+                universityName: entry.category === 'BUSINESS_ORDER' ? entry.universityName : undefined,
+                orderType: entry.category === 'BUSINESS_ORDER' ? entry.orderType : undefined,
+                remarks: entry.remarks || undefined
+            }));
+
             const response = await fetch('/api/milestones', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(milestones.map(m => ({
-                    ...m,
-                    targetDate: new Date(m.targetDate).toISOString()
-                })))
+                body: JSON.stringify(submissionData)
             });
 
             if (response.ok) {
-                setMilestones([createEmptyRow()]);
+                setEntries([{
+                    id: crypto.randomUUID(),
+                    title: '',
+                    description: '',
+                    category: 'CUSTOM',
+                    mouType: '',
+                    universityName: '',
+                    orderType: '',
+                    targetDate: '',
+                    priority: 'MEDIUM',
+                    isFlagged: false,
+                    remarks: ''
+                }]);
+                setOwnerId('');
+                setProjectId('');
                 onSuccess();
                 onClose();
             } else {
@@ -155,134 +193,243 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess }: Cre
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300 p-4">
+            <div className="relative bg-[#191919]/95 border border-[rgba(255,255,255,0.08)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+                {/* Glossy background detail */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl -ml-24 -mb-24 pointer-events-none" />
+
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-[#DFE1E6]">
-                    <div>
-                        <h2 className="text-xl font-bold text-[#172B4D]">Batch Create Milestones</h2>
-                        <p className="text-sm text-[#6B778C]">Set university-related goals for your team members.</p>
+                <div className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-[rgba(255,255,255,0.06)]">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0052CC] to-[#0747A6] flex items-center justify-center shadow-lg shadow-blue-900/20">
+                            <Layout className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-white tracking-tight">Strategic Deliverables</h2>
+                            <p className="text-xs text-gray-400 font-medium">Define high-impact milestones and objectives</p>
+                        </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-[#6B778C] hover:text-[#172B4D] transition-colors"
+                        className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6">
-                    <div className="space-y-6">
-                        {milestones.map((milestone, index) => (
-                            <div key={milestone.id} className="p-4 border border-[#DFE1E6] rounded-lg relative bg-gray-50/30">
-                                {milestones.length > 1 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => removeRow(milestone.id)}
-                                        className="absolute top-4 right-4 text-red-500 hover:text-red-700 p-1"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                )}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <Input
-                                        label="Milestone Title *"
-                                        placeholder="e.g., Sign MOU with University X"
-                                        value={milestone.title}
-                                        onChange={(e) => updateRow(milestone.id, 'title', e.target.value)}
-                                        required
-                                    />
+                <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto p-8 space-y-8 scrollbar-thin scrollbar-thumb-white/10">
 
-                                    <Select
-                                        label="Category *"
-                                        value={milestone.category}
-                                        onChange={(e) => updateRow(milestone.id, 'category', e.target.value)}
-                                        options={CATEGORIES}
-                                        required
-                                    />
+                    {/* Global Settings */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-white/5 border border-white/10 rounded-2xl">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                Assign All To
+                            </label>
+                            {isLoadingUsers ? (
+                                <div className="h-11 flex items-center text-xs text-gray-500 gap-2">
+                                    <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                    Synchronizing Member List...
+                                </div>
+                            ) : (
+                                <select
+                                    value={ownerId}
+                                    onChange={(e) => setOwnerId(e.target.value)}
+                                    required
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
+                                >
+                                    <option value="" className="bg-[#191919]">Select Assignee...</option>
+                                    {users.map(user => (
+                                        <option key={user.id} value={user.id} className="bg-[#191919]">
+                                            {user.name || user.email} ({user.role})
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
 
-                                    {milestone.category === 'MOU' ? (
-                                        <Select
-                                            label="MOU Type *"
-                                            value={milestone.mouType}
-                                            onChange={(e) => updateRow(milestone.id, 'mouType', e.target.value)}
-                                            options={MOU_TYPES}
-                                            required
-                                        />
-                                    ) : milestone.category === 'BUSINESS_ORDER' ? (
-                                        <Select
-                                            label="Order Type *"
-                                            value={milestone.mouType}
-                                            onChange={(e) => updateRow(milestone.id, 'mouType', e.target.value)}
-                                            options={BUSINESS_ORDER_TYPES}
-                                            required
-                                        />
-                                    ) : (
-                                        <div className="hidden md:block"></div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                Project Context
+                            </label>
+                            {isLoadingProjects ? (
+                                <div className="h-11 flex items-center text-xs text-gray-500 gap-2">
+                                    <span className="w-4 h-4 border-2 border-[#0052CC] border-t-transparent rounded-full animate-spin" />
+                                    Fetching Projects...
+                                </div>
+                            ) : (
+                                <select
+                                    value={projectId}
+                                    onChange={(e) => setProjectId(e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
+                                >
+                                    <option value="" className="bg-[#191919]">Link Project (Optional)</option>
+                                    {projects.map(project => (
+                                        <option key={project.id} value={project.id} className="bg-[#191919]">
+                                            {project.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Milestone Entries */}
+                    <div className="space-y-12">
+                        {entries.map((entry, index) => (
+                            <div key={entry.id} className="relative p-6 bg-white/5 border border-white/10 rounded-2xl group animate-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-[10px] font-bold text-white border border-white/10">
+                                            {index + 1}
+                                        </div>
+                                        <h3 className="text-xs font-bold text-white uppercase tracking-widest">Milestone Objective</h3>
+                                    </div>
+                                    {entries.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => removeEntry(entry.id)}
+                                            className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
                                     )}
+                                </div>
 
-                                    <Input
-                                        label="University Name *"
-                                        placeholder="Enter university name"
-                                        value={milestone.universityName}
-                                        onChange={(e) => updateRow(milestone.id, 'universityName', e.target.value)}
-                                        required
-                                    />
-
-                                    <Input
-                                        type="date"
-                                        label="Target Date *"
-                                        value={milestone.targetDate}
-                                        onChange={(e) => updateRow(milestone.id, 'targetDate', e.target.value)}
-                                        required
-                                    />
-
-                                    <Select
-                                        label="Priority *"
-                                        value={milestone.priority}
-                                        onChange={(e) => updateRow(milestone.id, 'priority', e.target.value)}
-                                        options={[
-                                            { value: 'LOW', label: 'Low' },
-                                            { value: 'MEDIUM', label: 'Medium' },
-                                            { value: 'HIGH', label: 'High' },
-                                            { value: 'CRITICAL', label: 'Critical' }
-                                        ]}
-                                        required
-                                    />
-
-                                    <Select
-                                        label="Assign to Employee"
-                                        value={milestone.assignedTo}
-                                        onChange={(e) => updateRow(milestone.id, 'assignedTo', e.target.value)}
-                                        options={[
-                                            { value: '', label: 'Me (Self)' },
-                                            ...users.map(user => ({
-                                                value: user.id,
-                                                label: `${user.name || user.email} (${user.role})`
-                                            }))
-                                        ]}
-                                        helperText="Select the employee responsible for this deliverable."
-                                    />
-
-                                    <Input
-                                        label="Link Project *"
-                                        placeholder="Enter project ID"
-                                        value={milestone.projectId}
-                                        onChange={(e) => updateRow(milestone.id, 'projectId', e.target.value)}
-                                        required
-                                    />
-
-                                    <div className="md:col-span-3">
-                                        <label className="block text-sm font-bold text-[#172B4D] mb-1">Description</label>
-                                        <textarea
-                                            className="w-full px-3 py-2 border border-[#DFE1E6] rounded-md text-sm"
-                                            rows={2}
-                                            placeholder="Add details about deliverables..."
-                                            value={milestone.description}
-                                            onChange={(e) => updateRow(milestone.id, 'description', e.target.value)}
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Title</label>
+                                        <input
+                                            placeholder="e.g. Phase 1 Completion"
+                                            value={entry.title}
+                                            onChange={(e) => updateEntry(entry.id, 'title', e.target.value)}
+                                            required
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-medium"
                                         />
                                     </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Description</label>
+                                        <textarea
+                                            placeholder="Mission critical deliverables..."
+                                            value={entry.description}
+                                            onChange={(e) => updateEntry(entry.id, 'description', e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-none font-medium leading-relaxed min-h-[100px]"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Category</label>
+                                            <select
+                                                value={entry.category}
+                                                onChange={(e) => updateEntry(entry.id, 'category', e.target.value)}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white transition-all appearance-none cursor-pointer text-sm font-medium"
+                                            >
+                                                {MILESTONE_CATEGORIES.map(c => (
+                                                    <option key={c.value} value={c.value} className="bg-[#191919]">{c.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Target Date</label>
+                                            <input
+                                                type="date"
+                                                value={entry.targetDate}
+                                                onChange={(e) => updateEntry(entry.id, 'targetDate', e.target.value)}
+                                                required
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white transition-all cursor-pointer text-sm font-medium [color-scheme:dark]"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Sub-selectors */}
+                                    {entry.category === 'MOU' && (
+                                        <div className="space-y-2 animate-in fade-in duration-300">
+                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">MOU Type</label>
+                                            <select
+                                                value={entry.mouType}
+                                                onChange={(e) => updateEntry(entry.id, 'mouType', e.target.value)}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none cursor-pointer text-sm font-medium"
+                                            >
+                                                <option value="" className="bg-[#191919]">Select MOU Type...</option>
+                                                {MOU_TYPES.map(type => <option key={type} value={type} className="bg-[#191919]">{type}</option>)}
+                                            </select>
+                                        </div>
+                                    )}
+
+                                    {entry.category === 'BUSINESS_ORDER' && (
+                                        <div className="grid grid-cols-2 gap-6 animate-in fade-in duration-300">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">University Name</label>
+                                                <input
+                                                    placeholder="Enter university..."
+                                                    value={entry.universityName}
+                                                    onChange={(e) => updateEntry(entry.id, 'universityName', e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-medium"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Order Type</label>
+                                                <select
+                                                    value={entry.orderType}
+                                                    onChange={(e) => updateEntry(entry.id, 'orderType', e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none cursor-pointer text-sm font-medium"
+                                                >
+                                                    <option value="" className="bg-[#191919]">Select Order Type...</option>
+                                                    {BUSINESS_ORDER_TYPES.map(type => <option key={type} value={type} className="bg-[#191919]">{type}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
+                                        <div className="flex items-center gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Priority</label>
+                                                <div className="flex gap-2">
+                                                    {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map(p => (
+                                                        <button
+                                                            key={p}
+                                                            type="button"
+                                                            onClick={() => updateEntry(entry.id, 'priority', p)}
+                                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all border ${entry.priority === p
+                                                                ? 'bg-[#0052CC] border-blue-500 text-white shadow-lg shadow-blue-900/40 scale-105'
+                                                                : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10'
+                                                                }`}
+                                                        >
+                                                            {p}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => updateEntry(entry.id, 'isFlagged', !entry.isFlagged)}
+                                            className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${entry.isFlagged
+                                                ? 'bg-red-500/20 border-red-500/30 text-red-400 shadow-lg shadow-red-900/20'
+                                                : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10'
+                                                }`}
+                                        >
+                                            <Flag className={`w-4 h-4 ${entry.isFlagged ? 'fill-red-400' : ''}`} />
+                                            <span className="text-[10px] font-bold uppercase tracking-widest">Attention</span>
+                                        </button>
+                                    </div>
+
+                                    {entry.isFlagged && (
+                                        <div className="animate-in slide-in-from-top-2 duration-300">
+                                            <input
+                                                placeholder="Describe the critical concern..."
+                                                value={entry.remarks}
+                                                onChange={(e) => updateEntry(entry.id, 'remarks', e.target.value)}
+                                                className="w-full bg-red-500/5 border border-red-500/20 rounded-xl px-4 py-3 text-red-200 placeholder:text-red-900/50 text-sm italic"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -290,29 +437,32 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess }: Cre
 
                     <button
                         type="button"
-                        onClick={addRow}
-                        className="mt-4 flex items-center gap-2 text-[#0052CC] font-bold text-sm hover:underline"
+                        onClick={addEntry}
+                        className="w-full py-6 bg-white/5 border-2 border-dashed border-white/10 rounded-2xl text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3 group"
                     >
-                        <Plus className="w-4 h-4" />
-                        Add Another Milestone
+                        <Plus className="w-5 h-5 group-hover:scale-125 transition-transform" />
+                        Add New Objective to Workspace
                     </button>
 
-                    {/* Actions */}
-                    <div className="flex justify-end gap-3 pt-8 border-t border-[#DFE1E6] mt-6">
-                        <Button
+                    {/* Footer Actions */}
+                    <div className="flex justify-end gap-6 pt-8 border-t border-[rgba(255,255,255,0.06)] sticky bottom-0 bg-[#191919] pb-0 mt-8 z-10 box-content">
+                        <button
                             type="button"
-                            variant="secondary"
                             onClick={onClose}
+                            className="px-6 py-3 text-xs font-bold text-gray-400 hover:text-white transition-colors"
                         >
-                            Cancel
-                        </Button>
-                        <Button
+                            Abort Changes
+                        </button>
+                        <button
                             type="submit"
-                            variant="primary"
-                            isLoading={isSubmitting}
+                            disabled={isSubmitting}
+                            className="relative group px-10 py-3 bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-bold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden"
                         >
-                            Create {milestones.length} Milestone{milestones.length > 1 ? 's' : ''}
-                        </Button>
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                            <span className="relative z-10">
+                                {isSubmitting ? 'Synchronizing...' : (entries.length > 1 ? `Execute ${entries.length} Deployments` : 'Initialize Milestone')}
+                            </span>
+                        </button>
                     </div>
                 </form>
             </div>

@@ -161,7 +161,7 @@ export default function UserManagement() {
                                 <tr key={user.id} className="hover:bg-slate-50/50 transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-[#0052CC] font-bold text-sm">
+                                            <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-[#0052CC] font-bold text-sm">
                                                 {user.name?.charAt(0) || 'U'}
                                             </div>
                                             <div className="flex flex-col">
@@ -178,7 +178,7 @@ export default function UserManagement() {
                                             className={cn(
                                                 "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border border-transparent focus:border-[#0052CC] bg-transparent hover:bg-white cursor-pointer transition-all",
                                                 user.role === 'DIRECTOR' ? "bg-amber-50 text-amber-700" :
-                                                    user.role === 'MANAGER' ? "bg-blue-50 text-blue-700" :
+                                                    user.role === 'MANAGER' ? "bg-blue-500/10 text-blue-300" :
                                                         "bg-slate-100 text-slate-700"
                                             )}
                                         >
@@ -251,7 +251,7 @@ export default function UserManagement() {
                     </p>
                     <button
                         onClick={generateInviteLink}
-                        className="bg-white text-[#0052CC] px-6 py-2 rounded-md font-bold text-sm hover:bg-blue-50 transition-colors shadow-sm"
+                        className="bg-white text-[#0052CC] px-6 py-2 rounded-md font-bold text-sm hover:bg-blue-500/10 transition-colors shadow-sm"
                     >
                         Generate Invite Link
                     </button>
@@ -287,7 +287,7 @@ export default function UserManagement() {
                         </div>
                         <div className="p-6 space-y-6">
                             <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-[#0052CC] font-bold text-xl">
+                                <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center text-[#0052CC] font-bold text-xl">
                                     {selectedUser.name?.charAt(0) || 'U'}
                                 </div>
                                 <div>

@@ -49,16 +49,70 @@ export default function KanbanBoard({ initialTasks = [] }: KanbanBoardProps) {
         { id: 'DONE', name: 'Completed', color: 'bg-green-500' },
     ];
 
-    const moveTask = (taskId: string) => {
-        setTasks(prev => prev.map(task => {
-            if (task.id === taskId) {
-                const statusOrder: Task['status'][] = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
-                const currentIndex = statusOrder.indexOf(task.status);
-                const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
-                return { ...task, status: nextStatus };
+    const moveTask = async (taskId: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        const statusOrder: Task['status'][] = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
+        const currentIndex = statusOrder.indexOf(task.status);
+        const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
+
+        // Optimistic update
+        setTasks(prev => prev.map(t =>
+            t.id === taskId ? { ...t, status: nextStatus } : t
+        ));
+
+        // Call API
+        try {
+            const response = await fetch(`/api/tasks/${taskId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: nextStatus })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+
+                // Revert on error
+                setTasks(prev => prev.map(t =>
+                    t.id === taskId ? { ...t, status: task.status } : t
+                ));
+
+                // Handle permission error (403) gracefully without console error
+                if (response.status === 403) {
+                    if (typeof window !== 'undefined' && (window as any).showToast) {
+                        (window as any).showToast(
+                            errorData.error || 'You do not have permission to update this task',
+                            'error'
+                        );
+                    }
+                    return; // Exit gracefully without throwing
+                }
+
+                // For other errors, throw
+                throw new Error(errorData.error || 'Failed to update task');
             }
-            return task;
-        }));
+
+            // Success toast
+            if (typeof window !== 'undefined' && (window as any).showToast) {
+                (window as any).showToast('Task status updated successfully', 'success');
+            }
+        } catch (error: any) {
+            // Revert on error
+            setTasks(prev => prev.map(t =>
+                t.id === taskId ? { ...t, status: task.status } : t
+            ));
+
+            console.error('Failed to update task status:', error);
+
+            // Show error toast
+            if (typeof window !== 'undefined' && (window as any).showToast) {
+                const errorMessage = error.message.includes('assigned employee')
+                    ? 'Only the assigned employee can update task status'
+                    : 'Failed to update task';
+                (window as any).showToast(errorMessage, 'error');
+            }
+        }
     };
 
     return (

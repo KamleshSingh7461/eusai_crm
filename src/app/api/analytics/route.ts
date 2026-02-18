@@ -13,55 +13,115 @@ export async function GET() {
     const isManager = ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(role);
 
     try {
-        // 1. Core Counts & Monetary Metrics
+        // 1. Fetch all data concurrently
         const [
             projects,
             tasks,
             issues,
-            orders,
-            expenses
+            users
         ] = await Promise.all([
             (prisma as any).project.findMany({
-                select: { status: true, id: true }
+                select: {
+                    status: true,
+
+                    id: true,
+                    createdAt: true,
+                    name: true
+                }
             }),
             (prisma as any).task.findMany({
-                select: { status: true, priority: true, createdAt: true }
+                select: {
+                    status: true,
+                    priority: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    userId: true,
+                    assignedTo: {
+                        select: { name: true, role: true }
+                    }
+                }
             }),
             (prisma as any).issue.findMany({
                 select: { severity: true, status: true }
             }),
-            (prisma as any).businessOrder.findMany({
-                where: { status: 'PAID' },
-                select: { amount: true, createdAt: true }
-            }),
-            (prisma as any).expense.findMany({
-                where: { status: 'APPROVED' },
-                select: { amount: true }
+
+            (prisma as any).user.findMany({
+                where: role === 'TEAM_LEADER' ? { managerId: userId } : {},
+                select: {
+                    id: true,
+                    name: true,
+                    role: true,
+                    tasks: {
+                        where: { status: 'DONE' },
+                        select: { id: true }
+                    }
+                }
             })
         ]);
 
-        // 2. Aggregate Revenue over last 6 months
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const revenueMap: any = {};
         const now = new Date();
 
-        for (let i = 5; i >= 0; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            const key = `${monthNames[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`;
-            revenueMap[key] = 0;
-        }
 
-        orders.forEach((order: any) => {
-            const d = new Date(order.createdAt);
-            const key = `${monthNames[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`;
-            if (revenueMap[key] !== undefined) {
-                revenueMap[key] += Number(order.amount);
+
+        // 3. Task status distribution
+        const taskStatus = {
+            TODO: tasks.filter((t: any) => t.status === 'TODO').length,
+            IN_PROGRESS: tasks.filter((t: any) => t.status === 'IN_PROGRESS').length,
+            REVIEW: tasks.filter((t: any) => t.status === 'REVIEW').length,
+            DONE: tasks.filter((t: any) => t.status === 'DONE').length,
+        };
+
+        // 4. Real velocity calculation (tasks completed per week for last 4 weeks)
+        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+        const threeWeeksAgo = new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000);
+        const fourWeeksAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
+
+        const completedTasks = tasks.filter((t: any) => t.status === 'DONE');
+
+        const weeklyCompletions = [
+            {
+                week: 'W1',
+                predicted: Math.ceil(tasks.length * 0.15),
+                actual: completedTasks.filter((t: any) =>
+                    new Date(t.updatedAt) >= fourWeeksAgo && new Date(t.updatedAt) < threeWeeksAgo
+                ).length
+            },
+            {
+                week: 'W2',
+                predicted: Math.ceil(tasks.length * 0.20),
+                actual: completedTasks.filter((t: any) =>
+                    new Date(t.updatedAt) >= threeWeeksAgo && new Date(t.updatedAt) < twoWeeksAgo
+                ).length
+            },
+            {
+                week: 'W3',
+                predicted: Math.ceil(tasks.length * 0.18),
+                actual: completedTasks.filter((t: any) =>
+                    new Date(t.updatedAt) >= twoWeeksAgo && new Date(t.updatedAt) < oneWeekAgo
+                ).length
+            },
+            {
+                week: 'W4',
+                predicted: Math.ceil(tasks.length * 0.22),
+                actual: completedTasks.filter((t: any) =>
+                    new Date(t.updatedAt) >= oneWeekAgo
+                ).length
             }
-        });
+        ];
 
-        const revenueTrend = Object.entries(revenueMap).map(([month, amount]) => ({ month, amount }));
+        // 5. Team leaderboard with real data
+        const leaderboard = users
+            .map((u: any) => ({
+                name: u.name || 'Unknown',
+                role: u.role,
+                points: u.tasks.length
+            }))
+            .filter((u: any) => u.points > 0) // Only show users with completed tasks
+            .sort((a: any, b: any) => b.points - a.points)
+            .slice(0, 10); // Top 10 performers
 
-        // 3. Status Distributions
+        // 6. Project status distribution
         const projectStatus = {
             INITIATION: projects.filter((p: any) => p.status === 'INITIATION').length,
             PLANNING: projects.filter((p: any) => p.status === 'PLANNING').length,
@@ -70,52 +130,36 @@ export async function GET() {
             CLOSED: projects.filter((p: any) => p.status === 'CLOSED').length,
         };
 
-        const taskStatus = {
-            TODO: tasks.filter((t: any) => t.status === 'TODO').length,
-            IN_PROGRESS: tasks.filter((t: any) => t.status === 'IN_PROGRESS').length,
-            REVIEW: tasks.filter((t: any) => t.status === 'REVIEW').length,
-            DONE: tasks.filter((t: any) => t.status === 'DONE').length,
-        };
+        // 7. Calculate core stats
 
-        // 4. Team Leaderboard (based on Daily Reports or completed tasks)
-        // For now, let's use user names with completed task counts
-        const userStats = await (prisma as any).user.findMany({
-            where: role === 'TEAM_LEADER' ? { managerId: userId } : {},
-            select: {
-                name: true,
-                _count: {
-                    select: { tasks: { where: { status: 'DONE' } } }
-                }
-            }
-        });
+        const activeProjects = projects.filter((p: any) => p.status !== 'CLOSED' && p.status !== 'CANCELLED').length;
+        const completionRate = tasks.length > 0 ? Math.round((taskStatus.DONE / tasks.length) * 100) : 0;
+        const criticalIssues = issues.filter((i: any) => i.severity === 'CRITICAL' && i.status !== 'CLOSED').length;
 
-        const leaderboard = userStats
-            .map((u: any) => ({ name: u.name || 'Unknown', points: u._count.tasks }))
-            .sort((a: any, b: any) => b.points - a.points)
-            .slice(0, 5);
-
-        // 5. Calculate Velocity (completed tasks per month-ish)
-        // Simplified: using mock historical but real final month
-        const velocity = [
-            { week: 'W1', predicted: 20, actual: 18 },
-            { week: 'W2', predicted: 25, actual: 28 },
-            { week: 'W3', predicted: 22, actual: 20 },
-            { week: 'W4', predicted: 30, actual: taskStatus.DONE },
-        ];
+        // 8. Additional insights
+        const highPriorityTasks = tasks.filter((t: any) => t.priority === 3 && t.status !== 'DONE').length;
+        const overdueTasks = tasks.filter((t: any) => {
+            // This would require deadline field, using a simple heuristic for now
+            return t.status !== 'DONE' && new Date(t.createdAt) < threeWeeksAgo;
+        }).length;
 
         return NextResponse.json({
             stats: {
-                totalRevenue: orders.reduce((acc: any, o: any) => acc + Number(o.amount), 0),
-                activeProjects: projects.filter((p: any) => p.status !== 'CLOSED').length,
-                completionRate: tasks.length > 0 ? ((taskStatus.DONE / tasks.length) * 100).toFixed(1) : "0",
-                criticalIssues: issues.filter((i: any) => i.severity === 'CRITICAL' && i.status !== 'CLOSED').length,
-                totalExpenses: expenses.reduce((acc: any, e: any) => acc + Number(e.amount), 0)
+
+                highPriorityTasks,
+                overdueTasks,
+                totalTasks: tasks.length,
+                completedTasks: taskStatus.DONE
             },
-            revenueTrend,
+
             projectStatus,
             taskStatus,
             leaderboard,
-            velocity,
+            velocity: weeklyCompletions,
+            insights: {
+                teamSize: users.length,
+                avgTasksPerUser: users.length > 0 ? (tasks.length / users.length).toFixed(1) : 0
+            },
             role
         });
     } catch (error) {

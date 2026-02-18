@@ -1,0 +1,29 @@
+﻿
+> eusai_crm@0.1.0 build
+> npx prisma generate && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+node.exe : Error: 
+At C:\Program 
+Files\nodejs\npm.ps1:29 
+char:3
++   & $NODE_EXE $NPM_CLI_JS 
+$args
++   
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified    : 
+(Error: :String)     [], 
+RemoteException
+    + FullyQualifiedErr    
+orId : NativeComman    dError
+ 
+EPERM: operation not 
+permitted, unlink 'C:\Users\k
+amle\OneDrive\Desktop\EUSAI C
+RM\eusai_crm\node_modules\.pr
+isma\client\query_engine-wind
+ows.dll.node'
+
+

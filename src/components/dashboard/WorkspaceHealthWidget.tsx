@@ -17,7 +17,7 @@ export default function WorkspaceHealthWidget({ stats }: WorkspaceHealthWidgetPr
     return (
         <div className="card-eusai bg-[#FAFBFC] border-[#4C9AFF]/20 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-[#0052CC]" />
-            <h3 className="text-sm font-bold text-[#172B4D] mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-heading mb-4 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#0052CC]" />
                 {stats ? 'Organization Health' : 'AI Workspace Health'}
             </h3>
@@ -26,16 +26,16 @@ export default function WorkspaceHealthWidget({ stats }: WorkspaceHealthWidgetPr
                     <div className="grid grid-cols-2 gap-3">
                         <div className="p-3 bg-white border border-[#DFE1E6] rounded-sm text-center">
                             <div className="text-xl font-bold text-[#FF5630]">{stats.critical}</div>
-                            <div className="text-[9px] font-bold text-[#6B778C] uppercase tracking-tighter">Critical Issues</div>
+                            <div className="text-[9px] font-bold text-body uppercase tracking-tighter">Critical Issues</div>
                         </div>
                         <div className="p-3 bg-white border border-[#DFE1E6] rounded-sm text-center">
                             <div className="text-xl font-bold text-[#0052CC]">{stats.total}</div>
-                            <div className="text-[9px] font-bold text-[#6B778C] uppercase tracking-tighter">Open Issues</div>
+                            <div className="text-[9px] font-bold text-body uppercase tracking-tighter">Open Issues</div>
                         </div>
                     </div>
                 ) : (
                     <div className="p-3 bg-white border border-[#DFE1E6] rounded-sm">
-                        <p className="text-xs text-[#172B4D] font-medium leading-relaxed">
+                        <p className="text-xs text-subheading font-medium leading-relaxed">
                             Project <span className="text-[#0052CC] font-bold">SmartGrid</span> is at risk due to resource bottlenecks.
                         </p>
                     </div>
@@ -46,7 +46,7 @@ export default function WorkspaceHealthWidget({ stats }: WorkspaceHealthWidgetPr
                     <p className="text-[10px] text-[#0052CC] font-bold uppercase tracking-wider mb-1">
                         {(stats?.critical ?? 0) > 0 ? 'Urgent Action' : (hasIssues ? 'Attention Required' : 'Organization Status')}
                     </p>
-                    <p className="text-xs text-[#172B4D]">
+                    <p className="text-xs text-subheading">
                         {(stats?.critical ?? 0) > 0
                             ? `Resolve ${stats?.critical} critical bottlenecks in the portfolio to maintain annual velocity.`
                             : (hasIssues

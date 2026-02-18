@@ -15,38 +15,62 @@ export async function GET() {
     }
 
     try {
-        // 1. Organizational KPIs & Activity
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        // 1. Fetch Comprehensive Data
         const [
+            users,
+            projects,
             partnerCount,
-            totalRevenueData,
-            staffCount,
-            spacesWithProjects,
+            totalUniversities,
+            spaces,
             recentMilestones,
             issueStats,
-            executiveActions,
-            globalActivity
+            globalActivity,
+            allTasks,
+            taskDistribution,
+            projectDistribution,
+            completedTasksLastWeek
         ] = await Promise.all([
-            (prisma as any).university.count({ where: { status: 'PARTNER' } }),
-            (prisma as any).businessOrder.aggregate({
-                where: { status: 'PAID' },
-                _sum: { amount: true }
-            }),
-            (prisma as any).user.count(),
-            (prisma as any).space.findMany({
-                include: {
+            // All Users with their task summaries + COMPLETED counts for Top Performer calc
+            (prisma as any).user.findMany({
+                where: {
+                    role: { not: 'DIRECTOR' }
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    role: true,
+                    image: true,
                     _count: {
-                        select: { projects: { where: { status: { not: 'CLOSED' } } } }
+                        select: {
+                            tasks: { where: { status: { not: 'DONE' } } },
+                            milestones: { where: { status: { not: 'COMPLETED' } } },
+                        }
                     }
                 }
             }),
-            (prisma as any).milestone.findMany({
-                where: { status: 'COMPLETED' },
-                orderBy: { completedDate: 'desc' },
-                take: 5,
+            // All Projects
+            (prisma as any).project.findMany({
                 include: {
-                    ownerUser: { select: { name: true, image: true } },
-                    project: { select: { name: true } }
+                    _count: { select: { tasks: true, milestones: true } },
+                    milestones: { select: { status: true } },
+                    manager: { select: { name: true } }
                 }
+            }),
+            (prisma as any).university.count({ where: { status: 'PARTNER' } }),
+            (prisma as any).university.count(),
+            (prisma as any).space.findMany({
+                include: { _count: { select: { projects: { where: { status: { not: 'CLOSED' } } } } } }
+            }),
+            (prisma as any).milestone.findMany({
+                orderBy: { createdAt: 'desc' },
+                take: 10,
+                include: { ownerUser: { select: { name: true, image: true } }, project: { select: { name: true } } }
             }),
             (prisma as any).issue.groupBy({
                 by: ['severity'],
@@ -54,69 +78,146 @@ export async function GET() {
                 _count: true
             }),
             (prisma as any).task.findMany({
-                where: {
-                    userId: (session.user as any).id,
-                    status: { not: 'COMPLETED' }
-                },
-                orderBy: { deadline: 'asc' },
-                take: 5
+                orderBy: { updatedAt: 'desc' },
+                take: 15,
+                include: { assignedTo: { select: { name: true, image: true } }, project: { select: { name: true } } }
             }),
-            (prisma as any).project.findMany({
-                orderBy: { createdAt: 'desc' },
-                take: 5,
-                select: {
-                    id: true,
-                    name: true,
-                    status: true,
-                    createdAt: true
-                }
+            // Fetch all tasks for stats
+            (prisma as any).task.findMany({ select: { status: true, userId: true, updatedAt: true } }),
+            // Task Distribution for Pie Chart
+            (prisma as any).task.groupBy({ by: ['status'], _count: true }),
+            // Project Distribution for Pie Chart
+            (prisma as any).project.groupBy({ by: ['status'], _count: true }),
+            // Completed tasks last 7 days for Productivity Chart
+            (prisma as any).task.findMany({
+                where: { status: 'DONE', updatedAt: { gte: sevenDaysAgo } },
+                select: { updatedAt: true }
             })
         ]);
 
-        const totalRevenue = Number(totalRevenueData._sum.amount || 0);
+        // 2. Top Performers Calculation (Last 30 Days)
+        const userPerformance = users.map((u: any) => {
+            const completedCount = allTasks.filter((t: any) =>
+                t.userId === u.id &&
+                t.status === 'DONE' &&
+                new Date(t.updatedAt) >= thirtyDaysAgo
+            ).length;
+            return { ...u, completedCount };
+        });
 
-        // 2. Space Distribution for Portfolio Pulse
-        const spaceDistribution = spacesWithProjects.map((space: any) => ({
+        const topPerformers = userPerformance
+            .sort((a: any, b: any) => b.completedCount - a.completedCount)
+            .slice(0, 5)
+            .map((u: any) => ({
+                id: u.id,
+                name: u.name,
+                image: u.image,
+                role: u.role,
+                score: u.completedCount
+            }));
+
+        // 3. Weekly Productivity (Last 7 Days)
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const productivityData = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const dayName = days[d.getDay()];
+            const dateStr = d.toISOString().split('T')[0];
+
+            const count = completedTasksLastWeek.filter((t: any) =>
+                t.updatedAt.toISOString().startsWith(dateStr)
+            ).length;
+
+            productivityData.push({ day: dayName, tasks: count });
+        }
+
+        // 4. Marketing Coverage
+        const marketCoverage = totalUniversities > 0
+            ? Math.round((partnerCount / totalUniversities) * 100)
+            : 0;
+
+        // 5. Space Distribution
+        const spaceDistribution = spaces.map((space: any) => ({
             id: space.id,
             name: space.name,
             color: space.color,
             projectCount: space._count.projects
         })).sort((a: any, b: any) => b.projectCount - a.projectCount);
 
-        // 3. Health Metrics (Calculated)
+        // 6. Project Progress
+        const projectsWithProgress = projects.map((p: any) => {
+            const totalMilestones = p._count.milestones;
+            const completedMilestones = p.milestones.filter((m: any) => m.status === 'COMPLETED').length;
+            const progress = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
+
+            return {
+                id: p.id,
+                name: p.name,
+                status: p.status,
+                managerName: p.manager?.name || 'Unassigned',
+                taskCount: p._count.tasks,
+                milestoneCount: totalMilestones,
+                completedMilestones,
+                progress
+            };
+        });
+
+        // 7. Health Metrics
         const criticalIssues = issueStats.find((s: any) => s.severity === 'CRITICAL')?._count || 0;
         const totalOpenIssues = issueStats.reduce((acc: any, curr: any) => acc + curr._count, 0);
+
+        // 8. Task Completion Rate
+        const completedTaskCount = allTasks.filter((t: any) => t.status === 'DONE').length;
+        const taskCompletionRate = allTasks.length > 0 ? Math.round((completedTaskCount / allTasks.length) * 100) : 0;
 
         return NextResponse.json({
             stats: {
                 partnerCount,
-                totalRevenue,
-                staffCount,
-                marketCoverage: 0, // No source for this metric currently
+                staffCount: users.length,
+                marketCoverage,
                 criticalIssues,
-                totalOpenIssues
+                totalOpenIssues,
+                taskCompletionRate,
+                activeProjects: projects.filter((p: any) => p.status !== 'CLOSED').length
             },
+            employees: users.map((u: any) => ({
+                id: u.id,
+                name: u.name,
+                role: u.role,
+                image: u.image,
+                pendingTasks: u._count.tasks,
+                pendingMilestones: u._count.milestones
+            })),
+            topPerformers,
+            projects: projectsWithProgress,
             spaceDistribution,
             recentMilestones: recentMilestones.map((m: any) => ({
                 id: m.id,
                 title: m.title,
                 projectName: m.project?.name || 'Unknown Project',
-                ownerName: m.ownerUser.name,
-                ownerImage: m.ownerUser.image,
+                ownerName: m.ownerUser?.name || 'System',
+                ownerImage: m.ownerUser?.image,
+                status: m.status,
                 completedAt: m.completedDate
             })),
-            executiveActions: executiveActions.map((t: any) => ({
+            globalActivity: globalActivity.map((t: any) => ({
                 id: t.id,
                 title: t.title,
                 priority: t.priority,
-                dueDate: t.deadline
+                status: t.status,
+                dueDate: t.deadline,
+                assignedTo: t.assignedTo?.name,
+                assignedToImage: t.assignedTo?.image,
+                projectName: t.project?.name,
+                updatedAt: t.updatedAt
             })),
-            globalActivity: globalActivity.map((p: any) => ({
-                id: p.id,
-                title: p.name,
-                status: p.status,
-                createdAt: p.createdAt
-            })),
+            charts: {
+                weeklyProductivity: productivityData,
+                taskStatus: taskDistribution.map((t: any) => ({ name: t.status, value: t._count })),
+                projectStatus: projectDistribution.map((p: any) => ({ name: p.status, value: p._count })),
+                issueSeverity: issueStats.map((i: any) => ({ name: i.severity, value: i._count }))
+            },
             role: 'DIRECTOR'
         });
     } catch (error: any) {

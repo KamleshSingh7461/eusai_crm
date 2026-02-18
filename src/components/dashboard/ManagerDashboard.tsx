@@ -19,6 +19,7 @@ import {
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import DashboardAISummary from './DashboardAISummary';
 
 interface DashboardData {
     stats: {
@@ -69,10 +70,10 @@ export default function ManagerDashboard() {
 
     if (isLoading) {
         return (
-            <div className="flex bg-[#FAFBFC] h-[60vh] items-center justify-center">
+            <div className="flex bg-transparent h-[60vh] items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="w-10 h-10 animate-spin text-[#0052CC]" />
-                    <p className="text-sm font-medium text-[#6B778C] animate-pulse">Assembling team metrics...</p>
+                    <p className="text-sm font-medium text-[rgba(255,255,255,0.7)] animate-pulse">Assembling team metrics...</p>
                 </div>
             </div>
         );
@@ -112,18 +113,18 @@ export default function ManagerDashboard() {
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-[#172B4D] tracking-tight">Team Performance</h2>
-                    <p className="text-[#6B778C] mt-1 text-sm md:text-base">Real-time metrics for your managed departments.</p>
+                    <h2 className="text-2xl md:text-3xl font-bold text-[rgba(255,255,255,0.9)] tracking-tight">Team Performance</h2>
+                    <p className="text-[rgba(255,255,255,0.7)] mt-1 text-sm md:text-base">Real-time metrics for your managed departments.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="hidden md:flex flex-col items-end mr-4">
-                        <span className="text-[10px] font-bold text-[#6B778C] uppercase tracking-widest">Team Sync</span>
+                        <span className="text-[10px] font-bold text-[rgba(255,255,255,0.7)] uppercase tracking-widest">Team Sync</span>
                         <span className="text-xs font-medium text-[#36B37E] flex items-center gap-1">
                             <Zap className="w-3 h-3 fill-current" /> Live Update
                         </span>
                     </div>
                     <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
-                        <button className="flex-1 md:flex-none px-4 py-2 text-xs md:text-sm font-bold text-[#42526E] bg-white border border-[#DFE1E6] rounded-sm hover:bg-[#F4F5F7] transition-all shadow-sm">
+                        <button className="flex-1 md:flex-none px-4 py-2 text-xs md:text-sm font-bold text-gray-200 bg-[#3b4045]/50 border border-[rgba(255,255,255,0.09)] rounded-sm hover:bg-[#3b4045] transition-all shadow-sm">
                             Insights
                         </button>
                         <Link href="/team" className="flex-1 md:flex-none px-4 py-2 text-xs md:text-sm font-bold text-white bg-[#0052CC] rounded-sm hover:bg-[#0747A6] transition-all shadow-md flex items-center justify-center gap-2">
@@ -134,65 +135,68 @@ export default function ManagerDashboard() {
                 </div>
             </div>
 
+            {/* AI Summary */}
+            <DashboardAISummary role="Manager" contextData={stats} />
+
             {/* KPI Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="group relative overflow-hidden bg-white p-6 rounded-sm border border-[#DFE1E6] shadow-sm hover:shadow-md transition-all duration-300">
-                    <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-green-50 rounded-full opacity-50 group-hover:scale-125 transition-transform duration-500" />
+                <div className="group relative overflow-hidden bg-[#191919]/60 backdrop-blur-xl p-6 rounded-xl border border-[rgba(255,255,255,0.08)] shadow-sm hover:shadow-md transition-all duration-300">
+                    <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-green-500/10 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500" />
                     <div className="relative z-10">
                         <div className="flex justify-between items-start mb-4">
-                            <div className="p-2 bg-green-100 rounded-lg text-green-700">
+                            <div className="p-2 bg-green-500/10 rounded-lg text-green-400 border border-green-500/20">
                                 <TrendingUp className="w-5 h-5" />
                             </div>
-                            <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+                            <span className="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-full flex items-center gap-1 border border-green-500/20">
                                 <ArrowUpRight className="w-3 h-3" /> 12.5%
                             </span>
                         </div>
-                        <h3 className="text-xs font-bold text-[#6B778C] uppercase tracking-widest mb-1">Group Revenue</h3>
-                        <div className="text-3xl font-bold text-[#172B4D]">₹{(stats.revenue / 100000).toFixed(1)}L</div>
-                        <div className="mt-4 pt-4 border-t border-[#F4F5F7] flex items-center justify-between">
-                            <span className="text-[10px] text-[#6B778C]">YTD Collection</span>
-                            <span className="text-xs font-bold text-[#172B4D]">Goal: ₹15L</span>
+                        <h3 className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-widest mb-1">Group Revenue</h3>
+                        <div className="text-3xl font-bold text-[rgba(255,255,255,0.9)]">₹{(stats.revenue / 100000).toFixed(1)}L</div>
+                        <div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.08)] flex items-center justify-between">
+                            <span className="text-[10px] text-[rgba(255,255,255,0.5)]">YTD Collection</span>
+                            <span className="text-xs font-bold text-[rgba(255,255,255,0.9)]">Goal: ₹15L</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="group relative overflow-hidden bg-white p-6 rounded-sm border border-[#DFE1E6] shadow-sm hover:shadow-md transition-all duration-300">
-                    <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-blue-50 rounded-full opacity-50 group-hover:scale-125 transition-transform duration-500" />
+                <div className="group relative overflow-hidden bg-[#191919]/60 backdrop-blur-xl p-6 rounded-xl border border-[rgba(255,255,255,0.08)] shadow-sm hover:shadow-md transition-all duration-300">
+                    <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-blue-500/10 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500" />
                     <div className="relative z-10">
                         <div className="flex justify-between items-start mb-4">
-                            <div className="p-2 bg-blue-100 rounded-lg text-blue-700">
+                            <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400 border border-blue-500/20">
                                 <FileText className="w-5 h-5" />
                             </div>
-                            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full border border-blue-100">
+                            <span className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-1 rounded-full border border-blue-500/20">
                                 Active MOUs
                             </span>
                         </div>
-                        <h3 className="text-xs font-bold text-[#6B778C] uppercase tracking-widest mb-1">MOU Pipeline</h3>
-                        <div className="text-3xl font-bold text-[#172B4D]">{stats.activeMOUs}</div>
-                        <div className="mt-4 pt-4 border-t border-[#F4F5F7] flex items-center justify-between">
-                            <span className="text-[10px] text-[#6B778C]">{stats.pendingSignatures} Pending Signature</span>
-                            <div className="w-24 h-1.5 bg-[#EBECF0] rounded-full overflow-hidden">
+                        <h3 className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-widest mb-1">MOU Pipeline</h3>
+                        <div className="text-3xl font-bold text-[rgba(255,255,255,0.9)]">{stats.activeMOUs}</div>
+                        <div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.08)] flex items-center justify-between">
+                            <span className="text-[10px] text-[rgba(255,255,255,0.5)]">{stats.pendingSignatures} Pending Signature</span>
+                            <div className="w-24 h-1.5 bg-[#2a2a2a] rounded-full overflow-hidden">
                                 <div className="h-full bg-[#0052CC] rounded-full" style={{ width: '65%' }} />
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="group relative overflow-hidden bg-white p-6 rounded-sm border border-[#DFE1E6] shadow-sm hover:shadow-md transition-all duration-300">
-                    <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-purple-50 rounded-full opacity-50 group-hover:scale-125 transition-transform duration-500" />
+                <div className="group relative overflow-hidden bg-[#191919]/60 backdrop-blur-xl p-6 rounded-xl border border-[rgba(255,255,255,0.08)] shadow-sm hover:shadow-md transition-all duration-300">
+                    <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-purple-500/10 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500" />
                     <div className="relative z-10">
                         <div className="flex justify-between items-start mb-4">
-                            <div className="p-2 bg-purple-100 rounded-lg text-purple-700">
+                            <div className="p-2 bg-purple-500/10 rounded-lg text-purple-400 border border-purple-500/20">
                                 <Users className="w-5 h-5" />
                             </div>
-                            <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded-full flex items-center gap-1">
+                            <span className="text-xs font-bold text-red-400 bg-red-500/10 px-2 py-1 rounded-full flex items-center gap-1 border border-red-500/20">
                                 <ArrowDownRight className="w-3 h-3" /> Warning
                             </span>
                         </div>
-                        <h3 className="text-xs font-bold text-[#6B778C] uppercase tracking-widest mb-1">Reporting Compliance</h3>
-                        <div className="text-3xl font-bold text-[#172B4D]">{stats.reportsSubmitted}/{stats.totalTeamSize}</div>
-                        <div className="mt-4 pt-4 border-t border-[#F4F5F7] flex items-center justify-between">
-                            <span className="text-[10px] text-[#6B778C]">Weekly submissions</span>
+                        <h3 className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-widest mb-1">Reporting Compliance</h3>
+                        <div className="text-3xl font-bold text-[rgba(255,255,255,0.9)]">{stats.reportsSubmitted}/{stats.totalTeamSize}</div>
+                        <div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.08)] flex items-center justify-between">
+                            <span className="text-[10px] text-[rgba(255,255,255,0.5)]">Weekly submissions</span>
                             <span className="text-xs font-bold text-[#FF5630]">{stats.totalTeamSize - stats.reportsSubmitted} Overdue</span>
                         </div>
                     </div>
@@ -202,39 +206,39 @@ export default function ManagerDashboard() {
             {/* Bottom Grid: Team Activity and Approvals */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Team Milestones Section */}
-                <section className="bg-white border border-[#DFE1E6] rounded-sm shadow-sm overflow-hidden flex flex-col">
-                    <div className="px-6 py-4 border-b border-[#DFE1E6] bg-[#FAFBFC] flex items-center justify-between">
+                <section className="bg-[#191919]/60 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-xl shadow-sm overflow-hidden flex flex-col">
+                    <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.08)] bg-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-4 h-4 text-[#0052CC]" />
-                            <h3 className="font-bold text-[#172B4D] text-sm md:text-base">Recent Achievements</h3>
+                            <h3 className="font-bold text-[rgba(255,255,255,0.9)] text-sm md:text-base">Recent Achievements</h3>
                         </div>
-                        <Link href="/milestones" className="text-xs font-bold text-[#0052CC] hover:underline">View All</Link>
+                        <Link href="/milestones" className="text-xs font-bold text-[#0052CC] hover:text-[#2684FF] transition-colors">View All</Link>
                     </div>
                     <div className="flex-1 p-0">
                         {recentMilestones.length === 0 ? (
                             <div className="p-10 text-center">
-                                <div className="p-3 bg-[#F4F5F7] rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                                    <Zap className="w-6 h-6 text-[#6B778C]" />
+                                <div className="p-3 bg-[#2a2a2a] rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                                    <Zap className="w-6 h-6 text-[rgba(255,255,255,0.5)]" />
                                 </div>
-                                <p className="text-sm text-[#6B778C]">No recent milestones completed.</p>
+                                <p className="text-sm text-[rgba(255,255,255,0.5)]">No recent milestones completed.</p>
                             </div>
                         ) : (
-                            <div className="divide-y divide-[#F4F5F7]">
+                            <div className="divide-y divide-[rgba(255,255,255,0.08)]">
                                 {recentMilestones.map((milestone) => (
-                                    <div key={milestone.id} className="px-6 py-4 hover:bg-[#FAFBFC] transition-colors group">
+                                    <div key={milestone.id} className="px-6 py-4 hover:bg-white/5 transition-colors group">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-full bg-[#DEEBFF] border border-[#B3D4FF] flex items-center justify-center text-[#0052CC] font-bold text-xs shrink-0 overflow-hidden shadow-inner">
+                                            <div className="w-10 h-10 rounded-full bg-[#0052CC]/20 border border-[#0052CC]/30 flex items-center justify-center text-[#0052CC] font-bold text-xs shrink-0 overflow-hidden shadow-inner">
                                                 {milestone.ownerImage ? <img src={milestone.ownerImage} alt="" className="w-full h-full object-cover" /> : milestone.ownerName.charAt(0).toUpperCase()}
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between">
-                                                    <h4 className="text-sm font-bold text-[#172B4D] truncate group-hover:text-[#0052CC] transition-colors">{milestone.title}</h4>
-                                                    <span className="text-[10px] text-[#6B778C] shrink-0">{formatDistanceToNow(new Date(milestone.completedAt))} ago</span>
+                                                    <h4 className="text-sm font-bold text-[rgba(255,255,255,0.9)] truncate group-hover:text-[#0052CC] transition-colors">{milestone.title}</h4>
+                                                    <span className="text-[10px] text-[rgba(255,255,255,0.5)] shrink-0">{formatDistanceToNow(new Date(milestone.completedAt))} ago</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-xs text-[#6B778C]">Completed by <span className="text-[#172B4D] font-medium">{milestone.ownerName}</span></span>
-                                                    <span className="w-1 h-1 rounded-full bg-[#DFE1E6]" />
-                                                    <span className="text-[10px] font-bold text-[#403294] bg-[#EAE6FF] px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">{milestone.category.replace('_', ' ')}</span>
+                                                    <span className="text-xs text-[rgba(255,255,255,0.5)]">Completed by <span className="text-[rgba(255,255,255,0.9)] font-medium">{milestone.ownerName}</span></span>
+                                                    <span className="w-1 h-1 rounded-full bg-[rgba(255,255,255,0.3)]" />
+                                                    <span className="text-[10px] font-bold text-[#403294] bg-[#403294]/20 border border-[#403294]/30 px-1.5 py-0.5 rounded-sm uppercase tracking-tighter">{milestone.category.replace('_', ' ')}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -246,67 +250,67 @@ export default function ManagerDashboard() {
                 </section>
 
                 {/* Approvals Section */}
-                <section className="bg-white border border-[#DFE1E6] rounded-sm shadow-sm flex flex-col">
-                    <div className="px-6 py-4 border-b border-[#DFE1E6] bg-[#FAFBFC] flex items-center justify-between">
+                <section className="bg-[#191919]/60 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-xl shadow-sm flex flex-col">
+                    <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.08)] bg-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <AlertCircle className="w-4 h-4 text-[#FFAB00]" />
-                            <h3 className="font-bold text-[#172B4D] text-sm md:text-base">Pending Approvals</h3>
+                            <h3 className="font-bold text-[rgba(255,255,255,0.9)] text-sm md:text-base">Pending Approvals</h3>
                         </div>
-                        <span className="px-2 py-0.5 bg-[#FFFAE6] text-[#FFAB00] text-[10px] font-bold rounded-sm border border-[#FFE380]">
+                        <span className="px-2 py-0.5 bg-[#FFAB00]/10 text-[#FFAB00] text-[10px] font-bold rounded-sm border border-[#FFAB00]/20">
                             {pendingApprovals.length} Actions
                         </span>
                     </div>
                     <div className="flex-1 p-6">
                         <div className="space-y-4">
                             {pendingApprovals.map((approval) => (
-                                <div key={approval.id} className="relative p-5 bg-white border border-[#DFE1E6] rounded-sm hover:border-[#0052CC] transition-all group overflow-hidden">
+                                <div key={approval.id} className="relative p-5 bg-[#2a2a2a]/50 border border-[rgba(255,255,255,0.08)] rounded-lg hover:border-[#0052CC] transition-all group overflow-hidden">
                                     <div className="absolute left-0 top-0 w-1 h-full bg-[#FFAB00]" />
                                     <div className="flex justify-between items-start mb-3">
                                         <div>
-                                            <h4 className="text-sm font-bold text-[#172B4D] mb-1">{approval.title}</h4>
-                                            <p className="text-xs text-[#6B778C]">Submitted by <span className="font-medium text-[#172B4D]">{approval.submittedBy}</span></p>
+                                            <h4 className="text-sm font-bold text-[rgba(255,255,255,0.9)] mb-1">{approval.title}</h4>
+                                            <p className="text-xs text-[rgba(255,255,255,0.5)]">Submitted by <span className="font-medium text-[rgba(255,255,255,0.9)]">{approval.submittedBy}</span></p>
                                         </div>
                                         <div className="text-right">
-                                            <span className="text-sm font-bold text-[#172B4D]">{approval.amount}</span>
-                                            <div className="text-[10px] text-[#6B778C] font-bold tracking-widest uppercase mt-1">{approval.type}</div>
+                                            <span className="text-sm font-bold text-[rgba(255,255,255,0.9)]">{approval.amount}</span>
+                                            <div className="text-[10px] text-[rgba(255,255,255,0.5)] font-bold tracking-widest uppercase mt-1">{approval.type}</div>
                                         </div>
                                     </div>
-                                    <div className="flex gap-3 pt-3 mt-3 border-t border-[#F4F5F7]">
+                                    <div className="flex gap-3 pt-3 mt-3 border-t border-[rgba(255,255,255,0.08)]">
                                         <button
                                             onClick={() => handleApproval(approval.id, 'APPROVED')}
                                             className="px-4 py-1.5 bg-[#36B37E] text-white text-xs font-bold rounded-sm hover:bg-[#00875A] transition-colors"
                                         >
                                             Approve
                                         </button>
-                                        <button className="px-4 py-1.5 bg-white border border-[#DFE1E6] text-[#42526E] text-xs font-bold rounded-sm hover:bg-[#F4F5F7] transition-colors">
+                                        <button className="px-4 py-1.5 bg-transparent border border-[rgba(255,255,255,0.09)] text-gray-300 text-xs font-bold rounded-sm hover:bg-white/5 transition-colors">
                                             Review Details
                                         </button>
-                                        <button className="ml-auto p-1.5 text-[#6B778C] hover:text-[#FF5630] transition-colors">
+                                        <button className="ml-auto p-1.5 text-[rgba(255,255,255,0.5)] hover:text-[#FF5630] transition-colors">
                                             <MoreHorizontal className="w-4 h-4" />
                                         </button>
                                     </div>
                                 </div>
                             ))}
 
-                            <div className="mt-8 pt-8 border-t border-[#F4F5F7]">
+                            <div className="mt-8 pt-8 border-t border-[rgba(255,255,255,0.08)]">
                                 <div className="flex items-center gap-6 justify-around">
                                     <div className="text-center group cursor-pointer">
-                                        <div className="w-12 h-12 rounded-full bg-[#E3FCEF] flex items-center justify-center text-[#36B37E] mx-auto mb-2 transition-transform group-hover:scale-110 group-hover:shadow-md">
+                                        <div className="w-12 h-12 rounded-full bg-[#36B37E]/10 border border-[#36B37E]/20 flex items-center justify-center text-[#36B37E] mx-auto mb-2 transition-transform group-hover:scale-110 group-hover:shadow-md">
                                             <Calendar className="w-6 h-6" />
                                         </div>
-                                        <span className="text-xs font-bold text-[#172B4D]">Team PTO</span>
+                                        <span className="text-xs font-bold text-[rgba(255,255,255,0.9)]">Team PTO</span>
                                     </div>
                                     <div className="text-center group cursor-pointer">
-                                        <div className="w-12 h-12 rounded-full bg-[#DEEBFF] flex items-center justify-center text-[#0052CC] mx-auto mb-2 transition-transform group-hover:scale-110 group-hover:shadow-md">
+                                        <div className="w-12 h-12 rounded-full bg-[#0052CC]/10 border border-[#0052CC]/20 flex items-center justify-center text-[#0052CC] mx-auto mb-2 transition-transform group-hover:scale-110 group-hover:shadow-md">
                                             <Briefcase className="w-6 h-6" />
                                         </div>
-                                        <span className="text-xs font-bold text-[#172B4D]">Resources</span>
+                                        <span className="text-xs font-bold text-[rgba(255,255,255,0.9)]">Resources</span>
                                     </div>
                                     <div className="text-center group cursor-pointer">
-                                        <div className="w-12 h-12 rounded-full bg-[#EAE6FF] flex items-center justify-center text-[#403294] mx-auto mb-2 transition-transform group-hover:scale-110 group-hover:shadow-md">
+                                        <div className="w-12 h-12 rounded-full bg-[#403294]/10 border border-[#403294]/20 flex items-center justify-center text-[#403294] mx-auto mb-2 transition-transform group-hover:scale-110 group-hover:shadow-md">
                                             <BarChart3 className="w-6 h-6" />
                                         </div>
-                                        <span className="text-xs font-bold text-[#172B4D]">Analytics</span>
+                                        <span className="text-xs font-bold text-[rgba(255,255,255,0.9)]">Team Stats</span>
                                     </div>
                                 </div>
                             </div>

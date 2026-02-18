@@ -5,14 +5,14 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const projectId = searchParams.get('projectId');
+        const limit = searchParams.get('limit');
 
-        if (!projectId) {
-            return NextResponse.json({ error: 'Project ID required' }, { status: 400 });
-        }
+        const whereClause = projectId ? { projectId } : {};
 
         const documents = await (prisma as any).document.findMany({
-            where: { projectId },
-            orderBy: { createdAt: 'desc' }
+            where: whereClause,
+            orderBy: { createdAt: 'desc' },
+            take: limit ? parseInt(limit) : 50
         });
 
         return NextResponse.json(documents);

@@ -5,14 +5,14 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const projectId = searchParams.get('projectId');
+        const limit = searchParams.get('limit');
 
-        if (!projectId) {
-            return NextResponse.json({ error: 'Project ID required' }, { status: 400 });
-        }
+        const whereClause = projectId ? { projectId } : {};
 
         const pages = await (prisma as any).wikiPage.findMany({
-            where: { projectId },
-            orderBy: { updatedAt: 'desc' }
+            where: whereClause,
+            orderBy: { updatedAt: 'desc' },
+            take: limit ? parseInt(limit) : 50
         });
 
         return NextResponse.json(pages);

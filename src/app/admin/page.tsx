@@ -48,8 +48,8 @@ export default function AdminDashboard() {
             desc: 'Control accounts, roles, and permissions',
             icon: Users,
             href: '/admin/users',
-            color: 'text-blue-600',
-            bg: 'bg-blue-50'
+            color: 'text-blue-400',
+            bg: 'bg-blue-500/10'
         },
         {
             title: 'System Logs',

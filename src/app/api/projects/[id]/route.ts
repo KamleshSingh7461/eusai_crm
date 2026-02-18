@@ -45,11 +45,30 @@ export async function GET(
             return NextResponse.json({ error: 'Project not found' }, { status: 404 });
         }
 
-        // Fetch potential assignees (active team members)
-        const teamMembers = await (prisma as any).user.findMany({
-            where: {
-                role: { in: ['DIRECTOR', 'MANAGER', 'TEAM_LEADER', 'EMPLOYEE', 'INTERN'] }
-            },
+        // Fetch potential assignees based on hierarchy
+        const { role, id: currentUserId } = session.user as any;
+        let attendeeWhereClause: any = {};
+
+        if (role === 'DIRECTOR') {
+            attendeeWhereClause = {
+                role: { in: ['MANAGER', 'TEAM_LEADER', 'EMPLOYEE', 'INTERN'] }
+            };
+        } else if (role === 'MANAGER' || role === 'TEAM_LEADER') {
+            const userWithSubordinates = await (prisma as any).user.findUnique({
+                where: { id: currentUserId },
+                include: { subordinates: true }
+            }) as any;
+            const subordinateIds = userWithSubordinates?.subordinates?.map((s: any) => s.id) || [];
+            attendeeWhereClause = {
+                id: { in: subordinateIds }
+            };
+        } else {
+            // Employees/Interns can't assign to others (only self in modal)
+            attendeeWhereClause = { id: 'none' };
+        }
+
+        const potentialAssignees = await (prisma as any).user.findMany({
+            where: attendeeWhereClause,
             select: { id: true, name: true, image: true, role: true }
         });
 
@@ -66,7 +85,7 @@ export async function GET(
 
         return NextResponse.json({
             ...project,
-            team: teamMembers,
+            team: potentialAssignees,
             stats: {
                 financial: {
                     budget,

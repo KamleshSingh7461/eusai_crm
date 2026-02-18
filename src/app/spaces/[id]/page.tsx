@@ -18,13 +18,24 @@ import {
     FileText,
     Loader2,
     AlertTriangle,
-    TrendingUp,
-    ChevronRight,
-    PieChart,
-    ExternalLink
+    Calendar,
+    ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+
+interface Project {
+    id: string;
+    name: string;
+    description: string;
+    status: string;
+    budget: number; // Decimal string or number from JSON
+    expenses: any[];
+    _count: {
+        tasks: number;
+        milestones: number;
+    };
+}
 
 interface Space {
     id: string;
@@ -32,9 +43,10 @@ interface Space {
     description: string;
     color: string;
     type: string;
-    projects: any[];
+    projects: Project[];
     resources: any[];
     wikiPages: any[];
+    recentActivities: any[];
     _count: {
         projects: number;
         resources: number;
@@ -48,7 +60,6 @@ export default function SpaceDashboardPage() {
     const router = useRouter();
     const [space, setSpace] = useState<Space | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('OVERVIEW');
 
     useEffect(() => {
         if (id) fetchSpaceDetails();
@@ -57,17 +68,14 @@ export default function SpaceDashboardPage() {
     const fetchSpaceDetails = async () => {
         setIsLoading(true);
         try {
-            console.log(`[DEBUG] Fetching space: ${id}`);
             const res = await fetch(`/api/spaces/${id}`);
             if (res.ok) {
                 setSpace(await res.json());
             } else {
-                const errorData = await res.json().catch(() => ({}));
-                console.error(`[DEBUG] Failed to load space. Status: ${res.status}`, errorData);
-                // We could set a specific error state here if needed
+                console.error("Failed to load space");
             }
         } catch (error) {
-            console.error("[DEBUG] Network error fetching space:", error);
+            console.error("Network error fetching space:", error);
         } finally {
             setIsLoading(false);
         }
@@ -75,10 +83,10 @@ export default function SpaceDashboardPage() {
 
     if (isLoading) {
         return (
-            <div className="flex h-[calc(100vh-64px)] items-center justify-center bg-[#FAFBFC]">
+            <div className="flex h-[calc(100vh-64px)] items-center justify-center bg-[var(--notion-bg-primary)]">
                 <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-10 h-10 animate-spin text-[#0052CC]" />
-                    <p className="text-[#6B778C] font-bold text-sm uppercase tracking-widest">Entering Space Workspace...</p>
+                    <Loader2 className="w-8 h-8 animate-spin text-[#2383e2]" />
+                    <p className="text-[var(--notion-text-tertiary)] font-bold text-xs uppercase tracking-widest">Loading Workspace...</p>
                 </div>
             </div>
         );
@@ -86,230 +94,282 @@ export default function SpaceDashboardPage() {
 
     if (!space) {
         return (
-            <div className="p-12 text-center bg-[#FAFBFC] h-full">
-                <div className="max-w-md mx-auto p-10 bg-white border border-[#DFE1E6] rounded-sm shadow-sm">
-                    <AlertTriangle className="w-16 h-16 text-[#FFAB00] mx-auto mb-6" />
-                    <h2 className="text-2xl font-bold text-[#172B4D] mb-2">Space Not Found</h2>
-                    <p className="text-[#6B778C] mb-4 text-sm">The space you are looking for doesn't exist or you don't have permission to access it.</p>
-                    <p className="text-[10px] text-[#6B778C] mb-8 font-mono bg-[#F4F5F7] p-2 rounded-sm break-all">ID: {id}</p>
+            <div className="p-12 text-center bg-[var(--notion-bg-primary)] h-full min-h-screen flex items-center justify-center">
+                <div className="max-w-md w-full p-8 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm">
+                    <AlertTriangle className="w-12 h-12 text-[#FFAB00] mx-auto mb-4" />
+                    <h2 className="text-xl font-bold text-[var(--notion-text-primary)] mb-2">Space Not Found</h2>
+                    <p className="text-[var(--notion-text-secondary)] mb-6 text-sm">The space you are looking for doesn't exist or acts as a ghost in the machine.</p>
                     <button
                         onClick={() => router.push('/spaces')}
-                        className="px-6 py-2 bg-[#0052CC] text-white rounded-sm font-bold text-sm hover:bg-[#0747A6] transition-colors"
+                        className="w-full px-4 py-2 bg-[#2383e2] text-white rounded-sm font-bold text-sm hover:bg-[#1a6fcc] transition-colors"
                     >
-                        Back to Directory
+                        Return to Directory
                     </button>
                 </div>
             </div>
         );
     }
 
+    // Calculators
+
+    const totalTasks = space.projects.reduce((sum, p) => sum + p._count.tasks, 0);
+
     return (
-        <div className="animate-in fade-in duration-500 pb-12">
-            {/* Space Header Banner */}
-            <div className="relative h-40 w-full overflow-hidden" style={{ backgroundColor: space.color }}>
-                <div className="absolute inset-0 opacity-10 bg-[url('/grid.svg')] bg-repeat shadow-inner" />
-                <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black/20 to-transparent" />
-                <div className="max-w-7xl mx-auto px-8 h-full flex items-end pb-8 relative z-10">
+        <div className="animate-in fade-in duration-500 pb-12 bg-[var(--notion-bg-primary)] min-h-screen">
+            {/* Cover Image & Header */}
+            <div className="relative h-48 w-full group">
+                <div
+                    className="absolute inset-0 bg-cover bg-center opacity-40 transition-opacity group-hover:opacity-50"
+                    style={{
+                        backgroundColor: space.color,
+                        backgroundImage: `url('/patterns/topography.svg'), linear-gradient(to bottom, ${space.color}, var(--notion-bg-primary))`
+                    }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--notion-bg-primary)] via-[var(--notion-bg-primary)]/50 to-transparent" />
+
+                <div className="max-w-7xl mx-auto px-6 md:px-8 h-full flex items-end pb-6 relative z-10">
                     <button
                         onClick={() => router.push('/spaces')}
-                        className="absolute top-6 left-8 flex items-center gap-2 text-white/80 hover:text-white text-xs font-bold transition-colors"
+                        className="absolute top-6 left-6 md:left-8 flex items-center gap-2 text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)] text-xs font-bold transition-colors bg-[var(--notion-bg-primary)]/50 backdrop-blur-sm px-3 py-1.5 rounded-sm border border-transparent hover:border-[var(--notion-border-default)]"
                     >
-                        <ArrowLeft className="w-4 h-4" />
-                        SPACES DIRECTORY
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        Directory
                     </button>
 
-                    <div className="flex items-center gap-6">
-                        <div className="w-20 h-20 rounded-lg bg-white p-1 shadow-2xl transform -rotate-2">
-                            <div
-                                className="w-full h-full rounded-sm flex items-center justify-center text-white text-2xl font-black"
-                                style={{ backgroundColor: space.color }}
-                            >
-                                {space.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
-                            </div>
+                    <div className="flex flex-col md:flex-row md:items-end gap-6 w-full">
+                        <div className="w-20 h-20 md:w-24 md:h-24 rounded-sm bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] flex items-center justify-center shadow-lg -mb-2 md:-mb-4 transform rotate-1 transition-transform group-hover:rotate-0">
+                            <span className="text-4xl" style={{ color: space.color }}>
+                                {space.name.charAt(0).toUpperCase()}
+                            </span>
                         </div>
-                        <div className="text-white">
-                            <h1 className="text-3xl font-black tracking-tight">{space.name}</h1>
-                            <div className="flex items-center gap-3 mt-1 opacity-90">
-                                <span className="text-xs font-bold uppercase tracking-widest px-2 py-0.5 bg-white/20 rounded-sm">
+                        <div className="flex-1 mb-2">
+                            <div className="flex items-center gap-3 mb-1">
+                                <h1 className="text-3xl md:text-4xl font-bold text-[var(--notion-text-primary)] tracking-tight">{space.name}</h1>
+                                <span className="px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-widest bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-secondary)] border border-[var(--notion-border-default)]">
                                     {space.type}
                                 </span>
-                                <span className="w-1 h-1 rounded-full bg-white/50" />
-                                <span className="text-xs font-medium italic">{space.description || "Mission workspace for EUSAI strategic verticals."}</span>
                             </div>
+                            <p className="text-[var(--notion-text-secondary)] text-sm md:text-base max-w-2xl">
+                                {space.description || "Mission workspace for EUSAI strategic initiatives."}
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Content Container */}
-            <div className="max-w-7xl mx-auto px-8 mt-8">
-                {/* Stats Row */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    {[
-                        { label: 'Active Projects', value: space._count.projects, icon: Briefcase, color: 'text-blue-600', bg: 'bg-blue-50' },
-                        { label: 'Space Resources', value: space._count.resources, icon: Users, color: 'text-green-600', bg: 'bg-green-50' },
-                        { label: 'Tracked Milestones', value: space._count.milestones, icon: Target, color: 'text-purple-600', bg: 'bg-purple-50' },
-                        { label: 'Active Issues', value: space._count.issues, icon: AlertTriangle, color: 'text-orange-600', bg: 'bg-orange-50' },
-                    ].map((stat, idx) => (
-                        <div key={idx} className="card-jira p-5 border-[#DFE1E6] bg-white group hover:border-blue-400 transition-all">
-                            <div className="flex items-center justify-between">
-                                <div className={cn("p-2 rounded-sm", stat.bg)}>
-                                    <stat.icon className={cn("w-5 h-5", stat.color)} />
-                                </div>
-                                <span className="text-2xl font-bold text-[#172B4D]">{stat.value}</span>
-                            </div>
-                            <p className="mt-4 text-[10px] font-bold text-[#6B778C] uppercase tracking-widest">{stat.label}</p>
+            <div className="max-w-7xl mx-auto px-6 md:px-8 mt-8">
+                {/* Metrics Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div className="p-4 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm">
+                        <div className="flex items-center gap-2 mb-2 text-[var(--notion-text-tertiary)]">
+                            <Briefcase className="w-4 h-4" />
+                            <span className="text-xs font-bold uppercase">Active Projects</span>
                         </div>
-                    ))}
+                        <p className="text-2xl font-bold text-[var(--notion-text-primary)]">{space._count.projects}</p>
+                    </div>
+                    <div className="p-4 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm">
+                        <div className="flex items-center gap-2 mb-2 text-[var(--notion-text-tertiary)]">
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span className="text-xs font-bold uppercase">Total Tasks</span>
+                        </div>
+                        <p className="text-2xl font-bold text-[var(--notion-text-primary)]">{totalTasks}</p>
+                    </div>
+                    <div className="p-4 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm">
+                        <div className="flex items-center gap-2 mb-2 text-[var(--notion-text-tertiary)]">
+                            <Users className="w-4 h-4" />
+                            <span className="text-xs font-bold uppercase">Resources</span>
+                        </div>
+                        <p className="text-2xl font-bold text-[var(--notion-text-primary)]">{space._count.resources}</p>
+                    </div>
+                    <div className="p-4 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm">
+                        <div className="flex items-center gap-2 mb-2 text-[var(--notion-text-tertiary)]">
+                            <Target className="w-4 h-4" />
+                            <span className="text-xs font-bold uppercase">Milestones</span>
+                        </div>
+                        <p className="text-2xl font-bold text-[var(--notion-text-primary)]">{space._count.milestones}</p>
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    {/* Main Content Area */}
-                    <div className="lg:col-span-3 space-y-8">
-                        {/* Projects Section */}
-                        <div className="bg-white border border-[#DFE1E6] rounded-sm overflow-hidden">
-                            <div className="px-6 py-4 border-b border-[#DFE1E6] flex items-center justify-between bg-[#FAFBFC]">
-                                <h3 className="font-bold text-[#172B4D] flex items-center gap-2">
-                                    <Activity className="w-4 h-4 text-[#0052CC]" />
-                                    Active Initiatives
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Main Feed - Left 2 Columns */}
+                    <div className="lg:col-span-2 space-y-8">
+                        {/* Projects List */}
+                        <section>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-sm font-bold text-[var(--notion-text-tertiary)] uppercase tracking-widest flex items-center gap-2">
+                                    <Layout className="w-4 h-4" /> Operations
                                 </h3>
-                                <Link href="/projects" className="text-xs font-bold text-[#0052CC] hover:underline flex items-center gap-1">
-                                    Manage All <ExternalLink className="w-3 h-3" />
+                                <Link
+                                    href="/projects"
+                                    className="text-xs font-bold text-[#2383e2] hover:underline flex items-center gap-1"
+                                >
+                                    View All <ChevronRight className="w-3 h-3" />
                                 </Link>
                             </div>
-                            <div className="divide-y divide-[#DFE1E6]">
+                            <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm overflow-hidden">
                                 {space.projects.length === 0 ? (
-                                    <div className="p-12 text-center text-[#6B778C]">
-                                        <p className="text-sm">No projects currently linked to this space.</p>
+                                    <div className="p-8 text-center">
+                                        <p className="text-sm text-[var(--notion-text-tertiary)]">No initialized operations.</p>
                                     </div>
                                 ) : (
-                                    space.projects.map((project: any) => (
-                                        <div key={project.id} className="p-6 hover:bg-[#FAFBFC] transition-colors group">
-                                            <div className="flex items-center justify-between mb-3">
-                                                <div className="space-y-1">
-                                                    <h4 className="font-bold text-[#172B4D] group-hover:text-[#0052CC] transition-colors">{project.name}</h4>
-                                                    <p className="text-xs text-[#6B778C] line-clamp-1">{project.description}</p>
-                                                </div>
-                                                <div className="flex items-center gap-2">
+                                    <div className="divide-y divide-[var(--notion-border-default)]">
+                                        {space.projects.map(project => (
+                                            <div key={project.id} className="p-4 hover:bg-[var(--notion-bg-tertiary)] transition-colors group">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div>
+                                                        <h4 className="font-bold text-[var(--notion-text-primary)] group-hover:text-[#2383e2] transition-colors">
+                                                            {project.name}
+                                                        </h4>
+                                                        <p className="text-xs text-[var(--notion-text-tertiary)] line-clamp-1 mt-0.5">
+                                                            {project.description || "No mission brief."}
+                                                        </p>
+                                                    </div>
                                                     <span className={cn(
-                                                        "text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-tight",
-                                                        project.status === 'EXECUTION' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                                        "px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase",
+                                                        project.status === 'EXECUTION' ? "bg-[#36B37E]/20 text-[#36B37E]" :
+                                                            project.status === 'PLANNING' ? "bg-[#2383e2]/20 text-[#2383e2]" :
+                                                                "bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-tertiary)]"
                                                     )}>
-                                                        {project.status}
+                                                        {project.status.replace('_', ' ')}
                                                     </span>
                                                 </div>
-                                            </div>
+                                                <div className="flex items-center gap-4 mt-3">
+                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--notion-text-secondary)]">
+                                                        <CheckCircle2 className="w-3 h-3 text-[#36B37E]" />
+                                                        {project._count.tasks} Tasks
+                                                    </div>
 
-                                            <div className="flex items-center gap-6 mt-4">
-                                                <div className="flex -space-x-2">
-                                                    {[1, 2, 3].map(i => (
-                                                        <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-[#DFE1E6] flex items-center justify-center text-[8px] font-bold text-[#42526E]">
-                                                            U{i}
-                                                        </div>
-                                                    ))}
                                                 </div>
-                                                <div className="flex-1 h-1.5 bg-[#EBECF0] rounded-full overflow-hidden">
-                                                    <div className="h-full bg-[#36B37E]" style={{ width: '65%' }} />
-                                                </div>
-                                                <span className="text-[10px] font-bold text-[#6B778C]">65% COMPLETE</span>
                                             </div>
-                                        </div>
-                                    ))
+                                        ))}
+                                    </div>
                                 )}
                             </div>
-                        </div>
+                        </section>
 
-                        {/* Recent Intelligence (Wiki/Docs) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-white border border-[#DFE1E6] rounded-sm p-6">
-                                <h3 className="font-bold text-[#172B4D] mb-4 flex items-center gap-2">
-                                    <PieChart className="w-4 h-4 text-[#6554C0]" />
-                                    Knowledge Base
-                                </h3>
-                                <div className="space-y-4">
-                                    {space.wikiPages.length === 0 ? (
-                                        <p className="text-xs text-[#6B778C]">No documentation yet.</p>
-                                    ) : (
-                                        space.wikiPages.map((page: any) => (
-                                            <div key={page.id} className="flex items-center gap-3 group cursor-pointer">
-                                                <div className="p-2 bg-[#EAE6FF] rounded-sm group-hover:bg-[#6554C0] transition-colors">
-                                                    <FileText className="w-4 h-4 text-[#6554C0] group-hover:text-white" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-[#172B4D] group-hover:text-[#0052CC]">{page.title}</p>
-                                                    <p className="text-[10px] text-[#6B778C]">Updated {new Date(page.updatedAt).toLocaleDateString()}</p>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
+                        {/* Recent Activity */}
+                        <section>
+                            <h3 className="text-sm font-bold text-[var(--notion-text-tertiary)] uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <Activity className="w-4 h-4" /> Space Pulse
+                            </h3>
+                            <div className="space-y-3">
+                                {space.recentActivities.length === 0 ? (
+                                    <p className="text-sm text-[var(--notion-text-tertiary)] italic">No recent activity recorded.</p>
+                                ) : (
+                                    (() => {
+                                        // Activity Grouping Logic
+                                        const groupedActivities: any[] = [];
+                                        let currentGroup: any = null;
 
-                            <div className="bg-[#172B4D] rounded-sm p-6 text-white overflow-hidden relative">
-                                <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
-                                    <TrendingUp className="w-32 h-32" />
-                                </div>
-                                <h3 className="font-bold mb-4 flex items-center gap-2 relative z-10">
-                                    <Activity className="w-4 h-4 text-[#00B8D9]" />
-                                    Space Pulse
-                                </h3>
-                                <div className="space-y-4 relative z-10">
-                                    <div className="p-3 bg-white/10 rounded-sm border border-white/10">
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#00B8D9]">Current Velocity</p>
-                                        <p className="text-2xl font-black">12.4 <span className="text-sm font-normal text-white/60">tasks/week</span></p>
-                                    </div>
-                                    <div className="p-3 bg-white/10 rounded-sm border border-white/10">
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#FFAB00]">Budget Stability</p>
-                                        <p className="text-2xl font-black">Stable <span className="text-sm font-normal text-white/60">at 84% usage</span></p>
-                                    </div>
-                                </div>
+                                        space.recentActivities.forEach((activity: any) => {
+                                            const isSameGroup = currentGroup &&
+                                                currentGroup.user.name === activity.user.name &&
+                                                currentGroup.action === activity.action &&
+                                                currentGroup.project.name === activity.project.name &&
+                                                (new Date(currentGroup.timestamp).getTime() - new Date(activity.timestamp).getTime() < 3600000); // 1 hour window
+
+                                            if (isSameGroup) {
+                                                currentGroup.count++;
+                                            } else {
+                                                if (currentGroup) groupedActivities.push(currentGroup);
+                                                currentGroup = { ...activity, count: 1 };
+                                            }
+                                        });
+                                        if (currentGroup) groupedActivities.push(currentGroup);
+
+                                        return groupedActivities.map((activity: any) => {
+                                            // Format action text
+                                            const formatAction = (action: string, count: number) => {
+                                                const formatted = action.replace(/_/g, ' ').toLowerCase();
+                                                if (count > 1) {
+                                                    // Pluralize if needed, simplistic approach
+                                                    return `${formatted} (${count} times)`;
+                                                }
+                                                return formatted;
+                                            };
+
+                                            return (
+                                                <div key={activity.id} className="flex gap-3 items-start p-3 rounded-sm hover:bg-[var(--notion-bg-secondary)] border border-transparent hover:border-[var(--notion-border-default)] transition-colors">
+                                                    <div className="mt-0.5 w-6 h-6 rounded-full bg-[var(--notion-bg-tertiary)] flex items-center justify-center text-[10px] font-bold text-[var(--notion-text-secondary)] border border-[var(--notion-border-default)] shrink-0">
+                                                        {activity.user.name[0]}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm text-[var(--notion-text-primary)]">
+                                                            <span className="font-bold">{activity.user.name}</span>
+                                                            <span className="text-[var(--notion-text-secondary)]"> {formatAction(activity.action, activity.count)} </span>
+                                                            <span className="text-[var(--notion-text-tertiary)]">in</span>
+                                                            <span className="font-bold text-[#2383e2]"> {activity.project.name}</span>
+                                                        </p>
+                                                        <p className="text-[10px] text-[var(--notion-text-tertiary)] mt-1 flex items-center gap-1">
+                                                            <Clock className="w-2.5 h-2.5" />
+                                                            {new Date(activity.timestamp).toLocaleDateString()} at {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
+                                    })()
+                                )}
                             </div>
-                        </div>
+                        </section>
                     </div>
 
-                    {/* Sidebar / Context Panel */}
-                    <div className="space-y-6">
-                        <div className="bg-[#DEEBFF] rounded-sm p-6 border border-[#B3D4FF]">
-                            <h3 className="font-bold text-[#0747A6] mb-2 flex items-center gap-2 text-sm uppercase">
-                                <Layout className="w-4 h-4" />
-                                Quick Actions
-                            </h3>
-                            <div className="space-y-2 mt-4">
-                                <button className="w-full flex items-center gap-3 px-4 py-2 bg-white text-[#0052CC] font-bold text-xs rounded-sm hover:bg-[#F4F5F7] transition-colors shadow-sm">
-                                    <Plus className="w-3.5 h-3.5" /> New Initiative
-                                </button>
-                                <button className="w-full flex items-center gap-3 px-4 py-2 bg-white text-[#0052CC] font-bold text-xs rounded-sm hover:bg-[#F4F5F7] transition-colors shadow-sm">
-                                    <Users className="w-3.5 h-3.5" /> Add Resource
-                                </button>
-                                <button className="w-full flex items-center gap-3 px-4 py-2 bg-white text-[#0052CC] font-bold text-xs rounded-sm hover:bg-[#F4F5F7] transition-colors shadow-sm">
-                                    <FileText className="w-3.5 h-3.5" /> Space Wiki
-                                </button>
-                            </div>
-                        </div>
+                    {/* Sidebar - Right Column */}
+                    <div className="space-y-8">
 
-                        <div className="bg-white border border-[#DFE1E6] rounded-sm p-6">
-                            <h3 className="font-bold text-[#172B4D] mb-4 text-xs uppercase tracking-widest flex items-center gap-2">
-                                <Clock className="w-3.5 h-3.5 text-[#6B778C]" />
-                                Allocated Personnel
+
+                        {/* Personnel */}
+                        <section>
+                            <h3 className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <Users className="w-3.5 h-3.5" /> Personnel
                             </h3>
-                            <div className="space-y-4">
+                            <div className="space-y-2">
                                 {space.resources.filter(r => r.type === 'PERSONNEL').length === 0 ? (
-                                    <p className="text-xs text-[#6B778C]">No personnel assigned yet.</p>
+                                    <p className="text-xs text-[var(--notion-text-tertiary)]">No personnel assigned.</p>
                                 ) : (
                                     space.resources.filter(r => r.type === 'PERSONNEL').map((res: any) => (
-                                        <div key={res.id} className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-[#F4F5F7] flex items-center justify-center font-bold text-[#0052CC] text-[10px] border border-[#DFE1E6]">
+                                        <div key={res.id} className="flex items-center gap-3 p-2 hover:bg-[var(--notion-bg-secondary)] rounded-sm transition-colors border border-transparent hover:border-[var(--notion-border-default)]">
+                                            <div className="w-6 h-6 rounded-full bg-[#2383e2]/20 flex items-center justify-center font-bold text-[#2383e2] text-[10px]">
                                                 {res.name.charAt(0)}
                                             </div>
-                                            <div className="overflow-hidden">
-                                                <p className="text-xs font-bold text-[#172B4D] truncate">{res.name}</p>
-                                                <p className="text-[9px] text-[#6B778C] uppercase font-bold">{res.role || 'MEMBER'}</p>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-bold text-[var(--notion-text-primary)] truncate">{res.name}</p>
+                                                <p className="text-[9px] text-[var(--notion-text-tertiary)] uppercase font-bold">{res.role || 'Member'}</p>
+                                            </div>
+                                            <div className="text-[9px] font-mono text-[var(--notion-text-tertiary)]">
+                                                {res.status}
                                             </div>
                                         </div>
                                     ))
                                 )}
                             </div>
-                        </div>
+                        </section>
+
+                        {/* Wiki */}
+                        <section>
+                            <h3 className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <FileText className="w-3.5 h-3.5" /> Knowledge
+                            </h3>
+                            <div className="space-y-1">
+                                {space.wikiPages.length === 0 ? (
+                                    <p className="text-xs text-[var(--notion-text-tertiary)]">No documentation.</p>
+                                ) : (
+                                    space.wikiPages.map((page: any) => (
+                                        <Link
+                                            key={page.id}
+                                            href={`/wiki/${page.id}`}
+                                            className="block p-2 text-xs text-[var(--notion-text-secondary)] hover:bg-[var(--notion-bg-secondary)] rounded-sm transition-colors truncate hover:text-[#2383e2]"
+                                        >
+                                            {page.title}
+                                        </Link>
+                                    ))
+                                )}
+                                <button className="w-full text-left p-2 text-xs text-[var(--notion-text-tertiary)] hover:bg-[var(--notion-bg-secondary)] rounded-sm transition-colors flex items-center gap-2">
+                                    <Plus className="w-3 h-3" /> New Page
+                                </button>
+                            </div>
+                        </section>
                     </div>
                 </div>
             </div>

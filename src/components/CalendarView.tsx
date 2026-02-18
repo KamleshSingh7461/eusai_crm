@@ -21,14 +21,35 @@ export default function CalendarView() {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
+                // Diagnostic Ping
+                const pingRes = await fetch('/api/ping');
+                const pingData = await pingRes.json().catch(() => ({ error: 'Ping failed' }));
+                console.log("📅 Calendar API: Connectivity Test (Ping):", pingData);
+
                 const response = await fetch('/api/calendar');
                 if (response.ok) {
                     const data = await response.json();
                     setEvents(data);
                 } else {
-                    // If 401, it likely means we need to re-auth for scopes, but for now just show empty
-                    console.log("Failed to fetch calendar events");
-                    setError("Could not load calendar events. You may need to re-login to grant permissions.");
+                    const status = response.status;
+                    const contentType = response.headers.get("content-type");
+                    const rawText = await response.text();
+
+                    console.log(`📅 Calendar API Debug - Status: ${status}, Content-Type: ${contentType}`);
+                    console.log(`📅 Calendar API Raw Response:`, rawText);
+
+                    let errorData: any = { error: `Server error (${status})` };
+
+                    if (contentType && contentType.includes("application/json")) {
+                        try {
+                            errorData = JSON.parse(rawText);
+                        } catch (parseError) {
+                            console.error("📅 Calendar API JSON Parse Error:", parseError);
+                        }
+                    }
+
+                    console.error("Failed to fetch calendar events:", errorData);
+                    setError(errorData.details || errorData.error || "Could not load calendar events. You may need to re-login to grant permissions.");
                 }
             } catch (error) {
                 console.error('Failed to fetch calendar events', error);
