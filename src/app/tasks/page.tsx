@@ -32,6 +32,8 @@ import { useToast } from '@/context/ToastContext';
 import NewTaskModal from '@/components/modals/NewTaskModal';
 import { StatusBadge, NotionButton } from '@/components/notion';
 import type { StatusType } from '@/components/notion/StatusBadge';
+import TaskDetailModal from '@/components/modals/TaskDetailModal';
+import CompletionModal from '@/components/modals/CompletionModal';
 
 interface Task {
     id: string;
@@ -78,6 +80,9 @@ export default function TasksPage() {
         overdueOnly: false,
         assignedUser: 'all'
     });
+
+    const [selectedTaskForDetail, setSelectedTaskForDetail] = useState<Task | null>(null);
+    const [taskToComplete, setTaskToComplete] = useState<Task | null>(null);
 
     const userRole = (session?.user as any)?.role;
     const isDirector = userRole === 'DIRECTOR';
@@ -196,6 +201,33 @@ export default function TasksPage() {
         }
     };
 
+    const handleCompleteTask = async (remarks: string, proofUrl?: string) => {
+        if (!taskToComplete) return;
+
+        try {
+            const res = await fetch(`/api/tasks/${taskToComplete.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    status: 'DONE',
+                    completionRemark: remarks,
+                    completionProof: proofUrl
+                })
+            });
+
+            if (res.ok) {
+                showToast('Missions completion validated and logged', 'success');
+                fetchData();
+                setTaskToComplete(null);
+            } else {
+                const data = await res.json();
+                showToast(data.error || 'Failed to validate missions completion', 'error');
+            }
+        } catch (error) {
+            showToast('Strategic synchronization failure', 'error');
+        }
+    };
+
     const handleQuickFilter = (type: string, payload?: any) => {
         switch (type) {
             case 'ALL':
@@ -203,20 +235,25 @@ export default function TasksPage() {
                 break;
             case 'OVERDUE':
                 setFilters({ ...filters, overdueOnly: true, priority: 'all', status: 'all', assignedUser: 'all' });
-                showToast('Interrogating overdue missions...', 'success');
+                // showToast('Interrogating overdue missions...', 'success');
                 break;
             case 'HIGH_PRIORITY':
                 setFilters({ ...filters, priority: 'high', status: 'all', overdueOnly: false, assignedUser: 'all' });
-                showToast('Filtering critical initiatives...', 'success');
+                // showToast('Filtering critical initiatives...', 'success');
                 break;
             case 'COMPLETED':
                 setFilters({ ...filters, status: 'DONE', priority: 'all', overdueOnly: false, assignedUser: 'all' });
-                showToast('Retrieving historical yields...', 'success');
+                // showToast('Retrieving historical yields...', 'success');
                 break;
             case 'PERSONNEL':
                 setFilters({ project: 'all', priority: 'all', role: 'all', status: 'all', overdueOnly: false, assignedUser: payload });
-                showToast(`Isolation protocol: Personnel ${payload}`, 'success');
+                // showToast(`Isolation protocol: Personnel ${payload}`, 'success');
                 break;
+        }
+
+        // Auto-scroll to registry on mobile/tablet for better UX
+        if (window.innerWidth < 1024) {
+            document.getElementById('task-registry')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     };
 
@@ -432,196 +469,212 @@ export default function TasksPage() {
                 </div>
 
                 {/* Registry View (Database Table) */}
-                {
-                    filteredTasks.length === 0 ? (
-                        <div className="bg-[#2f3437] border-2 border-dashed border-[rgba(255,255,255,0.08)] rounded-xl py-32 flex flex-col items-center justify-center text-center px-8">
-                            <SearchX className="w-16 h-16 text-[rgba(255,255,255,0.1)] mb-6" />
-                            <h3 className="text-xl font-black text-[rgba(255,255,255,0.9)] tracking-tight">Tactical Vacuum Detected</h3>
-                            <p className="text-[rgba(255,255,255,0.4)] text-sm mt-3 max-w-sm font-medium">No tasks match your current interrogative parameters. Adjust filters to expand scope.</p>
-                            <NotionButton
-                                variant="default"
-                                className="mt-8 bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] border-[rgba(255,255,255,0.08)] text-[10px] font-black uppercase tracking-widest"
-                                onClick={() => {
-                                    setFilters({ project: 'all', priority: 'all', role: 'all', status: 'all' });
-                                    setSearchQuery('');
-                                }}
-                            >
-                                Reset Registry
-                            </NotionButton>
-                        </div>
-                    ) : (
-                        <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.09)] rounded-lg overflow-hidden shadow-2xl">
-                            <div className="hidden md:block overflow-x-auto">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-[rgba(0,0,0,0.2)] border-b border-[rgba(255,255,255,0.08)]">
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] w-12 hidden sm:table-cell">REF</th>
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] min-w-[200px] sm:min-w-[300px]">Strategic Task</th>
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em]">Status</th>
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] hidden md:table-cell">Priority</th>
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em]">Deadline</th>
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] hidden lg:table-cell">Project</th>
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] hidden md:table-cell">Assignee</th>
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] text-right">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-[rgba(255,255,255,0.03)]">
-                                        {filteredTasks.map((t, idx) => (
-                                            <tr key={t.id} className="hover:bg-[rgba(255,255,255,0.04)] transition-all duration-300 group relative">
-                                                <td className="px-5 py-5 text-[10px] font-black font-mono text-[rgba(255,255,255,0.15)] group-hover:text-[#0052CC] transition-colors hidden sm:table-cell">
-                                                    {String(idx + 1).padStart(3, '0')}
-                                                </td>
-                                                <td className="px-5 py-5">
-                                                    <div className="flex flex-col gap-1.5">
-                                                        <span className="text-[13px] font-black tracking-tight text-[rgba(255,255,255,0.9)] group-hover:text-[#0052CC] transition-colors">{t.title}</span>
-                                                        <span className="text-[10px] text-[rgba(255,255,255,0.4)] font-bold uppercase tracking-wider line-clamp-1 max-w-[150px] sm:max-w-sm">{t.description || "Operational task tracking."}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-5 py-5">
-                                                    <StatusBadge status={mapStatusForBadge(t.status)} size="sm" />
-                                                </td>
-                                                <td className="px-5 py-5 hidden md:table-cell">
+                <div id="task-registry" className="scroll-mt-32">
+                    {
+                        filteredTasks.length === 0 ? (
+                            <div className="bg-[#2f3437] border-2 border-dashed border-[rgba(255,255,255,0.08)] rounded-xl py-32 flex flex-col items-center justify-center text-center px-8">
+                                <SearchX className="w-16 h-16 text-[rgba(255,255,255,0.1)] mb-6" />
+                                <h3 className="text-xl font-black text-[rgba(255,255,255,0.9)] tracking-tight">Tactical Vacuum Detected</h3>
+                                <p className="text-[rgba(255,255,255,0.4)] text-sm mt-3 max-w-sm font-medium">No tasks match your current interrogative parameters. Adjust filters to expand scope.</p>
+                                <NotionButton
+                                    variant="default"
+                                    className="mt-8 bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] border-[rgba(255,255,255,0.08)] text-[10px] font-black uppercase tracking-widest"
+                                    onClick={() => {
+                                        setFilters({ project: 'all', priority: 'all', role: 'all', status: 'all' });
+                                        setSearchQuery('');
+                                    }}
+                                >
+                                    Reset Registry
+                                </NotionButton>
+                            </div>
+                        ) : (
+                            <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.09)] rounded-lg overflow-hidden shadow-2xl">
+                                <div className="hidden md:block overflow-x-auto">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="bg-[rgba(0,0,0,0.2)] border-b border-[rgba(255,255,255,0.08)]">
+                                                <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] w-12 hidden sm:table-cell">REF</th>
+                                                <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] min-w-[200px] sm:min-w-[300px]">Strategic Task</th>
+                                                <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em]">Status</th>
+                                                <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] hidden md:table-cell">Priority</th>
+                                                <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em]">Deadline</th>
+                                                <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] hidden lg:table-cell">Project</th>
+                                                <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] hidden md:table-cell">Assignee</th>
+                                                <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-[rgba(255,255,255,0.03)]">
+                                            {filteredTasks.map((t, idx) => (
+                                                <tr key={t.id} className="hover:bg-[rgba(255,255,255,0.04)] transition-all duration-300 group relative">
+                                                    <td className="px-5 py-5 text-[10px] font-black font-mono text-[rgba(255,255,255,0.15)] group-hover:text-[#0052CC] transition-colors hidden sm:table-cell">
+                                                        {String(idx + 1).padStart(3, '0')}
+                                                    </td>
+                                                    <td className="px-5 py-5 cursor-pointer" onClick={() => setSelectedTaskForDetail(t)}>
+                                                        <div className="flex flex-col gap-1.5">
+                                                            <span className="text-[13px] font-black tracking-tight text-[rgba(255,255,255,0.9)] group-hover:text-[#0052CC] transition-colors">{t.title}</span>
+                                                            <span className="text-[10px] text-[rgba(255,255,255,0.4)] font-bold uppercase tracking-wider line-clamp-1 max-w-[150px] sm:max-w-sm">{t.description || "Operational task tracking."}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-5 py-5">
+                                                        <StatusBadge status={mapStatusForBadge(t.status)} size="sm" />
+                                                    </td>
+                                                    <td className="px-5 py-5 hidden md:table-cell">
+                                                        <div className={cn(
+                                                            "text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-[0.1em] border inline-flex items-center gap-1.5 shadow-sm",
+                                                            t.priority === 3 ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                                                t.priority === 2 ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                                                                    'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                                        )}>
+                                                            <div className={cn("w-1 h-1 rounded-full",
+                                                                t.priority === 3 ? 'bg-red-400' :
+                                                                    t.priority === 2 ? 'bg-orange-400' :
+                                                                        'bg-blue-400'
+                                                            )} />
+                                                            {t.priority === 3 ? 'High' : t.priority === 2 ? 'Medium' : 'Low'}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-5 py-5">
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <div className="flex items-center gap-1.5 text-xs text-[rgba(255,255,255,0.7)] font-black tracking-tight">
+                                                                <Clock className="w-3.5 h-3.5 text-[rgba(255,255,255,0.2)]" />
+                                                                {new Date(t.deadline).toLocaleDateString()}
+                                                            </div>
+                                                            {new Date(t.deadline) < new Date() && t.status !== 'DONE' && (
+                                                                <span className="text-[9px] font-black text-red-500/80 uppercase tracking-tighter">Overdue</span>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-5 py-5 hidden lg:table-cell">
+                                                        {t.project ? (
+                                                            <div className="flex items-center gap-2 group/link cursor-pointer">
+                                                                <div className="p-1.5 bg-blue-500/10 rounded-md border border-blue-500/20 group-hover/link:bg-blue-500/20 transition-all">
+                                                                    <Briefcase className="w-3 h-3 text-[#0052CC]" />
+                                                                </div>
+                                                                <span className="text-xs font-black text-[#0052CC] tracking-tight group-hover/link:underline truncate max-w-[100px]">{t.project.name}</span>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-[rgba(255,255,255,0.1)] text-[9px] font-black tracking-[0.2em] uppercase">GENERAL</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-5 py-5 hidden md:table-cell">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="w-7 h-7 rounded bg-[#1D2125] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-black text-white text-[10px] shadow-inner shrink-0">
+                                                                {t.assignedTo?.name?.charAt(0) || 'U'}
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-xs font-black text-[rgba(255,255,255,0.9)] tracking-tight truncate max-w-[120px]">{t.assignedTo?.name || "Staff"}</span>
+                                                                <span className="text-[9px] font-black text-[rgba(255,255,255,0.25)] uppercase tracking-tighter truncate">{t.assignedTo?.role || "Operational"}</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-5 py-5 text-right">
+                                                        <div className="flex items-center justify-end gap-1.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 sm:translate-x-2 sm:group-hover:translate-x-0">
+                                                            {(t.userId === userId || isManager) && t.status !== 'DONE' && (
+                                                                <button
+                                                                    onClick={() => setTaskToComplete(t)}
+                                                                    className="p-2 hover:bg-emerald-500/20 text-emerald-400 rounded-md border border-[rgba(16,185,129,0.1)] sm:border-transparent hover:border-emerald-500/30 transition-all active:scale-90"
+                                                                    title="Mark as Complete"
+                                                                >
+                                                                    <CheckCircle2 className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                            <button className="p-2 hover:bg-[rgba(255,255,255,0.05)] border border-transparent hover:border-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.3)] hover:text-white rounded-md transition-all">
+                                                                <MoreHorizontal className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Mobile Card List */}
+                                <div className="md:hidden divide-y divide-[rgba(255,255,255,0.05)]">
+                                    {filteredTasks.map((t) => (
+                                        <div key={t.id} className="p-4 active:bg-[rgba(255,255,255,0.02)] transition-colors">
+                                            <div className="flex items-start justify-between gap-3 mb-2.5">
+                                                <div className="flex flex-col gap-1 min-w-0">
+                                                    <span className="text-[13px] font-black text-white leading-tight">{t.title}</span>
+                                                    <span className="text-[10px] text-[rgba(255,255,255,0.4)] font-bold uppercase tracking-wider truncate">{t.description || "No description provided."}</span>
+                                                </div>
+                                                <StatusBadge status={mapStatusForBadge(t.status)} size="sm" />
+                                            </div>
+
+                                            <div className="flex items-center justify-between gap-2 overflow-hidden">
+                                                <div className="flex items-center gap-2 min-w-0">
                                                     <div className={cn(
-                                                        "text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-[0.1em] border inline-flex items-center gap-1.5 shadow-sm",
+                                                        "text-[8px] font-black px-1 py-0.5 rounded-sm uppercase tracking-tighter border shrink-0",
                                                         t.priority === 3 ? 'bg-red-500/10 text-red-400 border-red-500/20' :
                                                             t.priority === 2 ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
                                                                 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                                                     )}>
-                                                        <div className={cn("w-1 h-1 rounded-full",
-                                                            t.priority === 3 ? 'bg-red-400' :
-                                                                t.priority === 2 ? 'bg-orange-400' :
-                                                                    'bg-blue-400'
-                                                        )} />
-                                                        {t.priority === 3 ? 'High' : t.priority === 2 ? 'Medium' : 'Low'}
+                                                        {t.priority === 3 ? 'High' : t.priority === 2 ? 'Med' : 'Low'}
                                                     </div>
-                                                </td>
-                                                <td className="px-5 py-5">
-                                                    <div className="flex flex-col gap-0.5">
-                                                        <div className="flex items-center gap-1.5 text-xs text-[rgba(255,255,255,0.7)] font-black tracking-tight">
-                                                            <Clock className="w-3.5 h-3.5 text-[rgba(255,255,255,0.2)]" />
-                                                            {new Date(t.deadline).toLocaleDateString()}
-                                                        </div>
-                                                        {new Date(t.deadline) < new Date() && t.status !== 'DONE' && (
-                                                            <span className="text-[9px] font-black text-red-500/80 uppercase tracking-tighter">Overdue</span>
-                                                        )}
+                                                    <div className="flex items-center gap-1 text-[9px] font-black text-[rgba(255,255,255,0.5)] shrink-0">
+                                                        <Clock className="w-2.5 h-2.5 opacity-30" />
+                                                        {new Date(t.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                                     </div>
-                                                </td>
-                                                <td className="px-5 py-5 hidden lg:table-cell">
-                                                    {t.project ? (
-                                                        <div className="flex items-center gap-2 group/link cursor-pointer">
-                                                            <div className="p-1.5 bg-blue-500/10 rounded-md border border-blue-500/20 group-hover/link:bg-blue-500/20 transition-all">
-                                                                <Briefcase className="w-3 h-3 text-[#0052CC]" />
-                                                            </div>
-                                                            <span className="text-xs font-black text-[#0052CC] tracking-tight group-hover/link:underline truncate max-w-[100px]">{t.project.name}</span>
+                                                    {t.project && (
+                                                        <div className="text-[8px] font-black text-[#0052CC] uppercase tracking-wider truncate">
+                                                            {t.project.name}
                                                         </div>
-                                                    ) : (
-                                                        <span className="text-[rgba(255,255,255,0.1)] text-[9px] font-black tracking-[0.2em] uppercase">GENERAL</span>
                                                     )}
-                                                </td>
-                                                <td className="px-5 py-5 hidden md:table-cell">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <div className="w-7 h-7 rounded bg-[#1D2125] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-black text-white text-[10px] shadow-inner shrink-0">
-                                                            {t.assignedTo?.name?.charAt(0) || 'U'}
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-xs font-black text-[rgba(255,255,255,0.9)] tracking-tight truncate max-w-[120px]">{t.assignedTo?.name || "Staff"}</span>
-                                                            <span className="text-[9px] font-black text-[rgba(255,255,255,0.25)] uppercase tracking-tighter truncate">{t.assignedTo?.role || "Operational"}</span>
-                                                        </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-between mt-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-6 h-6 rounded bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center font-black text-[8px]">
+                                                        {t.assignedTo?.name?.charAt(0) || 'U'}
                                                     </div>
-                                                </td>
-                                                <td className="px-5 py-5 text-right">
-                                                    <div className="flex items-center justify-end gap-1.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 sm:translate-x-2 sm:group-hover:translate-x-0">
-                                                        {(t.userId === userId || isManager) && t.status !== 'DONE' && (
-                                                            <button
-                                                                onClick={() => handleUpdateStatus(t.id, 'DONE')}
-                                                                className="p-2 hover:bg-emerald-500/20 text-emerald-400 rounded-md border border-[rgba(16,185,129,0.1)] sm:border-transparent hover:border-emerald-500/30 transition-all active:scale-90"
-                                                                title="Mark as Complete"
-                                                            >
-                                                                <CheckCircle2 className="w-4 h-4" />
-                                                            </button>
-                                                        )}
-                                                        <button className="p-2 hover:bg-[rgba(255,255,255,0.05)] border border-transparent hover:border-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.3)] hover:text-white rounded-md transition-all">
-                                                            <MoreHorizontal className="w-4 h-4" />
+                                                    <span className="text-[10px] font-bold text-[rgba(255,255,255,0.4)]">{t.assignedTo?.name || "Unassigned"}</span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    {(t.userId === userId || isManager) && t.status !== 'DONE' && (
+                                                        <button
+                                                            onClick={() => setTaskToComplete(t)}
+                                                            className="px-4 py-2 bg-[#0052CC]/10 text-[#0052CC] text-[10px] font-black uppercase tracking-[0.1em] rounded border border-[#0052CC]/20 active:scale-90 transition-all shadow-lg active:bg-[#0052CC] active:text-white"
+                                                        >
+                                                            Complete Task
                                                         </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* Mobile Card List */}
-                            <div className="md:hidden divide-y divide-[rgba(255,255,255,0.05)]">
-                                {filteredTasks.map((t) => (
-                                    <div key={t.id} className="p-4 active:bg-[rgba(255,255,255,0.02)] transition-colors">
-                                        <div className="flex items-start justify-between gap-3 mb-2.5">
-                                            <div className="flex flex-col gap-1 min-w-0">
-                                                <span className="text-[13px] font-black text-white leading-tight">{t.title}</span>
-                                                <span className="text-[10px] text-[rgba(255,255,255,0.4)] font-bold uppercase tracking-wider truncate">{t.description || "No description provided."}</span>
-                                            </div>
-                                            <StatusBadge status={mapStatusForBadge(t.status)} size="sm" />
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-2 overflow-hidden">
-                                            <div className="flex items-center gap-2 min-w-0">
-                                                <div className={cn(
-                                                    "text-[8px] font-black px-1 py-0.5 rounded-sm uppercase tracking-tighter border shrink-0",
-                                                    t.priority === 3 ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                                        t.priority === 2 ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
-                                                            'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                                                )}>
-                                                    {t.priority === 3 ? 'High' : t.priority === 2 ? 'Med' : 'Low'}
-                                                </div>
-                                                <div className="flex items-center gap-1 text-[9px] font-black text-[rgba(255,255,255,0.5)] shrink-0">
-                                                    <Clock className="w-2.5 h-2.5 opacity-30" />
-                                                    {new Date(t.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                                                </div>
-                                                {t.project && (
-                                                    <div className="text-[8px] font-black text-[#0052CC] uppercase tracking-wider truncate">
-                                                        {t.project.name}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center justify-between mt-4">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center font-black text-[8px]">
-                                                    {t.assignedTo?.name?.charAt(0) || 'U'}
-                                                </div>
-                                                <span className="text-[10px] font-bold text-[rgba(255,255,255,0.4)]">{t.assignedTo?.name || "Unassigned"}</span>
-                                            </div>
-
-                                            <div className="flex items-center gap-2">
-                                                {(t.userId === userId || isManager) && t.status !== 'DONE' && (
-                                                    <button
-                                                        onClick={() => handleUpdateStatus(t.id, 'DONE')}
-                                                        className="px-4 py-2 bg-[#0052CC]/10 text-[#0052CC] text-[10px] font-black uppercase tracking-[0.1em] rounded border border-[#0052CC]/20 active:scale-90 transition-all shadow-lg active:bg-[#0052CC] active:text-white"
-                                                    >
-                                                        Complete Task
+                                                    )}
+                                                    <button className="p-2 text-[rgba(255,255,255,0.2)] hover:text-white transition-colors">
+                                                        <MoreHorizontal className="w-5 h-5" />
                                                     </button>
-                                                )}
-                                                <button className="p-2 text-[rgba(255,255,255,0.2)] hover:text-white transition-colors">
-                                                    <MoreHorizontal className="w-5 h-5" />
-                                                </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    )}
-            </div>
+                        )}
+                </div>
 
-            <NewTaskModal
-                isOpen={isNewTaskModalOpen}
-                onClose={() => setIsNewTaskModalOpen(false)}
-                onTaskCreated={() => {
-                    fetchData();
-                    setIsNewTaskModalOpen(false);
-                }}
-            />
+                <NewTaskModal
+                    isOpen={isNewTaskModalOpen}
+                    onClose={() => setIsNewTaskModalOpen(false)}
+                    onTaskCreated={() => {
+                        fetchData();
+                        setIsNewTaskModalOpen(false);
+                    }}
+                />
+
+                <TaskDetailModal
+                    isOpen={!!selectedTaskForDetail}
+                    onClose={() => setSelectedTaskForDetail(null)}
+                    task={selectedTaskForDetail}
+                />
+
+                <CompletionModal
+                    isOpen={!!taskToComplete}
+                    onClose={() => setTaskToComplete(null)}
+                    onComplete={handleCompleteTask}
+                    title={taskToComplete?.title || ''}
+                    type="TASK"
+                />
+            </div>
         </div>
     );
 }

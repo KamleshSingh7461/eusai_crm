@@ -364,7 +364,7 @@ export default function ReportsPage() {
                                                 onClick={() => {
                                                     setActiveTab('TEAM');
                                                     setSearchQuery(emp.name);
-                                                    showToast(`Viewing logs for ${emp.name}`, "info");
+                                                    // showToast(`Viewing logs for ${emp.name}`, "info");
                                                 }}
                                                 className="text-xs font-bold text-[#2383e2] hover:underline flex items-center justify-end gap-1 ml-auto"
                                             >
@@ -610,9 +610,23 @@ export default function ReportsPage() {
                             {/* Logs List & Sidebar */}
                             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                                 <div className="lg:col-span-3 space-y-4">
-                                    <h3 className="font-bold text-[var(--notion-text-primary)] text-lg mb-4">
-                                        {activeTab === 'MY' ? 'Mission Logs' : 'Personnel Activity Feed'}
-                                    </h3>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        {(isDirector || isManager) && activeTab === 'TEAM' && (
+                                            <button
+                                                onClick={() => {
+                                                    setActiveTab('KPI');
+                                                    setSearchQuery('');
+                                                }}
+                                                className="p-1.5 -ml-2 hover:bg-[var(--notion-bg-tertiary)] rounded-sm transition-colors group/back"
+                                                title="Back to Performance Directory"
+                                            >
+                                                <ChevronLeft className="w-5 h-5 text-[var(--notion-text-tertiary)] group-hover/back:text-[var(--notion-text-primary)]" />
+                                            </button>
+                                        )}
+                                        <h3 className="font-bold text-[var(--notion-text-primary)] text-lg">
+                                            {activeTab === 'MY' ? 'Mission Logs' : 'Personnel Activity Feed'}
+                                        </h3>
+                                    </div>
 
                                     {filteredReports.length === 0 ? (
                                         <div className="p-16 text-center bg-[var(--notion-bg-secondary)] border-2 border-dashed border-[var(--notion-border-default)] rounded-sm text-[var(--notion-text-tertiary)] ml-1">

@@ -43,6 +43,12 @@ export async function GET(request: Request) {
                 },
                 project: {
                     select: { id: true, name: true }
+                },
+                comments: {
+                    include: {
+                        user: { select: { name: true, role: true } }
+                    },
+                    orderBy: { timestamp: 'desc' }
                 }
             },
             orderBy: { createdAt: 'desc' }

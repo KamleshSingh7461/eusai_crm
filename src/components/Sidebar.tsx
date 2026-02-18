@@ -102,6 +102,11 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
         }
     };
 
+    const handleSearchClick = () => {
+        const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
+        document.dispatchEvent(event);
+    };
+
     // Notion-style Top Level Navigation
     const topLevelNav = [
         { name: 'Search', href: '#', icon: Search, action: 'search' },
@@ -175,6 +180,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                             item.action === 'search' ? (
                                 <div
                                     key={item.name}
+                                    onClick={handleSearchClick}
                                     className={cn(
                                         "sidebar-link-eusai cursor-pointer group",
                                         isCollapsed && "justify-center px-0 py-2"

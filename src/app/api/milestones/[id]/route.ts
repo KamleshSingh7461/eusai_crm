@@ -15,7 +15,7 @@ export async function PATCH(
 
     try {
         const body = await request.json();
-        const { status, progress, remarks, isFlagged } = body;
+        const { status, progress, remarks, isFlagged, completionRemark, completionProof } = body;
         const milestoneId = params.id;
         const userRole = (session.user as any).role;
         const userId = (session.user as any).id;
@@ -36,12 +36,9 @@ export async function PATCH(
         // Authorization Logic
         const isOwner = milestone.owner === userId;
         const isDirector = userRole === 'DIRECTOR';
-
-        // Check if user is manager of the project or space
         const isProjectManager = milestone.project?.managerId === userId;
         const isSpaceManager = milestone.space?.managerId === userId;
 
-        // Check if user is the direct manager of the owner
         let isDirectManager = false;
         if (userRole === 'MANAGER' || userRole === 'TEAM_LEADER') {
             const manager = await prisma.user.findUnique({
@@ -53,6 +50,10 @@ export async function PATCH(
 
         const canUpdateStatus = isOwner || isDirector || isProjectManager || isSpaceManager || isDirectManager;
         const canUpdateGovernance = isDirector || isProjectManager || isSpaceManager || isDirectManager;
+
+        if (!canUpdateStatus && !canUpdateGovernance) {
+            return NextResponse.json({ error: 'Forbidden: You are not authorized to update this objective' }, { status: 403 });
+        }
 
         // Data to update based on permissions
         const dataToUpdate: any = {};
@@ -68,13 +69,30 @@ export async function PATCH(
         }
 
         if (Object.keys(dataToUpdate).length === 0) {
-            return NextResponse.json({ error: 'Forbidden: No authorized fields to update' }, { status: 403 });
+            return NextResponse.json({ error: 'No authorized fields provided for update' }, { status: 400 });
         }
 
         const updatedMilestone = await prisma.milestone.update({
             where: { id: milestoneId },
             data: dataToUpdate
         });
+
+        // Generate completion audit trail (Comment) if data provided
+        if (completionRemark || completionProof) {
+            try {
+                await (prisma as any).comment.create({
+                    data: {
+                        milestoneId: milestoneId,
+                        userId: userId,
+                        text: completionRemark || "Strategic objective completed. Evidence logged.",
+                        attachments: completionProof ? [completionProof] : [],
+                        projectId: milestone.projectId
+                    }
+                });
+            } catch (err: any) {
+                console.error("Audit failure: Failed to log milestone completion evidence:", err);
+            }
+        }
 
         return NextResponse.json(updatedMilestone);
     } catch (error) {

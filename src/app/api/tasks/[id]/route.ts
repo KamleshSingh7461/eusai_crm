@@ -17,7 +17,7 @@ export async function PATCH(
 
     try {
         const body = await request.json();
-        const { status, priority, deadline, description, title } = body;
+        const { status, priority, deadline, description, title, completionRemark, completionProof } = body;
 
         // Get the task first to check permissions
         const task = await (prisma as any).task.findUnique({
@@ -29,40 +29,38 @@ export async function PATCH(
             return NextResponse.json({ error: 'Task not found' }, { status: 404 });
         }
 
-        // Permission checks
         const isAssignedToUser = task.userId === userId;
         const isManager = ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(role);
 
-        // Status updates: ONLY the assigned employee can update status
+        // Permission check: Employees/Interns can only update tasks assigned to them
+        if (!isManager && !isAssignedToUser) {
+            return NextResponse.json({ error: 'Forbidden: You are not authorized to update this mission' }, { status: 403 });
+        }
+
+        // Status update check: Managers can update status ONLY if they are assigned to it
         if (status !== undefined && !isAssignedToUser) {
             return NextResponse.json({
-                error: 'Only the assigned employee can update task status. Directors track progress, employees update it.'
+                error: 'Tactical Status Update Protocol: Only the assigned operative can update mission status.'
             }, { status: 403 });
-        }
-
-        // Non-status updates: Employees can only update their own tasks
-        if ((role === 'EMPLOYEE' || role === 'INTERN') && !isAssignedToUser) {
-            return NextResponse.json({ error: 'You can only update your own tasks' }, { status: 403 });
-        }
-
-        // Employees can only update status, not other fields
-        if ((role === 'EMPLOYEE' || role === 'INTERN')) {
-            if (Object.keys(body).some(key => key !== 'status')) {
-                return NextResponse.json({ error: 'You can only update task status' }, { status: 403 });
-            }
         }
 
         // Build update data
         const updateData: any = {};
-        if (status !== undefined) updateData.status = status;
+
+        // Operatives (including managers who are operatives) can update status and completion proof
+        if (isAssignedToUser) {
+            if (status !== undefined) updateData.status = status;
+        }
+
+        // Only managers (Directors/Managers/Team Leaders) can update administrative fields
         if (isManager) {
-            // Managers can update administrative fields (but NOT status of others' tasks)
             if (priority !== undefined) updateData.priority = parseInt(priority);
             if (deadline !== undefined) updateData.deadline = new Date(deadline);
             if (description !== undefined) updateData.description = description;
             if (title !== undefined) updateData.title = title;
         }
 
+        // Update the task record
         const updatedTask = await (prisma as any).task.update({
             where: { id: taskId },
             data: updateData,
@@ -76,22 +74,45 @@ export async function PATCH(
             }
         });
 
-        // Log activity if status changed
-        if (status && task.projectId) {
-            await (prisma as any).activity.create({
-                data: {
-                    projectId: task.projectId,
-                    userId: userId,
-                    action: 'TASK_UPDATED',
-                    metadata: {
+        // Generate completion audit trail (Comment) if data provided
+        if (completionRemark || completionProof) {
+            try {
+                await (prisma as any).comment.create({
+                    data: {
                         taskId: taskId,
-                        taskTitle: task.title,
-                        oldStatus: task.status,
-                        newStatus: status,
-                        updatedBy: session.user.name
+                        userId: userId,
+                        text: completionRemark || "Mission objective completed. Evidence logged.",
+                        attachments: completionProof ? [completionProof] : [],
+                        projectId: task.projectId
                     }
-                }
-            }).catch((err: any) => console.error("Failed to log activity:", err));
+                });
+            } catch (err: any) {
+                console.error("Audit failure: Failed to log completion evidence:", err);
+                // We don't fail the whole request if the comment fails, but we log it
+            }
+        }
+
+        // Protocol Activity Log
+        if (status && task.projectId) {
+            try {
+                await (prisma as any).activity.create({
+                    data: {
+                        projectId: task.projectId,
+                        userId: userId,
+                        action: 'TASK_UPDATED',
+                        metadata: {
+                            taskId: taskId,
+                            taskTitle: task.title,
+                            oldStatus: task.status,
+                            newStatus: status,
+                            updatedBy: session.user.name,
+                            hasProof: !!completionProof
+                        }
+                    }
+                });
+            } catch (err: any) {
+                console.error("Telemetry failure: Failed to log mission activity:", err);
+            }
         }
 
         return NextResponse.json(updatedTask);

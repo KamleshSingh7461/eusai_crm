@@ -132,6 +132,29 @@ export async function GET() {
             productivityData.push({ day: dayName, tasks: count });
         }
 
+        // 3.5. Monthly Productivity (Last 6 Months)
+        const monthlyProductivity = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            const monthName = d.toLocaleString('default', { month: 'short' });
+            const year = d.getFullYear(); // Not used in label but useful for filtering if needed
+            const startOfMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+            const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+
+            const count = await (prisma as any).task.count({
+                where: {
+                    status: 'DONE',
+                    updatedAt: {
+                        gte: startOfMonth,
+                        lte: endOfMonth
+                    }
+                }
+            });
+
+            monthlyProductivity.push({ name: monthName, tasks: count });
+        }
+
         // 4. Marketing Coverage
         const marketCoverage = totalUniversities > 0
             ? Math.round((partnerCount / totalUniversities) * 100)
@@ -179,7 +202,15 @@ export async function GET() {
                 criticalIssues,
                 totalOpenIssues,
                 taskCompletionRate,
-                activeProjects: projects.filter((p: any) => p.status !== 'CLOSED').length
+                activeProjects: projects.filter((p: any) => p.status !== 'CLOSED').length,
+                missingReports: users.length - (await (prisma as any).dailyReport.count({
+                    where: {
+                        date: {
+                            gte: new Date(new Date().setHours(0, 0, 0, 0)),
+                            lt: new Date(new Date().setHours(23, 59, 59, 999))
+                        }
+                    }
+                }))
             },
             employees: users.map((u: any) => ({
                 id: u.id,
@@ -214,6 +245,7 @@ export async function GET() {
             })),
             charts: {
                 weeklyProductivity: productivityData,
+                monthlyProductivity,
                 taskStatus: taskDistribution.map((t: any) => ({ name: t.status, value: t._count })),
                 projectStatus: projectDistribution.map((p: any) => ({ name: p.status, value: p._count })),
                 issueSeverity: issueStats.map((i: any) => ({ name: i.severity, value: i._count }))

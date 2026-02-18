@@ -79,7 +79,13 @@ export async function GET(request: NextRequest) {
             include: {
                 project: { select: { name: true } },
                 university: { select: { name: true } },
-                ownerUser: { select: { name: true } }
+                ownerUser: { select: { name: true } },
+                comments: {
+                    include: {
+                        user: { select: { name: true, role: true } }
+                    },
+                    orderBy: { timestamp: 'desc' }
+                }
             }
         });
         return NextResponse.json(milestones);

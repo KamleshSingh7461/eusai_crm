@@ -10,7 +10,11 @@ import {
     Award,
     ArrowUpRight,
     Bug,
-    Target
+    Target,
+    AlertTriangle,
+    CheckCircle2,
+    Activity,
+    Clock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Button from '@/components/ui/Button';
@@ -46,6 +50,7 @@ interface DirectorData {
         totalOpenIssues: number;
         taskCompletionRate: number;
         activeProjects: number;
+        missingReports: number;
     };
     employees: any[];
     topPerformers: {
@@ -61,6 +66,7 @@ interface DirectorData {
     globalActivity: any[];
     charts: {
         weeklyProductivity: { day: string; tasks: number }[];
+        monthlyProductivity: { name: string; tasks: number }[];
         taskStatus: ChartData[];
         projectStatus: ChartData[];
         issueSeverity: ChartData[];
@@ -191,115 +197,151 @@ export default function DirectorDashboard() {
                 ))}
             </div>
 
-            {activeSection === 'overview' && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {/* KPI Cards - 3 Col Layout */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <MetricCard icon={Building2} label="Partner Universities" value={stats.partnerCount} color="indigo" trend="+12%" />
-                        <MetricCard icon={Briefcase} label="Active Projects" value={stats.activeProjects} color="blue" subtitle={`${stats.taskCompletionRate}% Task Completion`} />
-                        <MetricCard icon={Target} label="Market Coverage" value={`${stats.marketCoverage}%`} color="purple" subtitle="Of Total Universe" />
-                    </div>
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {activeSection === 'overview' && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* KPI Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <MetricCard
+                                icon={AlertTriangle}
+                                label="Missing Reports"
+                                value={stats.missingReports || 0}
+                                color={stats.missingReports > 0 ? "red" : "green"}
+                                subtitle={stats.missingReports > 0 ? "Action Required" : "All Clear"}
+                            />
+                            <MetricCard icon={Briefcase} label="Active Projects" value={stats.activeProjects} color="blue" subtitle={`${stats.taskCompletionRate}% Task Completion`} />
+                            <MetricCard icon={Users} label="Total Staff" value={stats.staffCount} color="purple" subtitle="Active Personnel" />
+                        </div>
 
-                    {/* Main Charts Row */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Weekly Productivity Bar Chart - Taking 2 Cols */}
-                        <div className="lg:col-span-2 bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm">
-                            <div className="flex items-center justify-between mb-6">
-                                <div>
-                                    <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider">Weekly Output</h3>
-                                    <p className="text-xs text-[rgba(255,255,255,0.5)] mt-1">Task completion velocity</p>
+                        {/* Main Charts Row */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Monthly Progress Chart - Taking 2 Cols */}
+                            <div className="lg:col-span-2 bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div>
+                                        <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider">Monthly Trajectory</h3>
+                                        <p className="text-xs text-[rgba(255,255,255,0.5)] mt-1">6-Month Task Completion Trend</p>
+                                    </div>
+                                </div>
+                                <div className="h-[300px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={charts.monthlyProductivity}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                            <XAxis dataKey="name" stroke="rgba(255,255,255,0.3)" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} dy={10} />
+                                            <Tooltip
+                                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                                                contentStyle={{ backgroundColor: '#1D2125', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '4px' }}
+                                                itemStyle={{ color: '#fff' }}
+                                            />
+                                            <Bar dataKey="tasks" fill={COLORS.green} radius={[4, 4, 0, 0]} barSize={40} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
                                 </div>
                             </div>
-                            <div className="h-[300px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={charts.weeklyProductivity}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                        <XAxis dataKey="day" stroke="rgba(255,255,255,0.3)" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} dy={10} />
-                                        <Tooltip
-                                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                            contentStyle={{ backgroundColor: '#1D2125', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '4px' }}
-                                            itemStyle={{ color: '#fff' }}
-                                        />
-                                        <Bar dataKey="tasks" fill={COLORS.blue} radius={[4, 4, 0, 0]} barSize={40} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
 
-                        {/* Top Performers Widget - Taking 1 Col */}
-                        <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm flex flex-col">
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider flex items-center gap-2">
-                                    <Award className="w-4 h-4 text-yellow-500" /> Top Performers
+                            {/* Recent Activity Feed - Taking 1 Col */}
+                            <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm flex flex-col h-[400px]">
+                                <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <Activity className="w-4 h-4 text-blue-400" /> Recent Intel
                                 </h3>
-                                <NotionButton variant="ghost" size="sm">View All</NotionButton>
-                            </div>
-                            <div className="flex-1 space-y-4">
-                                {topPerformers.map((user, index) => (
-                                    <div key={user.id} className="flex items-center gap-3 p-3 rounded-md hover:bg-[rgba(255,255,255,0.03)] transition-colors group cursor-pointer" onClick={() => openProfile(user.id)}>
-                                        <div className="relative">
-                                            <div className="w-10 h-10 rounded-full bg-[#1D2125] flex items-center justify-center text-[rgba(255,255,255,0.9)] font-bold overflow-hidden border border-[rgba(255,255,255,0.1)]">
-                                                {user.image ? <img src={user.image} alt={user.name} className="w-full h-full object-cover" /> : user.name.charAt(0)}
+                                <div className="flex-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+                                    {data.globalActivity?.slice(0, 10).map((activity: any) => (
+                                        <div key={activity.id} className="flex gap-3 items-start p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-md transition-colors">
+                                            <div className="mt-1">
+                                                {activity.status === 'DONE' ? (
+                                                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                                ) : (
+                                                    <Clock className="w-4 h-4 text-orange-400" />
+                                                )}
                                             </div>
-                                            {index < 3 && (
-                                                <div className={cn(
-                                                    "absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-[#2f3437]",
-                                                    index === 0 ? "bg-yellow-500 text-black" :
-                                                        index === 1 ? "bg-gray-300 text-black" :
-                                                            "bg-amber-700 text-white"
-                                                )}>
-                                                    {index + 1}
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-medium text-[rgba(255,255,255,0.9)] leading-tight line-clamp-2">{activity.title}</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-[10px] font-bold text-[rgba(255,255,255,0.5)] uppercase truncate max-w-[80px]">{activity.assignedTo || 'Unassigned'}</span>
+                                                    <span className="text-[10px] text-[rgba(255,255,255,0.3)]">•</span>
+                                                    <span className="text-[10px] text-[rgba(255,255,255,0.4)]">{new Date(activity.updatedAt).toLocaleDateString()}</span>
                                                 </div>
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-center mb-0.5">
-                                                <h4 className="font-medium text-[rgba(255,255,255,0.9)] text-sm truncate group-hover:text-[#0052CC] transition-colors">{user.name}</h4>
-                                                <span className="text-xs font-bold text-[#36B37E] bg-[#36B37E]/10 px-1.5 py-0.5 rounded-full">{user.score} pts</span>
                                             </div>
-                                            <p className="text-xs text-[rgba(255,255,255,0.5)] truncate">{user.role}</p>
                                         </div>
-                                    </div>
-                                ))}
-                                {topPerformers.length === 0 && <p className="text-sm text-[rgba(255,255,255,0.5)] text-center py-4">No performance data yet.</p>}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Secondary Metrics Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Project Status Pie Chart */}
-                        <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm">
-                            <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider mb-2">Project Portfolio Status</h3>
-                            <div className="h-[200px] w-full flex items-center justify-center">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={charts.projectStatus}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={60}
-                                            outerRadius={80}
-                                            paddingAngle={5}
-                                            dataKey="value"
-                                        >
-                                            {charts.projectStatus.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="rgba(0,0,0,0)" />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip contentStyle={{ backgroundColor: '#1D2125', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '4px' }} />
-                                        <Legend verticalAlign="bottom" align="center" iconSize={10} wrapperStyle={{ fontSize: '10px' }} />
-                                    </PieChart>
-                                </ResponsiveContainer>
+                                    ))}
+                                    {(!data.globalActivity || data.globalActivity.length === 0) && (
+                                        <p className="text-sm text-[rgba(255,255,255,0.5)] text-center py-4">No recent activity recorded.</p>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Critical Issues Breakdown - Spanning 2 cols for detail */}
-                        <div className="lg:col-span-2 bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm">
-                            <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider mb-4 flex items-center justify-between">
-                                Issue Severity <span className="text-xs text-[rgba(255,255,255,0.5)]">Total: {stats.totalOpenIssues}</span>
-                            </h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Top Performers Widget */}
+                            <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm flex flex-col">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider flex items-center gap-2">
+                                        <Award className="w-4 h-4 text-yellow-500" /> Top Performers
+                                    </h3>
+                                    <NotionButton variant="ghost" size="sm">View All</NotionButton>
+                                </div>
+                                <div className="flex-1 space-y-4">
+                                    {topPerformers.map((user, index) => (
+                                        <div key={user.id} className="flex items-center gap-3 p-3 rounded-md hover:bg-[rgba(255,255,255,0.03)] transition-colors group cursor-pointer" onClick={() => openProfile(user.id)}>
+                                            <div className="relative">
+                                                <div className="w-10 h-10 rounded-full bg-[#1D2125] flex items-center justify-center text-[rgba(255,255,255,0.9)] font-bold overflow-hidden border border-[rgba(255,255,255,0.1)]">
+                                                    {user.image ? <img src={user.image} alt={user.name} className="w-full h-full object-cover" /> : user.name.charAt(0)}
+                                                </div>
+                                                {index < 3 && (
+                                                    <div className={cn(
+                                                        "absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-[#2f3437]",
+                                                        index === 0 ? "bg-yellow-500 text-black" :
+                                                            index === 1 ? "bg-gray-300 text-black" :
+                                                                "bg-amber-700 text-white"
+                                                    )}>
+                                                        {index + 1}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-center mb-0.5">
+                                                    <h4 className="font-medium text-[rgba(255,255,255,0.9)] text-sm truncate group-hover:text-[#0052CC] transition-colors">{user.name}</h4>
+                                                    <span className="text-xs font-bold text-[#36B37E] bg-[#36B37E]/10 px-1.5 py-0.5 rounded-full">{user.score} pts</span>
+                                                </div>
+                                                <p className="text-xs text-[rgba(255,255,255,0.5)] truncate">{user.role}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {topPerformers.length === 0 && <p className="text-sm text-[rgba(255,255,255,0.5)] text-center py-4">No performance data yet.</p>}
+                                </div>
+                            </div>
+
+                            {/* Project Status Pie Chart */}
+                            <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm">
+                                <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider mb-2">Project Portfolio Status</h3>
+                                <div className="h-[200px] w-full flex items-center justify-center">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={charts.projectStatus}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={80}
+                                                paddingAngle={5}
+                                                dataKey="value"
+                                            >
+                                                {charts.projectStatus.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="rgba(0,0,0,0)" />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip contentStyle={{ backgroundColor: '#1D2125', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '4px' }} />
+                                            <Legend verticalAlign="bottom" align="center" iconSize={10} wrapperStyle={{ fontSize: '10px' }} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+
+                            {/* Issue Severity breakdown */}
+                            <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm">
+                                <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider mb-4 flex items-center justify-between">
+                                    Issue Severity <span className="text-xs text-[rgba(255,255,255,0.5)]">Total: {stats.totalOpenIssues}</span>
+                                </h3>
                                 <div className="space-y-4">
                                     {charts.issueSeverity.map((item, index) => (
                                         <div key={index} className="space-y-1">
@@ -321,113 +363,111 @@ export default function DirectorDashboard() {
                                         </div>
                                     ))}
                                     {charts.issueSeverity.length === 0 && <p className="text-xs text-[rgba(255,255,255,0.5)]">No open issues.</p>}
-                                </div>
-                                <div className="flex items-center justify-center p-4 border-l border-[rgba(255,255,255,0.08)]">
-                                    <div className="text-center">
-                                        <div className="text-3xl font-bold text-white mb-1">{stats.criticalIssues}</div>
-                                        <div className="text-xs text-red-400 font-bold uppercase tracking-wider">Critical Issues</div>
-                                        <Button className="mt-4" variant="secondary" size="sm" onClick={() => (window as any).location.href = '/reports'}>Resolve Now</Button>
+                                    <div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.08)] text-center">
+                                        <div className="text-2xl font-bold text-white">{stats.criticalIssues}</div>
+                                        <div className="text-[10px] text-red-400 font-bold uppercase tracking-wider">Critical Issues</div>
+                                        <Button className="mt-3 w-full" variant="secondary" size="sm" onClick={() => (window as any).location.href = '/reports'}>Resolve Now</Button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* Team Tab Content */}
-            {activeSection === 'team' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    {employees.map((emp: any) => (
-                        <div key={emp.id} className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] p-5 rounded-lg hover:shadow-lg hover:border-[#0052CC]/50 transition-all group">
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="w-12 h-12 rounded-full bg-[#1D2125] flex items-center justify-center text-[rgba(255,255,255,0.9)] font-bold text-lg overflow-hidden border border-[rgba(255,255,255,0.1)]">
-                                    {emp.image ? <img src={emp.image} alt={emp.name} className="w-full h-full object-cover" /> : emp.name.charAt(0)}
+                {/* Team Tab Content */}
+                {activeSection === 'team' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {employees.map((emp: any) => (
+                            <div key={emp.id} className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] p-5 rounded-lg hover:shadow-lg hover:border-[#0052CC]/50 transition-all group">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="w-12 h-12 rounded-full bg-[#1D2125] flex items-center justify-center text-[rgba(255,255,255,0.9)] font-bold text-lg overflow-hidden border border-[rgba(255,255,255,0.1)]">
+                                        {emp.image ? <img src={emp.image} alt={emp.name} className="w-full h-full object-cover" /> : emp.name.charAt(0)}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bold text-[rgba(255,255,255,0.9)] group-hover:text-[#0052CC] transition-colors truncate">{emp.name}</h3>
+                                        <p className="text-xs text-[rgba(255,255,255,0.6)] font-medium truncate">{emp.role}</p>
+                                    </div>
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="font-bold text-[rgba(255,255,255,0.9)] group-hover:text-[#0052CC] transition-colors truncate">{emp.name}</h3>
-                                    <p className="text-xs text-[rgba(255,255,255,0.6)] font-medium truncate">{emp.role}</p>
+                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[rgba(255,255,255,0.08)]">
+                                    <div className="text-center">
+                                        <div className="text-lg font-bold text-[rgba(255,255,255,0.9)]">{emp.pendingTasks}</div>
+                                        <div className="text-[10px] text-[rgba(255,255,255,0.5)] font-bold uppercase tracking-wider">Open Tasks</div>
+                                    </div>
+                                    <div className="text-center border-l border-[rgba(255,255,255,0.08)]">
+                                        <div className="text-lg font-bold text-[#0052CC]">{emp.pendingMilestones}</div>
+                                        <div className="text-[10px] text-[rgba(255,255,255,0.5)] font-bold uppercase tracking-wider">Milestones</div>
+                                    </div>
                                 </div>
+                                <Button
+                                    variant="ghost"
+                                    className="w-full mt-4 h-8 text-xs bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.05)]"
+                                    onClick={() => openProfile(emp.id)}
+                                >
+                                    View Full Profile
+                                </Button>
                             </div>
-                            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[rgba(255,255,255,0.08)]">
-                                <div className="text-center">
-                                    <div className="text-lg font-bold text-[rgba(255,255,255,0.9)]">{emp.pendingTasks}</div>
-                                    <div className="text-[10px] text-[rgba(255,255,255,0.5)] font-bold uppercase tracking-wider">Open Tasks</div>
-                                </div>
-                                <div className="text-center border-l border-[rgba(255,255,255,0.08)]">
-                                    <div className="text-lg font-bold text-[#0052CC]">{emp.pendingMilestones}</div>
-                                    <div className="text-[10px] text-[rgba(255,255,255,0.5)] font-bold uppercase tracking-wider">Milestones</div>
-                                </div>
-                            </div>
-                            <Button
-                                variant="ghost"
-                                className="w-full mt-4 h-8 text-xs bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.05)]"
-                                onClick={() => openProfile(emp.id)}
-                            >
-                                View Full Profile
-                            </Button>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Projects Tab Content */}
-            {activeSection === 'projects' && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg overflow-hidden shadow-sm">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-[#2b3033] border-b border-[rgba(255,255,255,0.08)]">
-                                    <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider">Project Name</th>
-                                    <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider">Manager</th>
-                                    <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider text-center">Tasks</th>
-                                    <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider text-center">Milestones</th>
-                                    <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider w-48">Progress</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-[rgba(255,255,255,0.05)]">
-                                {projects.map((proj: any) => (
-                                    <tr key={proj.id} className="hover:bg-[rgba(255,255,255,0.02)] transition-colors cursor-pointer group">
-                                        <td className="px-6 py-4">
-                                            <div className="font-bold text-[rgba(255,255,255,0.9)] group-hover:text-[#0052CC]">{proj.name}</div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-[rgba(255,255,255,0.6)]">{proj.managerName}</td>
-                                        <td className="px-6 py-4">
-                                            <span className={cn(
-                                                "px-2 py-1 rounded-sm text-[10px] font-bold uppercase",
-                                                proj.status === 'ACTIVE' ? "bg-[#36B37E]/20 text-[#36B37E]" :
-                                                    proj.status === 'INITIATION' ? "bg-[#FFAB00]/20 text-[#FFAB00]" :
-                                                        "bg-[#0052CC]/20 text-[#0052CC]"
-                                            )}>
-                                                {proj.status}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-center font-medium text-[rgba(255,255,255,0.9)]">{proj.taskCount}</td>
-                                        <td className="px-6 py-4 text-center font-medium text-[#0052CC]">{proj.milestoneCount}</td>
-                                        <td className="px-6 py-4">
-                                            <div className="w-full bg-[rgba(255,255,255,0.1)] h-1.5 rounded-full overflow-hidden">
-                                                <div
-                                                    className={cn("h-full transition-all duration-1000", proj.progress > 70 ? "bg-[#36B37E]" : "bg-[#0052CC]")}
-                                                    style={{ width: `${proj.progress}%` }}
-                                                />
-                                            </div>
-                                            <div className="text-right text-[10px] text-[rgba(255,255,255,0.5)] mt-1">{proj.progress}%</div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                        ))}
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* Profile Modal */}
-            <UserProfileModal
-                userId={selectedUserId}
-                isOpen={isProfileModalOpen}
-                onClose={() => setIsProfileModalOpen(false)}
-            />
+                {/* Projects Tab Content */}
+                {activeSection === 'projects' && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg overflow-hidden shadow-sm">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-[#2b3033] border-b border-[rgba(255,255,255,0.08)]">
+                                        <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider">Project Name</th>
+                                        <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider">Manager</th>
+                                        <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider">Status</th>
+                                        <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider text-center">Tasks</th>
+                                        <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider text-center">Milestones</th>
+                                        <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider w-48">Progress</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[rgba(255,255,255,0.05)]">
+                                    {projects.map((proj: any) => (
+                                        <tr key={proj.id} className="hover:bg-[rgba(255,255,255,0.02)] transition-colors cursor-pointer group">
+                                            <td className="px-6 py-4">
+                                                <div className="font-bold text-[rgba(255,255,255,0.9)] group-hover:text-[#0052CC]">{proj.name}</div>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-[rgba(255,255,255,0.6)]">{proj.managerName}</td>
+                                            <td className="px-6 py-4">
+                                                <span className={cn(
+                                                    "px-2 py-1 rounded-sm text-[10px] font-bold uppercase",
+                                                    proj.status === 'ACTIVE' ? "bg-[#36B37E]/20 text-[#36B37E]" :
+                                                        proj.status === 'INITIATION' ? "bg-[#FFAB00]/20 text-[#FFAB00]" :
+                                                            "bg-[#0052CC]/20 text-[#0052CC]"
+                                                )}>
+                                                    {proj.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-center font-medium text-[rgba(255,255,255,0.9)]">{proj.taskCount}</td>
+                                            <td className="px-6 py-4 text-center font-medium text-[#0052CC]">{proj.milestoneCount}</td>
+                                            <td className="px-6 py-4">
+                                                <div className="w-full bg-[rgba(255,255,255,0.1)] h-1.5 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={cn("h-full transition-all duration-1000", proj.progress > 70 ? "bg-[#36B37E]" : "bg-[#0052CC]")}
+                                                        style={{ width: `${proj.progress}%` }}
+                                                    />
+                                                </div>
+                                                <div className="text-right text-[10px] text-[rgba(255,255,255,0.5)] mt-1">{proj.progress}%</div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* Profile Modal */}
+                <UserProfileModal
+                    userId={selectedUserId}
+                    isOpen={isProfileModalOpen}
+                    onClose={() => setIsProfileModalOpen(false)}
+                />
+            </div>
         </div>
     );
 }
