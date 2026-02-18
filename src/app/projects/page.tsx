@@ -107,13 +107,6 @@ function ProjectCard({ project, userRole, onDelete, onClick }: ProjectCardProps)
 
                 <div className="flex items-center justify-between pt-2">
                     <div className="flex items-center gap-4">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] uppercase text-[#6B778C] font-bold mb-0.5">Budget Left</span>
-                            <div className="flex items-center gap-1 font-bold text-[#172B4D] text-sm">
-                                <DollarSign className="w-3 h-3 text-emerald-600" />
-                                <span>₹{Math.round((project.stats?.financial?.remaining || 0) / 1000)}k</span>
-                            </div>
-                        </div>
                         {project.stats?.tasks?.overdue > 0 && (
                             <div className="flex flex-col">
                                 <span className="text-[10px] uppercase text-red-500 font-bold mb-0.5">Attention</span>

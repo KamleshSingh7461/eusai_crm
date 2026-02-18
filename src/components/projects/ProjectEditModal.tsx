@@ -18,7 +18,6 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
         name: project.name,
         description: project.description || '',
         status: project.status,
-        budget: project.budget.toString(),
         startDate: project.startDate.split('T')[0],
         endDate: project.endDate.split('T')[0],
     });
@@ -32,10 +31,7 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
             const response = await fetch(`/api/projects/${project.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...formData,
-                    budget: parseFloat(formData.budget)
-                }),
+                body: JSON.stringify(formData),
             });
 
             if (response.ok) {
@@ -100,13 +96,6 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
                         />
                     </div>
 
-                    <Input
-                        label="Budget (INR)"
-                        type="number"
-                        value={formData.budget}
-                        onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                        required
-                    />
 
                     <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-bold text-[#6B778C] uppercase tracking-wider">Description</label>

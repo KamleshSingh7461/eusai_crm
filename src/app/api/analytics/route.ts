@@ -22,7 +22,7 @@ export async function GET() {
             expenses
         ] = await Promise.all([
             (prisma as any).project.findMany({
-                select: { status: true, budget: true, id: true }
+                select: { status: true, id: true }
             }),
             (prisma as any).task.findMany({
                 select: { status: true, priority: true, createdAt: true }
@@ -109,7 +109,6 @@ export async function GET() {
                 activeProjects: projects.filter((p: any) => p.status !== 'CLOSED').length,
                 completionRate: tasks.length > 0 ? ((taskStatus.DONE / tasks.length) * 100).toFixed(1) : "0",
                 criticalIssues: issues.filter((i: any) => i.severity === 'CRITICAL' && i.status !== 'CLOSED').length,
-                totalBudget: projects.reduce((acc: any, p: any) => acc + Number(p.budget), 0),
                 totalExpenses: expenses.reduce((acc: any, e: any) => acc + Number(e.amount), 0)
             },
             revenueTrend,

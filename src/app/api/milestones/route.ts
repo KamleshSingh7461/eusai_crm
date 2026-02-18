@@ -33,42 +33,18 @@ export async function GET(request: NextRequest) {
     // Role-Based Filtering Logic
     if (userRole === 'DIRECTOR') {
         // Directors see all. If employeeId provided, filter by it.
-        if (employeeId) whereClause.owner = employeeId;
+        if (employeeId) {
+            whereClause.owner = employeeId;
+        }
     }
-    else if (userRole === 'MANAGER') {
-        // Managers see their department's milestones.
-        // For simplicity in this iteration, we might show all or filter by subordinate list.
-        // Ideally: Fetch subordinates -> filter where owner in subordinates OR owner = self.
-
-        // Fetch subordinates first
-        const userWithSubordinates = await prisma.user.findUnique({
+    else if (userRole === 'MANAGER' || userRole === 'TEAM_LEADER') {
+        // Managers and TLs see their subordinates + self
+        const currentUser = await prisma.user.findUnique({
             where: { id: userId },
             include: { subordinates: true }
         });
 
-        const subordinateIds = userWithSubordinates?.subordinates.map(u => u.id) || [];
-        const allowedIds = [userId, ...subordinateIds];
-
-        if (employeeId) {
-            // Can only view if employeeId is in allowed list
-            if (allowedIds.includes(employeeId)) {
-                whereClause.owner = employeeId;
-            } else {
-                return NextResponse.json({ error: 'Forbidden: Cannot view this employee' }, { status: 403 });
-            }
-        } else {
-            // View all allowed
-            whereClause.owner = { in: allowedIds };
-        }
-    }
-    else if (userRole === 'TEAM_LEADER' || userRole === 'MANAGER') {
-        // Managers and TLs see their team's milestones.
-        const userWithSubordinates = await prisma.user.findUnique({
-            where: { id: userId },
-            include: { subordinates: true }
-        }) as any;
-
-        const subordinateIds = userWithSubordinates?.subordinates?.map((u: any) => u.id) || [];
+        const subordinateIds = currentUser?.subordinates?.map(u => u.id) || [];
         const allowedIds = [userId, ...subordinateIds];
 
         if (employeeId) {
@@ -102,15 +78,12 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// POST /api/milestones - Create new milestone
+// POST /api/milestones - Create milestones (supports batch)
 export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const body = await request.json();
-    const { title, category, priority, targetDate, description, assignedTo, projectId, universityId, mouType } = body;
 
     const userRole = (session.user as any).role;
     const userId = (session.user as any).id;
@@ -121,24 +94,56 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-        const newMilestone = await prisma.milestone.create({
-            data: {
-                title,
-                category,
-                priority,
-                targetDate: new Date(targetDate),
-                description,
-                owner: assignedTo || userId,
-                projectId: projectId || null,
-                universityId: universityId || null,
-                mouType: mouType || null,
-                status: 'PENDING',
-                progress: 0
-            }
-        });
-        return NextResponse.json(newMilestone);
+        const body = await request.json();
+
+        // Support both single object and array for batch creation
+        const milestonesData = Array.isArray(body) ? body : [body];
+
+        if (milestonesData.length === 0) {
+            return NextResponse.json({ error: 'No milestone data provided' }, { status: 400 });
+        }
+
+        const createdMilestones = await Promise.all(
+            milestonesData.map(async (data) => {
+                const {
+                    title,
+                    category,
+                    priority,
+                    targetDate,
+                    description,
+                    assignedTo,
+                    projectId,
+                    universityId,
+                    universityName,
+                    mouType
+                } = data;
+
+                if (!projectId) {
+                    throw new Error('Project connection is mandatory for all milestones');
+                }
+
+                return prisma.milestone.create({
+                    data: {
+                        title: title || 'New Milestone',
+                        category: category || 'MOU',
+                        priority: priority || 'MEDIUM',
+                        targetDate: new Date(targetDate),
+                        description: description || '',
+                        owner: assignedTo || userId,
+                        projectId: projectId || null,
+                        universityId: universityId || null,
+                        universityName: universityName || null,
+                        mouType: mouType || null,
+                        status: 'PENDING',
+                        progress: 0
+                    }
+                });
+            })
+        );
+
+        return NextResponse.json(createdMilestones);
     } catch (error) {
-        console.error('Failed to create milestone:', error);
-        return NextResponse.json({ error: 'Failed to create milestone' }, { status: 500 });
+        console.error('Failed to create milestones:', error);
+        return NextResponse.json({ error: 'Failed to create milestones' }, { status: 500 });
     }
 }

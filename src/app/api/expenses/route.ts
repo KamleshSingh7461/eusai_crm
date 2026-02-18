@@ -37,11 +37,11 @@ export async function POST(request: Request) {
                 projectId,
                 userId: userId,
                 action: 'EXPENSE_LOGGED',
-                metadata: {
+                metadata: JSON.stringify({
                     category,
                     amount,
                     status: 'PENDING'
-                }
+                })
             }
         });
 

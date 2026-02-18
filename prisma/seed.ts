@@ -21,8 +21,21 @@ async function main() {
 
         console.log(`✅ Promoted ${updatedUser.email} to DIRECTOR`);
     } else {
-        console.log('⚠️ No users found in database. Please log in first.');
+        console.log('⚠️ No users found in database for initial promotion.');
     }
+
+    // Seed infotech@eusaiteam.com as EMPLOYEE
+    const employeeEmail = 'infotech@eusaiteam.com';
+    const employee = await prisma.user.upsert({
+        where: { email: employeeEmail },
+        update: { role: 'EMPLOYEE' },
+        create: {
+            email: employeeEmail,
+            name: 'Infotech Team',
+            role: 'EMPLOYEE'
+        }
+    });
+    console.log(`✅ Seeded ${employee.email} as EMPLOYEE`);
 
     console.log('🌱 Seed finished.')
 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import CreateMilestoneModal from '@/components/modals/CreateMilestoneModal';
 import {
     Target,
     Filter,
@@ -31,6 +32,7 @@ interface Milestone {
     owner: string;
     project?: { name: string };
     university?: { name: string };
+    universityName?: string;
     mouType?: string;
 }
 
@@ -49,19 +51,6 @@ export default function MilestonesPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [filters, setFilters] = useState({ category: 'ALL', employeeId: '', universityId: '' });
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
-    // Form State
-    const [formData, setFormData] = useState({
-        title: '',
-        category: 'EUSAI_LOGO',
-        priority: 'MEDIUM',
-        targetDate: '',
-        description: '',
-        assignedTo: '',
-        projectId: '',
-        universityId: '',
-        mouType: ''
-    });
 
     const userRole = (session?.user as any)?.role || 'EMPLOYEE';
     const canCreate = ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole);
@@ -133,38 +122,6 @@ export default function MilestonesPage() {
         }
     };
 
-    const handleCreate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            // Ensure targetDate is valid
-            if (!formData.targetDate) {
-                showToast('Please select a target date', 'error');
-                return;
-            }
-
-            const res = await fetch('/api/milestones', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
-
-            if (res.ok) {
-                showToast('Milestone created successfully', 'success');
-                setIsCreateModalOpen(false);
-                fetchMilestones();
-                setFormData({
-                    title: '', category: 'EUSAI_LOGO', priority: 'MEDIUM',
-                    targetDate: '', description: '', assignedTo: '', projectId: '',
-                    universityId: '', mouType: ''
-                });
-            } else {
-                const err = await res.json();
-                showToast(err.error || 'Failed to create milestone', 'error');
-            }
-        } catch (error) {
-            showToast('Error creating milestone', 'error');
-        }
-    };
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -304,6 +261,12 @@ export default function MilestonesPage() {
                                         <span className="truncate max-w-[150px]">{milestone.university.name}</span>
                                     </div>
                                 )}
+                                {milestone.universityName && !milestone.university && (
+                                    <div className="flex items-center gap-2 text-xs text-[#6B778C]">
+                                        <GraduationCap className="w-3.5 h-3.5" />
+                                        <span className="truncate max-w-[150px]">{milestone.universityName}</span>
+                                    </div>
+                                )}
                                 <div className="w-full bg-[#EBECF0] h-1.5 rounded-full overflow-hidden">
                                     <div
                                         className="bg-[#0052CC] h-full transition-all duration-500"
@@ -321,174 +284,14 @@ export default function MilestonesPage() {
             )}
 
             {/* Create Modal */}
-            {isCreateModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="card-eusai w-full max-w-lg bg-white rounded-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 h-[90vh] flex flex-col">
-                        <div className="p-6 border-b border-[#DFE1E6] flex items-center justify-between bg-[#FAFBFC] shrink-0">
-                            <h3 className="text-lg font-bold text-[#172B4D]">Create New Milestone</h3>
-                            <button
-                                onClick={() => setIsCreateModalOpen(false)}
-                                className="p-1 hover:bg-[#EBECF0] rounded-sm text-[#6B778C]"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-6">
-                            <form id="create-milestone-form" onSubmit={handleCreate} className="space-y-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-[#6B778C] uppercase">Title</label>
-                                    <input
-                                        required
-                                        value={formData.title}
-                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                        placeholder="e.g. Sign MOU with University X"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-[#6B778C] uppercase">Category</label>
-                                        <select
-                                            value={formData.category}
-                                            onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                            className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                        >
-                                            <option value="EUSAI_LOGO">EUSAI Logo</option>
-                                            <option value="MOU">MOU</option>
-                                            <option value="BUSINESS_ORDER">Business/Order</option>
-                                            <option value="CUSTOM">Custom</option>
-                                        </select>
-                                    </div>
-
-                                    {formData.category === 'MOU' && (
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-bold text-[#6B778C] uppercase">MOU Type</label>
-                                            <select
-                                                value={formData.mouType}
-                                                onChange={e => setFormData({ ...formData, mouType: e.target.value })}
-                                                className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                            >
-                                                <option value="">Select Type...</option>
-                                                <option value="Merchandise Store MOU">Merchandise Store MOU</option>
-                                                <option value="School Spirit Agreement">School Spirit Agreement</option>
-                                                <option value="FGSN Studio Agreement">FGSN Studio Agreement</option>
-                                                <option value="Outgoing Program MOU">Outgoing Program MOU</option>
-                                                <option value="Alumni Establishment MOU">Alumni Establishment MOU</option>
-                                                <option value="Scholarship Transfer Letter">Scholarship Transfer Letter</option>
-                                                <option value="Scholarship Valuation Letter">Scholarship Valuation Letter</option>
-                                                <option value="Other">Other</option>
-                                            </select>
-                                        </div>
-                                    )}
-
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-[#6B778C] uppercase">University</label>
-                                        <select
-                                            value={formData.universityId}
-                                            onChange={e => setFormData({ ...formData, universityId: e.target.value })}
-                                            className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                        >
-                                            <option value="">No University</option>
-                                            {universities.map(uni => (
-                                                <option key={uni.id} value={uni.id}>{uni.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-[#6B778C] uppercase">Priority</label>
-                                        <select
-                                            value={formData.priority}
-                                            onChange={e => setFormData({ ...formData, priority: e.target.value })}
-                                            className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                        >
-                                            <option value="LOW">Low</option>
-                                            <option value="MEDIUM">Medium</option>
-                                            <option value="HIGH">High</option>
-                                            <option value="CRITICAL">Critical</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-[#6B778C] uppercase">Target Date</label>
-                                    <input
-                                        type="date"
-                                        required
-                                        value={formData.targetDate}
-                                        onChange={e => setFormData({ ...formData, targetDate: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                    />
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-[#6B778C] uppercase">Description</label>
-                                    <textarea
-                                        rows={3}
-                                        value={formData.description}
-                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none resize-none"
-                                        placeholder="Add details about deliverables..."
-                                    />
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
-                                        <User className="w-3 h-3" /> Assign To
-                                    </label>
-                                    <select
-                                        value={formData.assignedTo}
-                                        onChange={e => setFormData({ ...formData, assignedTo: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                    >
-                                        <option value="">Me (Self)</option>
-                                        {teamMembers.map(u => (
-                                            <option key={u.id} value={u.id}>{u.name}</option>
-                                        ))}
-                                    </select>
-                                    <p className="text-[10px] text-[#6B778C]">Select the employee responsible for this deliverable.</p>
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-[#6B778C] uppercase flex items-center gap-1">
-                                        <Briefcase className="w-3 h-3" /> Link Project (Optional)
-                                    </label>
-                                    <select
-                                        value={formData.projectId}
-                                        onChange={e => setFormData({ ...formData, projectId: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                    >
-                                        <option value="">No Project</option>
-                                        {projects.map(p => (
-                                            <option key={p.id} value={p.id}>{p.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </form>
-                        </div>
-
-                        <div className="p-4 border-t border-[#DFE1E6] bg-[#FAFBFC] flex justify-end gap-2 shrink-0">
-                            <button
-                                onClick={() => setIsCreateModalOpen(false)}
-                                className="px-4 py-2 hover:bg-[#EBECF0] rounded-sm text-[#42526E] font-medium text-sm"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                form="create-milestone-form"
-                                className="btn-eusai-create flex items-center gap-2 px-4 py-2"
-                            >
-                                <CheckCircle2 className="w-4 h-4" />
-                                Create Milestone
-                            </button>
-                        </div>
-                    </div >
-                </div >
-            )
-            }
-        </div >
+            <CreateMilestoneModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onSuccess={() => {
+                    showToast('Milestones created successfully', 'success');
+                    fetchMilestones();
+                }}
+            />
+        </div>
     );
 }

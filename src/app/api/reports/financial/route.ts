@@ -39,24 +39,18 @@ export async function GET(request: NextRequest) {
         });
 
         // Calculate Totals
-        let totalBudget = 0;
         let totalSpent = 0;
         const categoryBreakdown: Record<string, number> = {};
-        const projectHealth: any[] = [];
+        const projectExpenses: any[] = [];
 
         projects.forEach(p => {
-            const budget = Number(p.budget);
             const spent = p.expenses.reduce((acc, curr) => acc + Number(curr.amount), 0);
-
-            totalBudget += budget;
             totalSpent += spent;
 
-            projectHealth.push({
+            projectExpenses.push({
                 id: p.id,
                 name: p.name,
-                budget,
-                spent,
-                status: spent > budget ? 'OVER_BUDGET' : spent > (budget * 0.9) ? 'AT_RISK' : 'HEALTHY'
+                spent
             });
 
             p.expenses.forEach(e => {
@@ -67,13 +61,11 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
             stats: {
-                totalBudget,
                 totalSpent,
-                remainingBudget: totalBudget - totalSpent,
-                burnRate: totalSpent / (projects.length || 1) // Simple average for now
+                averageSpend: totalSpent / (projects.length || 1)
             },
             breakdown: categoryBreakdown,
-            projects: projectHealth.sort((a, b) => b.spent - a.spent)
+            projects: projectExpenses.sort((a, b) => b.spent - a.spent)
         });
 
     } catch (error) {

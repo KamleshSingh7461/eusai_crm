@@ -22,7 +22,6 @@ const projectSchema = z.object({
     description: z.string().min(10, 'Description must be at least 10 characters'),
     startDate: z.string(),
     endDate: z.string(),
-    budget: z.number().positive('Budget must be a positive number'),
     managerId: z.string().min(1, 'Please select a project manager'),
     spaceId: z.string().optional(),
 });
@@ -53,7 +52,6 @@ export default function NewProjectPage() {
         resolver: zodResolver(projectSchema),
         defaultValues: {
             startDate: new Date().toISOString().split('T')[0],
-            budget: 0,
         }
     });
 
@@ -222,18 +220,6 @@ export default function NewProjectPage() {
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold text-[#6B778C] uppercase tracking-wider flex items-center gap-2">
-                                <DollarSign className="w-4 h-4" /> Allocated Budget
-                            </label>
-                            <input
-                                {...register('budget', { valueAsNumber: true })}
-                                type="number"
-                                placeholder="0.00"
-                                className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-sm py-2 px-4 focus:outline-none focus:ring-2 focus:ring-[#4C9AFF]/20 focus:border-[#4C9AFF] transition-all text-[#172B4D]"
-                            />
-                            {errors.budget && <p className="text-xs text-red-500">{errors.budget.message}</p>}
-                        </div>
 
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-[#6B778C] uppercase tracking-wider flex items-center gap-2">

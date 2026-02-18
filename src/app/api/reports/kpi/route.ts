@@ -77,7 +77,6 @@ export async function GET(request: NextRequest) {
             }
         });
 
-        let totalBudget = 0;
         let totalSpent = 0;
 
         const projectKPIs = projects.map(p => {
@@ -91,10 +90,8 @@ export async function GET(request: NextRequest) {
                 + (openIssues.some(i => i.severity === 'CRITICAL') ? 50 : 0);
 
             // Financials per project
-            const budget = Number(p.budget);
             const spent = p.expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
 
-            totalBudget += budget;
             totalSpent += spent;
 
             return {
@@ -103,7 +100,6 @@ export async function GET(request: NextRequest) {
                 progress,
                 riskScore,
                 issueCount: openIssues.length,
-                budget,
                 spent
             };
         });
@@ -183,10 +179,7 @@ export async function GET(request: NextRequest) {
             risks: strategicRisks,
             departments: departmentPulse,
             financials: {
-                totalBudget,
-                totalSpent,
-                remaining: totalBudget - totalSpent,
-                utilization: Math.round((totalSpent / (totalBudget || 1)) * 100)
+                totalSpent
             }
         });
 

@@ -116,7 +116,6 @@ model Project {
   description  String?
   startDate    DateTime
   endDate      DateTime
-  budget       Decimal
   status       String        @default("INITIATION") // INITIATION, PLANNING, EXECUTION, MONITORING, CLOSED
   
   managerId    String?
@@ -313,6 +312,7 @@ model Milestone {
   
   universityId  String?
   university    University? @relation(fields: [universityId], references: [id])
+  universityName String? // Manual university entry
   
   spaceId       String?
   space         Space?    @relation(fields: [spaceId], references: [id])
@@ -373,7 +373,7 @@ model Activity {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   action    String
-  metadata  Json?
+  metadata  String?
   timestamp DateTime @default(now())
 
   @@index([projectId])
@@ -389,7 +389,7 @@ model Comment {
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   text        String
-  attachments Json? // Stored as array of strings
+  attachments String? // Stored as array of strings
   timestamp   DateTime @default(now())
 
   @@index([projectId])

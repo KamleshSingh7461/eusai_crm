@@ -46,10 +46,10 @@ export async function POST(request: Request) {
                 projectId,
                 userId: uploadedBy,
                 action: 'DOCUMENT_UPLOADED',
-                metadata: {
+                metadata: JSON.stringify({
                     fileName: name,
                     fileType: type
-                }
+                })
             }
         });
 

@@ -14,7 +14,6 @@ export async function GET() {
             prisma.task.count(),
             prisma.task.count({ where: { status: 'DONE' } }),
             (prisma as any).issue.count({ where: { status: 'OPEN' } }),
-            prisma.project.aggregate({ _sum: { budget: true } })
         ]);
 
         const velocity = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
@@ -23,8 +22,7 @@ export async function GET() {
             activeProjects: projectCount,
             executionVelocity: `${Math.round(velocity)}%`,
             overdueTasks: overdueIssues, // Using open issues as a proxy for risk
-            openRisks: overdueIssues,
-            totalBudget: totalBudget._sum.budget || 0
+            openRisks: overdueIssues
         });
     } catch (error) {
         return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });

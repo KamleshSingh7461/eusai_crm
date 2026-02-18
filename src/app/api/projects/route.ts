@@ -17,23 +17,21 @@ export async function POST(request: Request) {
                 description: data.description,
                 startDate: new Date(data.startDate),
                 endDate: new Date(data.endDate),
-                budget: data.budget,
                 status: 'INITIATION',
                 spaceId: data.spaceId || null,
             }
         });
 
-        // 2. Log activity in Relational DB (PostgreSQL)
+        // 2. Log activity in Relational DB (PostgreSQL -> SQLite)
         const session = await getServerSession(authOptions);
         await prisma.activity.create({
             data: {
                 projectId: project.id,
                 userId: (session?.user as any)?.id || 'SYSTEM_ADMIN',
                 action: 'PROJECT_INITIATED',
-                metadata: {
-                    managerAssigned: data.managerName,
-                    initialBudget: data.budget
-                }
+                metadata: JSON.stringify({
+                    managerAssigned: data.managerName
+                })
             }
         });
 
@@ -120,7 +118,6 @@ export async function GET(request: Request) {
 
             // Financial Stats
             const approvedExpenses = project.expenses.reduce((sum: number, e: any) => sum + Number(e.amount), 0);
-            const remainingBudget = Number(project.budget) - approvedExpenses;
 
             // Calculated Progress
             // Weight: Milestones (70%), Tasks (30%)
@@ -140,7 +137,7 @@ export async function GET(request: Request) {
                 stats: {
                     tasks: { total: totalTasks, completed: completedTasks, overdue: overdueTasks },
                     milestones: { total: totalMilestones, completed: completedMilestones },
-                    financial: { budget: Number(project.budget), spent: approvedExpenses, remaining: remainingBudget },
+                    financial: { spent: approvedExpenses },
                     progress: progress
                 }
             };

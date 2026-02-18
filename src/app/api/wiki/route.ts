@@ -44,9 +44,9 @@ export async function POST(request: Request) {
                 projectId,
                 userId: authorId || 'SYSTEM_ADMIN',
                 action: 'WIKI_PAGE_CREATED',
-                metadata: {
+                metadata: JSON.stringify({
                     title
-                }
+                })
             }
         });
 
