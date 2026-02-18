@@ -107,7 +107,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
         { name: 'Search', href: '#', icon: Search, action: 'search' },
         { name: 'Home', href: '/', icon: Home },
         { name: 'Meetings', href: '/meetings', icon: Video },
-        { name: 'EUSAI AI', href: '/ai-assistant', icon: Sparkles },
+        { name: 'EUSAI AI (Coming Soon)', href: '/ai-assistant', icon: Sparkles },
         { name: 'Inbox', href: '/inbox', icon: InboxIcon },
         { name: 'Issues', href: '/issues', icon: AlertTriangle },
         { name: 'Library', href: '/library', icon: LibraryIcon },

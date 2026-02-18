@@ -64,7 +64,7 @@ export default function NotionSidebar({ isCollapsed, toggleSidebar, closeMobileM
     const mainNav: NavItem[] = [
         { name: 'Home', href: '/', icon: Home },
         { name: 'Meetings', href: '/meetings', icon: Video },
-        { name: 'EUSAI AI', href: '/ai-assistant', icon: Sparkles },
+        { name: 'EUSAI AI (Coming Soon)', href: '/ai-assistant', icon: Sparkles },
 
         { name: 'Issues', href: '/issues', icon: AlertTriangle },
         { name: 'Library', href: '/library', icon: Library },

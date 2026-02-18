@@ -62,6 +62,45 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async signIn({ user, account, profile }: any) {
             console.log("🔵 SignIn Callback:", { user, account, profile });
+
+            if (account && account.provider === 'google') {
+                try {
+                    // Force update the account tokens in the database
+                    await prisma.account.upsert({
+                        where: {
+                            provider_providerAccountId: {
+                                provider: account.provider,
+                                providerAccountId: account.providerAccountId
+                            }
+                        },
+                        update: {
+                            access_token: account.access_token,
+                            refresh_token: account.refresh_token,
+                            expires_at: account.expires_at,
+                            token_type: account.token_type,
+                            scope: account.scope,
+                            id_token: account.id_token,
+                            session_state: account.session_state
+                        },
+                        create: {
+                            userId: user.id,
+                            type: account.type,
+                            provider: account.provider,
+                            providerAccountId: account.providerAccountId,
+                            access_token: account.access_token,
+                            refresh_token: account.refresh_token,
+                            expires_at: account.expires_at,
+                            token_type: account.token_type,
+                            scope: account.scope,
+                            id_token: account.id_token,
+                            session_state: account.session_state
+                        }
+                    });
+                    console.log("✅ Google tokens updated in DB for user:", user.email);
+                } catch (error) {
+                    console.error("🔴 Failed to save Google tokens:", error);
+                }
+            }
             return true;
         },
         async jwt({ token, user, account, profile }: any) {
