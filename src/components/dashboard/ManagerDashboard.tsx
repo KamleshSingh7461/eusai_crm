@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import DashboardAISummary from './DashboardAISummary';
+import Avatar from '@/components/ui/Avatar';
 
 interface DashboardData {
     stats: {
@@ -209,7 +210,7 @@ export default function ManagerDashboard() {
                                     <div key={milestone.id} className="px-6 py-4 hover:bg-white/5 transition-colors group">
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 rounded-full bg-[#0052CC]/20 border border-[#0052CC]/30 flex items-center justify-center text-[#0052CC] font-bold text-xs shrink-0 overflow-hidden shadow-inner">
-                                                {milestone.ownerImage ? <img src={milestone.ownerImage} alt="" className="w-full h-full object-cover" /> : milestone.ownerName.charAt(0).toUpperCase()}
+                                                <Avatar src={milestone.ownerImage} alt={milestone.ownerName} fallback={milestone.ownerName.charAt(0).toUpperCase()} className="w-full h-full object-cover" />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between">

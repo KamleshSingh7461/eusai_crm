@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import Avatar from '@/components/ui/Avatar';
 import {
     BarChart3,
     Briefcase,
@@ -443,7 +444,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                             <div className={cn("rounded-sm transition-colors", isCollapsed ? "p-1 flex justify-center hover:bg-[#2c2c2c]" : "px-3 py-2")}>
                                 <div className={cn("flex items-center gap-2", !isCollapsed && "mb-1")}>
                                     <div className="w-8 h-8 rounded-full bg-[#191919] border border-[rgba(255,255,255,0.1)] flex items-center justify-center text-white font-bold text-xs overflow-hidden flex-shrink-0">
-                                        {(session.user as any).image ? <img src={(session.user as any).image} alt="" className="w-full h-full object-cover" /> : (session.user.name?.charAt(0) || 'U').toUpperCase()}
+                                        <Avatar src={(session.user as any).image} alt="" fallback={(session.user.name?.charAt(0) || 'U').toUpperCase()} className="w-full h-full object-cover" />
                                     </div>
                                     {!isCollapsed && (
                                         <div className="flex flex-col overflow-hidden">

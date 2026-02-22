@@ -14,6 +14,7 @@ import {
 import Link from 'next/link';
 import EmployeeDashboard from './EmployeeDashboard'; // Re-using for Personal Pipeline section
 import DashboardAISummary from './DashboardAISummary';
+import Avatar from '@/components/ui/Avatar';
 
 interface TeamStats {
     revenue: number;
@@ -156,7 +157,7 @@ export default function TeamLeaderDashboard() {
                             <div key={member.id} className="bg-[#191919]/60 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-xl p-4 hover:border-[#0052CC] transition-colors group">
                                 <div className="flex items-center gap-4 mb-4">
                                     <div className="w-12 h-12 rounded-full bg-[#0052CC]/20 border border-[#0052CC]/30 flex items-center justify-center text-[#0052CC] font-bold text-lg overflow-hidden">
-                                        {member.image ? <img src={member.image} alt="" className="w-full h-full object-cover" /> : member.name.charAt(0)}
+                                        <Avatar src={member.image} alt="" fallback={member.name.charAt(0)} className="w-full h-full object-cover" />
                                     </div>
                                     <div>
                                         <div className="font-bold text-[rgba(255,255,255,0.9)]">{member.name}</div>

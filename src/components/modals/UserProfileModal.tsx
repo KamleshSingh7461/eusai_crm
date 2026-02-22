@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Button from '@/components/ui/Button';
+import Avatar from '@/components/ui/Avatar';
 
 interface UserProfileModalProps {
     userId: string | null;
@@ -94,7 +95,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                             <div className="p-8 bg-white flex flex-col md:flex-row gap-8">
                                 <div className="flex-shrink-0">
                                     <div className="w-24 h-24 rounded-full bg-[#DEEBFF] border-4 border-white shadow-md flex items-center justify-center text-[#0052CC] text-3xl font-bold overflow-hidden">
-                                        {user.image ? <img src={user.image} alt={user.name} className="w-full h-full object-cover" /> : user.name?.charAt(0)}
+                                        <Avatar src={user.image} alt={user.name} fallback={user.name?.charAt(0) || 'U'} className="w-full h-full object-cover" />
                                     </div>
                                 </div>
                                 <div className="flex-1 space-y-4">

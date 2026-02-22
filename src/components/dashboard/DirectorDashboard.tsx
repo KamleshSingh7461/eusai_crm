@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Avatar from '@/components/ui/Avatar';
 import {
     Users,
     Globe,
@@ -359,7 +360,7 @@ export default function DirectorDashboard() {
                                         >
                                             <div className="relative flex-shrink-0">
                                                 <div className="w-12 h-12 rounded-xl bg-[#1D2125] flex items-center justify-center text-white font-bold overflow-hidden border border-white/10 shadow-lg">
-                                                    {user.image ? <img src={user.image} alt={user.name} className="w-full h-full object-cover" /> : user.name.charAt(0)}
+                                                    <Avatar src={user.image} alt={user.name} fallback={user.name.charAt(0)} className="w-full h-full object-cover" />
                                                 </div>
                                                 {index < 3 && (
                                                     <div className={cn(
@@ -483,7 +484,7 @@ export default function DirectorDashboard() {
                                 </div>
                                 <div className="relative z-10 flex items-center gap-6 mb-8">
                                     <div className="w-16 h-16 rounded-2xl bg-[#1D2125] flex items-center justify-center text-white font-bold text-2xl overflow-hidden border border-white/10 shadow-xl group-hover:scale-105 transition-transform">
-                                        {emp.image ? <img src={emp.image} alt={emp.name} className="w-full h-full object-cover" /> : emp.name.charAt(0)}
+                                        <Avatar src={emp.image} alt={emp.name} fallback={emp.name.charAt(0)} className="w-full h-full object-cover" />
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <h3 className="text-lg font-black text-white group-hover:text-blue-400 transition-colors truncate tracking-tight">{emp.name}</h3>

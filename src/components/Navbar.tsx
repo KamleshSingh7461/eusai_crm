@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import GeminiAssistant from "@/components/GeminiAssistant";
 import NotificationCenter from "@/components/NotificationCenter";
 import { cn } from "@/lib/utils";
+import Avatar from "@/components/ui/Avatar";
 
 interface NavbarProps {
     onMenuClick?: () => void;
@@ -131,13 +132,12 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                             className="flex items-center gap-2 pl-1 pr-2 h-8 rounded-full bg-[#191919] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.3)] hover:bg-[rgba(255,255,255,0.05)] transition-all focus:outline-none"
                         >
                             <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
-                                {(session?.user as any)?.image ? (
-                                    <img src={(session?.user as any).image} alt="" className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-[#0052CC] text-white text-[10px] font-bold">
-                                        {(session?.user?.name?.charAt(0) || 'U').toUpperCase()}
-                                    </div>
-                                )}
+                                <Avatar
+                                    src={(session?.user as any)?.image}
+                                    alt=""
+                                    fallback={(session?.user?.name?.charAt(0) || 'U').toUpperCase()}
+                                    className="w-full h-full object-cover"
+                                />
                             </div>
                             <span className="text-xs font-medium text-[rgba(255,255,255,0.9)] max-w-[100px] truncate hidden sm:block">
                                 {session?.user?.name || 'User'}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Avatar from '@/components/ui/Avatar';
 import {
     Users,
     UserPlus,
@@ -22,6 +23,7 @@ import {
     Briefcase
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
+import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 
 interface User {
@@ -59,6 +61,7 @@ export default function TeamPage() {
     // Form States
     const [formData, setFormData] = useState({
         email: '',
+        ccEmails: [] as string[],
         name: '',
         role: 'EMPLOYEE',
         department: '',
@@ -140,6 +143,7 @@ export default function TeamPage() {
         setSelectedUser(user);
         setFormData({
             email: user.email,
+            ccEmails: [],
             name: user.name || '',
             role: user.role,
             department: user.department || '',
@@ -149,7 +153,7 @@ export default function TeamPage() {
     };
 
     const resetForm = () => {
-        setFormData({ email: '', name: '', role: 'EMPLOYEE', department: '', managerIds: [] });
+        setFormData({ email: '', ccEmails: [], name: '', role: 'EMPLOYEE', department: '', managerIds: [] });
         setSelectedUser(null);
     };
 
@@ -345,9 +349,12 @@ export default function TeamPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-9 h-9 rounded-full bg-[#DEEBFF] flex items-center justify-center text-[#0052CC] font-bold text-xs border-2 border-white shadow-sm overflow-hidden shrink-0">
-                                                    {user.image ? <img src={user.image} alt={user.name || ''} className="w-full h-full object-cover" /> : (user.name?.charAt(0) || user.email.charAt(0)).toUpperCase()}
-                                                </div>
+                                                <Avatar
+                                                    src={user.image}
+                                                    alt={user.name || 'User'}
+                                                    fallback={(user.name?.charAt(0) || user.email.charAt(0)).toUpperCase()}
+                                                    className="w-9 h-9 rounded-full bg-[#DEEBFF] flex items-center justify-center text-[#0052CC] font-bold text-xs border-2 border-white shadow-sm overflow-hidden shrink-0"
+                                                />
                                                 <div className="min-w-0">
                                                     <div className="font-bold text-heading text-sm flex items-center gap-2">
                                                         {user.name || 'No Name'}
@@ -439,8 +446,11 @@ export default function TeamPage() {
             {/* Modal (Shared for Invite & Edit) */}
             {(isInviteModalOpen || isEditModalOpen) && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="card-eusai w-full max-w-lg bg-[var(--notion-bg-primary)] rounded-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-6 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-secondary)]">
+                    <div className={cn(
+                        "card-eusai w-full bg-[var(--notion-bg-primary)] rounded-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]",
+                        !isEditModalOpen && formData.email ? "max-w-5xl" : "max-w-lg"
+                    )}>
+                        <div className="p-6 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-secondary)] shrink-0">
                             <h3 className="text-lg font-bold text-heading">
                                 {isEditModalOpen ? 'Edit Member Config' : 'Invite New Member'}
                             </h3>
@@ -451,125 +461,235 @@ export default function TeamPage() {
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <form onSubmit={isEditModalOpen ? handleUpdate : handleInvite} className="p-6 space-y-4">
-                            {!isEditModalOpen && (
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-body uppercase">Email Address</label>
-                                    <div className="relative">
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-body" />
+                        <div className="flex-1 overflow-y-auto">
+                            <div className={cn("p-6", !isEditModalOpen && formData.email ? "grid grid-cols-1 lg:grid-cols-2 gap-8" : "")}>
+                                {/* Left Column: Form */}
+                                <form onSubmit={isEditModalOpen ? handleUpdate : handleInvite} className="space-y-4 flex flex-col h-full">
+                                    {!isEditModalOpen && (
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-body uppercase">Email Address</label>
+                                            <div className="relative">
+                                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-body" />
+                                                <input
+                                                    type="email"
+                                                    required
+                                                    value={formData.email}
+                                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                                    className="w-full pl-9 pr-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                                    placeholder="colleague@eusaiteam.com"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-body uppercase">Full Name</label>
                                         <input
-                                            type="email"
-                                            required
-                                            value={formData.email}
-                                            onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full pl-9 pr-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                            placeholder="colleague@eusaiteam.com"
+                                            value={formData.name}
+                                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                            placeholder="e.g. John Doe"
                                         />
                                     </div>
-                                </div>
-                            )}
 
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-body uppercase">Full Name</label>
-                                <input
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                    placeholder="e.g. John Doe"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-body uppercase flex items-center gap-2">
-                                        System Role
-                                        {userRole !== 'DIRECTOR' && (
-                                            <span className="text-[10px] lowercase font-normal text-body opacity-60">(Director only)</span>
-                                        )}
-                                    </label>
-                                    <div className="relative">
-                                        <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-body" />
-                                        <select
-                                            disabled={userRole !== 'DIRECTOR'}
-                                            value={formData.role}
-                                            onChange={e => setFormData({ ...formData, role: e.target.value })}
-                                            className={`w-full pl-9 pr-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none ${userRole !== 'DIRECTOR' ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'}`}
-                                        >
-                                            <option value="EMPLOYEE">Employee</option>
-                                            <option value="INTERN">Intern</option>
-                                            <option value="TEAM_LEADER">Team Leader</option>
-                                            <option value="MANAGER">Manager</option>
-                                            <option value="DIRECTOR">Director</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-body uppercase">Department</label>
-                                    <input
-                                        value={formData.department}
-                                        onChange={e => setFormData({ ...formData, department: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                        placeholder="e.g. Sales"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-body uppercase">Reports To (Multiple Managers Allowed)</label>
-                                <div className="p-3 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm max-h-40 overflow-y-auto space-y-2">
-                                    {users
-                                        .filter(u => u.id !== selectedUser?.id) // Can't report to self
-                                        .filter(u => ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(u.role)) // Only leaders can be managers
-                                        .map(u => (
-                                            <label key={u.id} className="flex items-center gap-2 cursor-pointer hover:bg-[var(--notion-bg-tertiary)] p-1 rounded-sm transition-colors">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.managerIds.includes(u.id)}
-                                                    onChange={(e) => {
-                                                        const newIds = e.target.checked
-                                                            ? [...formData.managerIds, u.id]
-                                                            : formData.managerIds.filter(id => id !== u.id);
-                                                        setFormData({ ...formData, managerIds: newIds });
-                                                    }}
-                                                    className="rounded-sm border-[var(--notion-border-default)] text-[#0052CC] focus:ring-[#0052CC]"
-                                                />
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-5 h-5 rounded-full bg-[var(--notion-bg-tertiary)] flex items-center justify-center text-[8px] font-bold">
-                                                        {u.name?.charAt(0) || 'M'}
-                                                    </div>
-                                                    <span className="text-xs text-heading font-medium">
-                                                        {u.name || u.email} <span className="text-[10px] text-body opacity-60">({u.role})</span>
-                                                    </span>
-                                                </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-body uppercase flex items-center gap-2">
+                                                System Role
+                                                {userRole !== 'DIRECTOR' && (
+                                                    <span className="text-[10px] lowercase font-normal text-body opacity-60">(Director only)</span>
+                                                )}
                                             </label>
-                                        ))
-                                    }
-                                    {users.filter(u => ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(u.role)).length === 0 && (
-                                        <p className="text-[10px] text-body italic">No eligible managers found.</p>
-                                    )}
-                                </div>
-                            </div>
+                                            <div className="relative">
+                                                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-body" />
+                                                <select
+                                                    disabled={userRole !== 'DIRECTOR'}
+                                                    value={formData.role}
+                                                    onChange={e => setFormData({ ...formData, role: e.target.value })}
+                                                    className={`w-full pl-9 pr-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none ${userRole !== 'DIRECTOR' ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'}`}
+                                                >
+                                                    <option value="EMPLOYEE">Employee</option>
+                                                    <option value="INTERN">Intern</option>
+                                                    <option value="TEAM_LEADER">Team Leader</option>
+                                                    <option value="MANAGER">Manager</option>
+                                                    <option value="DIRECTOR">Director</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-body uppercase">Department</label>
+                                            <input
+                                                value={formData.department}
+                                                onChange={e => setFormData({ ...formData, department: e.target.value })}
+                                                className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                                placeholder="e.g. Sales"
+                                            />
+                                        </div>
+                                    </div>
 
-                            <div className="pt-2 flex justify-end gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => { setIsInviteModalOpen(false); setIsEditModalOpen(false); }}
-                                    className="px-4 py-2 hover:bg-[var(--notion-bg-tertiary)] rounded-sm text-subheading font-medium text-sm"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="btn-eusai-create flex items-center gap-2 px-4 py-2"
-                                >
-                                    <CheckCircle2 className="w-4 h-4" />
-                                    {isEditModalOpen ? 'Save Changes' : 'Send Invite'}
-                                </button>
+                                    <div className={cn("gap-4 flex-1 min-h-0", !isEditModalOpen ? "grid grid-cols-2" : "flex flex-col")}>
+                                        <div className="space-y-1.5 flex flex-col h-full min-h-0">
+                                            <label className="text-xs font-bold text-body uppercase truncate">Reports To</label>
+                                            <div className="p-3 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm flex-1 overflow-y-auto space-y-2 min-h-[8rem]">
+                                                {users
+                                                    .filter(u => u.id !== selectedUser?.id)
+                                                    .filter(u => ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(u.role))
+                                                    .map(u => (
+                                                        <label key={u.id} className="flex items-center gap-2 cursor-pointer hover:bg-[var(--notion-bg-tertiary)] p-1 rounded-sm transition-colors">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={formData.managerIds.includes(u.id)}
+                                                                onChange={(e) => {
+                                                                    const newIds = e.target.checked
+                                                                        ? [...formData.managerIds, u.id]
+                                                                        : formData.managerIds.filter(id => id !== u.id);
+                                                                    setFormData({ ...formData, managerIds: newIds });
+                                                                }}
+                                                                className="rounded-sm border-[var(--notion-border-default)] text-[#0052CC] focus:ring-[#0052CC] shrink-0"
+                                                            />
+                                                            <div className="flex items-center gap-2 overflow-hidden">
+                                                                <div className="w-5 h-5 rounded-full bg-[var(--notion-bg-tertiary)] flex items-center justify-center text-[8px] font-bold shrink-0">
+                                                                    {u.name?.charAt(0) || 'M'}
+                                                                </div>
+                                                                <span className="text-xs text-heading font-medium truncate">
+                                                                    {u.name || u.email}
+                                                                </span>
+                                                            </div>
+                                                        </label>
+                                                    ))
+                                                }
+                                                {users.filter(u => ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(u.role)).length === 0 && (
+                                                    <p className="text-[10px] text-body italic">No eligible managers found.</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {!isEditModalOpen && (
+                                            <div className="space-y-1.5 flex flex-col h-full min-h-0">
+                                                <label className="text-xs font-bold text-body uppercase truncate">CC (Optional)</label>
+                                                <div className="p-3 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm flex-1 overflow-y-auto space-y-2 min-h-[8rem]">
+                                                    {users
+                                                        .filter(u => ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(u.role))
+                                                        .map(u => (
+                                                            <label key={`cc-${u.id}`} className="flex items-center gap-2 cursor-pointer hover:bg-[var(--notion-bg-tertiary)] p-1 rounded-sm transition-colors">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={formData.ccEmails.includes(u.email)}
+                                                                    onChange={(e) => {
+                                                                        const newEmails = e.target.checked
+                                                                            ? [...formData.ccEmails, u.email]
+                                                                            : formData.ccEmails.filter(email => email !== u.email);
+                                                                        setFormData({ ...formData, ccEmails: newEmails });
+                                                                    }}
+                                                                    className="rounded-sm border-[var(--notion-border-default)] text-[#0052CC] focus:ring-[#0052CC] shrink-0"
+                                                                />
+                                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                                    <div className="w-5 h-5 rounded-full bg-[var(--notion-bg-tertiary)] flex items-center justify-center text-[8px] font-bold shrink-0">
+                                                                        {u.name?.charAt(0) || 'M'}
+                                                                    </div>
+                                                                    <span className="text-xs text-heading font-medium truncate">
+                                                                        {u.name || u.email}
+                                                                    </span>
+                                                                </div>
+                                                            </label>
+                                                        ))
+                                                    }
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="pt-4 flex justify-end gap-2 mt-auto">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setIsInviteModalOpen(false); setIsEditModalOpen(false); }}
+                                            className="px-4 py-2 hover:bg-[var(--notion-bg-tertiary)] rounded-sm text-subheading font-medium text-sm"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="btn-eusai-create flex items-center gap-2 px-4 py-2"
+                                        >
+                                            <CheckCircle2 className="w-4 h-4" />
+                                            {isEditModalOpen ? 'Save Changes' : 'Send Invite'}
+                                        </button>
+                                    </div>
+                                </form>
+
+                                {/* Right Column: Email Preview */}
+                                {!isEditModalOpen && formData.email && (
+                                    <div className="border-t lg:border-t-0 lg:border-l border-[var(--notion-border-default)] pt-6 lg:pt-0 lg:pl-8 flex flex-col h-full">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <Mail className="w-4 h-4 text-[#0052CC]" />
+                                            <h4 className="text-xs font-bold text-heading uppercase tracking-wider">Email Template Preview</h4>
+                                        </div>
+                                        <div className="bg-[#191919] border border-[#2A2A2A] rounded-md p-4 space-y-4 shadow-inner flex-1">
+                                            {/* Email Header */}
+                                            <div className="flex items-start justify-between border-b border-[#2A2A2A] pb-3">
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2 text-xs">
+                                                        <span className="text-[#888] w-12">From:</span>
+                                                        <span className="text-white font-medium">EUSAI Recon <span className="text-[#666]">&lt;security@eusaiteam.com&gt;</span></span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs">
+                                                        <span className="text-[#888] w-12">To:</span>
+                                                        <span className="text-[#00B8D9] font-medium">{formData.email}</span>
+                                                    </div>
+                                                    {formData.ccEmails && formData.ccEmails.length > 0 && (
+                                                        <div className="flex items-center gap-2 text-xs">
+                                                            <span className="text-[#888] w-12">Cc:</span>
+                                                            <span className="text-[#00B8D9] font-medium truncate max-w-[200px]" title={formData.ccEmails.join(', ')}>{formData.ccEmails.join(', ')}</span>
+                                                        </div>
+                                                    )}
+                                                    <div className="flex items-center gap-2 text-xs">
+                                                        <span className="text-[#888] w-12">Subject:</span>
+                                                        <span className="text-white font-medium uppercase tracking-wide">Secure Access Provisioned: EUSAI Tactical Core</span>
+                                                    </div>
+                                                </div>
+                                                <div className="w-8 h-8 rounded bg-[#111] flex items-center justify-center border border-[#333] shrink-0">
+                                                    <img src="/EUSAI-LOGO.png" alt="EU" className="w-5 h-5 object-contain opacity-80" />
+                                                </div>
+                                            </div>
+
+                                            {/* Email Body */}
+                                            <div className="space-y-4 text-sm text-[#CCCCCC] font-mono leading-relaxed">
+                                                <p>CLASSIFIED - INTERNAL USE ONLY</p>
+
+                                                <p>Attention {formData.name || 'Operative'},</p>
+
+                                                <p>You have been provisioned access to the EUSAI Tactical Core. Your designated role parameter is: <span className="text-[#36B37E] font-bold">[{formData.role}]</span>.</p>
+
+                                                <div className="bg-[#111] border border-[#333] p-3 rounded space-y-2">
+                                                    <p className="text-xs text-[#888]">INITIALIZATION DIRECTIVES:</p>
+                                                    <ol className="list-decimal pl-4 space-y-1 text-xs">
+                                                        <li>Access the secure portal via the uplink below.</li>
+                                                        <li>Authenticate using your registered Google Workspace credentials.</li>
+                                                        <li>Review pending tactical objectives (Tasks & Milestones).</li>
+                                                        <li>Acknowledge communication protocol (Daily Submission Window: 18:00 - 20:00).</li>
+                                                    </ol>
+                                                </div>
+
+                                                <div className="py-2 flex justify-center">
+                                                    <div className="bg-[#0052CC] text-white px-6 py-2 rounded font-sans font-medium opacity-90 cursor-not-allowed">
+                                                        Initiate Secure Uplink
+                                                    </div>
+                                                </div>
+
+                                                <p className="text-xs text-[#666]">
+                                                    Auth Token: {Math.random().toString(36).substring(2, 15).toUpperCase()} <br />
+                                                    Transmission Origin: EUSAI Command Center
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             )}
+
         </div>
     );
 }
