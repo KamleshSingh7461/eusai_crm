@@ -27,12 +27,12 @@ export async function GET(request: NextRequest) {
 
         if (startRole === 'TEAM_LEADER') {
             // For TLs, only show their direct reports
-            whereClause = { managerId: userId };
+            whereClause = { reportingManagers: { some: { id: userId } } };
         } else if (startRole === 'MANAGER') {
             // For Managers, show their subordinates OR people in the same department
             whereClause = {
                 OR: [
-                    { managerId: userId },
+                    { reportingManagers: { some: { id: userId } } },
                     { department: currentUser?.department }
                 ]
             };
@@ -48,13 +48,13 @@ export async function GET(request: NextRequest) {
                 role: true,
                 department: true,
                 image: true,
-                manager: {
+                reportingManagers: {
                     select: {
                         id: true,
                         name: true,
                     }
                 },
-                subordinates: {
+                reportingSubordinates: {
                     select: {
                         id: true,
                         name: true,
@@ -167,12 +167,26 @@ export async function POST(request: NextRequest) {
         });
 
         if (existingUser) {
+            // Check if role is being changed
+            const isRoleChanging = role && role !== existingUser.role;
+
+            if (isRoleChanging && userRole !== 'DIRECTOR') {
+                return NextResponse.json({
+                    error: 'Forbidden',
+                    message: 'Only Directors can modify user roles.'
+                }, { status: 403 });
+            }
+
             // Update existing user's role/manager
             const updatedUser = await (prisma as any).user.update({
                 where: { email },
                 data: {
-                    role,
-                    managerId: managerId || null,
+                    role: isRoleChanging ? role : existingUser.role,
+                    reportingManagers: managerId ? {
+                        set: [{ id: managerId }]
+                    } : body.managerIds ? {
+                        set: body.managerIds.map((id: string) => ({ id }))
+                    } : undefined,
                     department,
                     name: name || existingUser.name
                 }
@@ -181,12 +195,23 @@ export async function POST(request: NextRequest) {
         }
 
         // Create new user (Invite)
+        if (role && role !== 'EMPLOYEE' && userRole !== 'DIRECTOR') {
+            return NextResponse.json({
+                error: 'Forbidden',
+                message: 'Only Directors can assign elevated roles during invitation.'
+            }, { status: 403 });
+        }
+
         const newUser = await (prisma as any).user.create({
             data: {
                 email,
                 name,
                 role: role || 'EMPLOYEE',
-                managerId: managerId || null,
+                reportingManagers: managerId ? {
+                    connect: { id: managerId }
+                } : body.managerIds ? {
+                    connect: body.managerIds.map((id: string) => ({ id }))
+                } : undefined,
                 department,
             }
         });
@@ -218,11 +243,33 @@ export async function PUT(request: NextRequest) {
         const body = await request.json();
         const { id, role, managerId, department } = body;
 
+        // Security check: Only Directors can change roles
+        const targetUser = await (prisma as any).user.findUnique({
+            where: { id },
+            select: { role: true }
+        });
+
+        if (!targetUser) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
+        const isRoleChanging = role && role !== targetUser.role;
+        if (isRoleChanging && userRole !== 'DIRECTOR') {
+            return NextResponse.json({
+                error: 'Forbidden',
+                message: 'Only Directors can modify user roles.'
+            }, { status: 403 });
+        }
+
         const updatedUser = await (prisma as any).user.update({
             where: { id },
             data: {
-                role,
-                managerId: managerId || null,
+                role: isRoleChanging ? role : targetUser.role,
+                reportingManagers: managerId ? {
+                    set: [{ id: managerId }]
+                } : body.managerIds ? {
+                    set: body.managerIds.map((id: string) => ({ id }))
+                } : undefined,
                 department
             }
         });

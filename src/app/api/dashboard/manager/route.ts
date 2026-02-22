@@ -17,26 +17,41 @@ export async function GET() {
     }
 
     try {
-        // 1. Get entire team (recursive-ish or just children for now)
+        // 0. Get current user's department
+        const currentUser = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { department: true }
+        });
+
+        // 1. Get entire team (direct and grand-subordinates OR same department)
         const teamMembers = await prisma.user.findMany({
             where: {
                 OR: [
-                    { managerId: userId },
-                    { manager: { managerId: userId } } // Grand-subordinates
+                    { reportingManagers: { some: { id: userId } } },
+                    { reportingManagers: { some: { reportingManagers: { some: { id: userId } } } } },
+                    { department: currentUser?.department }
                 ]
             },
             select: { id: true, name: true, role: true, image: true, email: true }
         });
 
+        // 1b. Get IDs of Projects managed by this user
+        const managedProjects = await prisma.project.findMany({
+            where: { managers: { some: { id: userId } } },
+            select: { id: true }
+        });
+        const managedProjectIds = managedProjects.map(p => p.id);
+
         const teamIds = teamMembers.map(m => m.id);
         const allRelevantIds = [userId, ...teamIds];
 
-        // 2. Fetch Team Revenue (BusinessOrders linked to team owners)
+        // 2. Fetch Team Revenue (BusinessOrders linked to team owners OR managed projects)
         const businessOrders = await prisma.businessOrder.findMany({
             where: {
-                milestone: {
-                    owner: { in: allRelevantIds }
-                },
+                OR: [
+                    { milestone: { owner: { in: allRelevantIds } } },
+                    { milestone: { projectId: { in: managedProjectIds } } }
+                ],
                 status: 'PAID'
             },
             select: { amount: true }
@@ -44,10 +59,13 @@ export async function GET() {
 
         const totalRevenue = businessOrders.reduce((acc, order) => acc + Number(order.amount), 0);
 
-        // 3. Active MOUs
+        // 3. Active MOUs (Team owners OR managed projects)
         const activeMOUsCount = await prisma.milestone.count({
             where: {
-                owner: { in: allRelevantIds },
+                OR: [
+                    { owner: { in: allRelevantIds } },
+                    { projectId: { in: managedProjectIds } }
+                ],
                 category: 'MOU',
                 status: { in: ['PENDING', 'IN_PROGRESS'] }
             }
@@ -55,7 +73,10 @@ export async function GET() {
 
         const pendingSignaturesCount = await prisma.milestone.count({
             where: {
-                owner: { in: allRelevantIds },
+                OR: [
+                    { owner: { in: allRelevantIds } },
+                    { projectId: { in: managedProjectIds } }
+                ],
                 category: 'MOU',
                 status: 'IN_PROGRESS'
             }
@@ -73,10 +94,13 @@ export async function GET() {
             }
         });
 
-        // 5. Recent Team Milestones
+        // 5. Recent Team Milestones (Team owners OR managed projects)
         const recentMilestones = await prisma.milestone.findMany({
             where: {
-                owner: { in: teamIds },
+                OR: [
+                    { owner: { in: teamIds } },
+                    { projectId: { in: managedProjectIds } }
+                ],
                 status: 'COMPLETED'
             },
             include: {

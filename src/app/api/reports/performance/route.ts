@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getSubordinateIds } from '@/lib/hierarchy';
 
 // GET /api/reports/performance - Employee performance analytics
 export async function GET(request: NextRequest) {
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const startRole = (session.user as any).role;
+    const userRole = (session.user as any).role;
     const currentUserId = (session.user as any).id;
 
     try {
@@ -25,20 +26,7 @@ export async function GET(request: NextRequest) {
         else startDate.setDate(startDate.getDate() - 90);
 
         // RBAC: Determine which users' performance to show
-        let targetUserIds: string[] | undefined = undefined;
-
-        if (startRole === 'DIRECTOR') {
-            // See everyone
-        } else if (['MANAGER', 'TEAM_LEADER'].includes(startRole)) {
-            const currentUser = await prisma.user.findUnique({
-                where: { id: currentUserId },
-                include: { subordinates: true }
-            });
-            const subIds = currentUser?.subordinates.map(u => u.id) || [];
-            targetUserIds = [currentUserId, ...subIds];
-        } else {
-            targetUserIds = [currentUserId];
-        }
+        const targetUserIds = await getSubordinateIds(currentUserId, userRole);
 
         // Fetch weekly reports with user details
         const weeklyReports = await prisma.weeklyReport.findMany({

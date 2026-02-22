@@ -59,7 +59,7 @@ export async function GET() {
                 include: {
                     _count: { select: { tasks: true, milestones: true } },
                     milestones: { select: { status: true } },
-                    manager: { select: { name: true } }
+                    managers: { select: { name: true } }
                 }
             }),
             (prisma as any).university.count({ where: { status: 'PARTNER' } }),
@@ -178,7 +178,7 @@ export async function GET() {
                 id: p.id,
                 name: p.name,
                 status: p.status,
-                managerName: p.manager?.name || 'Unassigned',
+                managerName: p.managers?.map((m: any) => m.name).join(', ') || 'Unassigned',
                 taskCount: p._count.tasks,
                 milestoneCount: totalMilestones,
                 completedMilestones,

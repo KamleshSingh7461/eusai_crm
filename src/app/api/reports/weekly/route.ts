@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getSubordinateIds } from '@/lib/hierarchy';
 
 // GET /api/reports/weekly - Fetch weekly reports
 export async function GET(request: NextRequest) {
@@ -17,36 +18,22 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const userIdParam = searchParams.get('userId');
 
-        let targetUserIds: string[] = [];
+        const allowedIds = await getSubordinateIds(currentUserId, userRole);
 
-        if (userRole === 'DIRECTOR') {
-            if (userIdParam) targetUserIds = [userIdParam];
-        } else if (['MANAGER', 'TEAM_LEADER'].includes(userRole)) {
-            const currentUser = await prisma.user.findUnique({
-                where: { id: currentUserId },
-                include: { subordinates: true }
-            });
-            const subordinateIds = currentUser?.subordinates.map(u => u.id) || [];
-            const allowedIds = [currentUserId, ...subordinateIds];
+        let finalTargetIds: string[] | null = null;
 
-            if (userIdParam) {
-                if (!allowedIds.includes(userIdParam)) {
-                    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-                }
-                targetUserIds = [userIdParam];
-            } else {
-                targetUserIds = allowedIds;
-            }
-        } else {
-            if (userIdParam && userIdParam !== currentUserId) {
+        if (userIdParam) {
+            if (allowedIds && !allowedIds.includes(userIdParam)) {
                 return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
             }
-            targetUserIds = [currentUserId];
+            finalTargetIds = [userIdParam];
+        } else {
+            finalTargetIds = allowedIds;
         }
 
         const where: any = {};
-        if (targetUserIds.length > 0) {
-            where.userId = { in: targetUserIds };
+        if (finalTargetIds) {
+            where.userId = { in: finalTargetIds };
         }
 
         const reports = await prisma.weeklyReport.findMany({
@@ -100,11 +87,31 @@ export async function POST(request: NextRequest) {
         const totalHoursWorked = dailyReports.reduce((sum, r) => sum + r.hoursWorked, 0);
         const accomplishments = dailyReports.map(r => r.accomplishments).join('\n• ');
 
-        // Calculate performance score (simple average based on hours and tasks)
-        const performanceScore = Math.min(
-            100,
-            Math.round((totalTasksCompleted * 5) + (totalHoursWorked * 2))
-        );
+        // Calculate performance score (Mon-Fri baseline with Sat/Sun bonus)
+        // Baseline goal: 10 tasks + 40 hours per week = 90-100 score
+        const weekdayReports = dailyReports.filter(r => {
+            const d = new Date(r.date).getDay();
+            return d !== 0 && d !== 6;
+        });
+
+        const weekendReports = dailyReports.filter(r => {
+            const d = new Date(r.date).getDay();
+            return d === 0 || d === 6;
+        });
+
+        const weekdayTasks = weekdayReports.reduce((sum, r) => sum + r.tasksCompleted, 0);
+        const weekdayHours = weekdayReports.reduce((sum, r) => sum + r.hoursWorked, 0);
+
+        const weekendTasks = weekendReports.reduce((sum, r) => sum + r.tasksCompleted, 0);
+        const weekendHours = weekendReports.reduce((sum, r) => sum + r.hoursWorked, 0);
+
+        // Score logic: 
+        // 1. Weekday contribution (capped at 100)
+        // 2. Weekend contribution (added as potential over-performance)
+        const baseScore = Math.min(100, Math.round((weekdayTasks * 7) + (weekdayHours * 1.5)));
+        const bonusScore = Math.round((weekendTasks * 5) + (weekendHours * 1));
+
+        const performanceScore = Math.min(110, baseScore + bonusScore); // Max score 110 for overachievers
 
         const weeklyReport = await prisma.weeklyReport.create({
             data: {
@@ -116,8 +123,10 @@ export async function POST(request: NextRequest) {
                 keyAccomplishments: accomplishments || 'No accomplishments reported',
                 performanceScore,
                 kpiMetrics: JSON.stringify({
-                    avgTasksPerDay: totalTasksCompleted / 7,
-                    avgHoursPerDay: totalHoursWorked / 7,
+                    avgTasksPerDay: weekdayTasks / 5, // Divisor is always 5 for standard work week
+                    avgHoursPerDay: weekdayHours / 5,
+                    weekendBonusTasks: weekendTasks,
+                    weekendBonusHours: weekendHours,
                     completionRate: (totalTasksCompleted / Math.max(totalTasksCompleted, 1)) * 100
                 })
             }

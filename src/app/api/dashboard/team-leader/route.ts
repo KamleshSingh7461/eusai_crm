@@ -21,19 +21,15 @@ export async function GET() {
         const userWithTeam = await prisma.user.findUnique({
             where: { id: userId },
             include: {
-                subordinates: {
+                reportingSubordinates: {
                     include: {
                         tasks: true,
-                        // Milestones ? Milestone has 'owner' string field, not standard relation in schema yet?
-                        // Let's check schema for Milestone relation. 
-                        // It seems Milestone has `owner String`, but no `@relation` to User in the schema snippet I saw.
-                        // I will have to fetch milestones manually where owner IN [subordinate_ids]
                     }
                 }
             }
         });
 
-        const teamMembers = userWithTeam?.subordinates || [];
+        const teamMembers = userWithTeam?.reportingSubordinates || [];
         const teamIds = teamMembers.map(m => m.id);
 
         // 2. Fetch Team Milestones (Agreements/GOALS)

@@ -27,18 +27,18 @@ export async function GET() {
             // 4. Issues in projects they manage
 
             // specific logic: Fetch subordinates first
-            const subordinates = await (prisma as any).user.findMany({
-                where: { managerId: userId },
+            const subordinatesData = await (prisma as any).user.findMany({
+                where: { reportingManagers: { some: { id: userId } } },
                 select: { id: true }
             });
-            const subordinateIds = subordinates.map((s: any) => s.id);
+            const subordinateIds = subordinatesData.map((s: any) => s.id);
 
             where = {
                 OR: [
                     { reporterId: userId },
                     { assignedToId: userId },
                     { reporterId: { in: subordinateIds } },
-                    { project: { managerId: userId } }
+                    { project: { managers: { some: { id: userId } } } }
                 ]
             };
         } else {

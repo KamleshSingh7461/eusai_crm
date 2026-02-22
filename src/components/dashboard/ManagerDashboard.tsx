@@ -114,7 +114,7 @@ export default function ManagerDashboard() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h2 className="text-2xl md:text-3xl font-bold text-[rgba(255,255,255,0.9)] tracking-tight">Team Performance</h2>
-                    <p className="text-[rgba(255,255,255,0.7)] mt-1 text-sm md:text-base">Real-time metrics for your managed departments.</p>
+                    <p className="text-[rgba(255,255,255,0.7)] mt-1 text-sm md:text-base">Real-time metrics for your hierarchy, department, and managed projects.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="hidden md:flex flex-col items-end mr-4">
@@ -124,9 +124,9 @@ export default function ManagerDashboard() {
                         </span>
                     </div>
                     <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
-                        <button className="flex-1 md:flex-none px-4 py-2 text-xs md:text-sm font-bold text-gray-200 bg-[#3b4045]/50 border border-[rgba(255,255,255,0.09)] rounded-sm hover:bg-[#3b4045] transition-all shadow-sm">
+                        <Link href="/reports" className="flex-1 md:flex-none px-4 py-2 text-xs md:text-sm font-bold text-gray-200 bg-[#3b4045]/50 border border-[rgba(255,255,255,0.09)] rounded-sm hover:bg-[#3b4045] transition-all shadow-sm flex items-center justify-center">
                             Insights
-                        </button>
+                        </Link>
                         <Link href="/team" className="flex-1 md:flex-none px-4 py-2 text-xs md:text-sm font-bold text-white bg-[#0052CC] rounded-sm hover:bg-[#0747A6] transition-all shadow-md flex items-center justify-center gap-2">
                             <Users className="w-4 h-4" />
                             Team
@@ -140,25 +140,6 @@ export default function ManagerDashboard() {
 
             {/* KPI Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="group relative overflow-hidden bg-[#191919]/60 backdrop-blur-xl p-6 rounded-xl border border-[rgba(255,255,255,0.08)] shadow-sm hover:shadow-md transition-all duration-300">
-                    <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-green-500/10 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500" />
-                    <div className="relative z-10">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="p-2 bg-green-500/10 rounded-lg text-green-400 border border-green-500/20">
-                                <TrendingUp className="w-5 h-5" />
-                            </div>
-                            <span className="text-xs font-bold text-green-400 bg-green-500/10 px-2 py-1 rounded-full flex items-center gap-1 border border-green-500/20">
-                                <ArrowUpRight className="w-3 h-3" /> 12.5%
-                            </span>
-                        </div>
-                        <h3 className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-widest mb-1">Group Revenue</h3>
-                        <div className="text-3xl font-bold text-[rgba(255,255,255,0.9)]">₹{(stats.revenue / 100000).toFixed(1)}L</div>
-                        <div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.08)] flex items-center justify-between">
-                            <span className="text-[10px] text-[rgba(255,255,255,0.5)]">YTD Collection</span>
-                            <span className="text-xs font-bold text-[rgba(255,255,255,0.9)]">Goal: ₹15L</span>
-                        </div>
-                    </div>
-                </div>
 
                 <div className="group relative overflow-hidden bg-[#191919]/60 backdrop-blur-xl p-6 rounded-xl border border-[rgba(255,255,255,0.08)] shadow-sm hover:shadow-md transition-all duration-300">
                     <div className="absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 bg-blue-500/10 rounded-full blur-xl group-hover:scale-125 transition-transform duration-500" />
@@ -282,9 +263,9 @@ export default function ManagerDashboard() {
                                         >
                                             Approve
                                         </button>
-                                        <button className="px-4 py-1.5 bg-transparent border border-[rgba(255,255,255,0.09)] text-gray-300 text-xs font-bold rounded-sm hover:bg-white/5 transition-colors">
+                                        <Link href="/reports" className="px-4 py-1.5 bg-transparent border border-[rgba(255,255,255,0.09)] text-gray-300 text-xs font-bold rounded-sm hover:bg-white/5 transition-colors flex items-center justify-center">
                                             Review Details
-                                        </button>
+                                        </Link>
                                         <button className="ml-auto p-1.5 text-[rgba(255,255,255,0.5)] hover:text-[#FF5630] transition-colors">
                                             <MoreHorizontal className="w-4 h-4" />
                                         </button>
@@ -294,24 +275,24 @@ export default function ManagerDashboard() {
 
                             <div className="mt-8 pt-8 border-t border-[rgba(255,255,255,0.08)]">
                                 <div className="flex items-center gap-6 justify-around">
-                                    <div className="text-center group cursor-pointer">
+                                    <Link href="/team" className="text-center group cursor-pointer block">
                                         <div className="w-12 h-12 rounded-full bg-[#36B37E]/10 border border-[#36B37E]/20 flex items-center justify-center text-[#36B37E] mx-auto mb-2 transition-transform group-hover:scale-110 group-hover:shadow-md">
                                             <Calendar className="w-6 h-6" />
                                         </div>
-                                        <span className="text-xs font-bold text-[rgba(255,255,255,0.9)]">Team PTO</span>
-                                    </div>
-                                    <div className="text-center group cursor-pointer">
+                                        <span className="text-xs font-bold text-[rgba(255,255,255,0.9)]">Team Management</span>
+                                    </Link>
+                                    <Link href="/resources" className="text-center group cursor-pointer block">
                                         <div className="w-12 h-12 rounded-full bg-[#0052CC]/10 border border-[#0052CC]/20 flex items-center justify-center text-[#0052CC] mx-auto mb-2 transition-transform group-hover:scale-110 group-hover:shadow-md">
                                             <Briefcase className="w-6 h-6" />
                                         </div>
                                         <span className="text-xs font-bold text-[rgba(255,255,255,0.9)]">Resources</span>
-                                    </div>
-                                    <div className="text-center group cursor-pointer">
+                                    </Link>
+                                    <Link href="/reports/performance" className="text-center group cursor-pointer block">
                                         <div className="w-12 h-12 rounded-full bg-[#403294]/10 border border-[#403294]/20 flex items-center justify-center text-[#403294] mx-auto mb-2 transition-transform group-hover:scale-110 group-hover:shadow-md">
                                             <BarChart3 className="w-6 h-6" />
                                         </div>
                                         <span className="text-xs font-bold text-[rgba(255,255,255,0.9)]">Team Stats</span>
-                                    </div>
+                                    </Link>
                                 </div>
                             </div>
                         </div>

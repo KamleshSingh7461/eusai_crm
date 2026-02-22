@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getSubordinateIds } from '@/lib/hierarchy';
 
 export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -10,15 +11,20 @@ export async function GET(request: NextRequest) {
     }
 
     const userRole = (session.user as any).role;
+    const currentUserId = (session.user as any).id;
+
     if (!['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     try {
+        const targetUserIds = await getSubordinateIds(currentUserId, userRole);
+
         // Fetch Users with Task counts
         const users = await prisma.user.findMany({
             where: {
-                role: { in: ['MANAGER', 'TEAM_LEADER', 'EMPLOYEE', 'INTERN'] } // Exclude Directors from workload
+                role: { in: ['MANAGER', 'TEAM_LEADER', 'EMPLOYEE', 'INTERN'] }, // Exclude Directors from workload
+                ...(targetUserIds ? { id: { in: targetUserIds } } : {})
             },
             include: {
                 _count: {

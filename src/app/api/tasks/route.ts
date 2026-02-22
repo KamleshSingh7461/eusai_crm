@@ -20,10 +20,10 @@ export async function GET(request: Request) {
         } else if (role === 'TEAM_LEADER') {
             const user = await (prisma as any).user.findUnique({
                 where: { id: userId },
-                include: { subordinates: true }
+                include: { reportingSubordinates: true }
             }) as any;
 
-            const subordinateIds = user?.subordinates?.map((s: any) => s.id) || [];
+            const subordinateIds = user?.reportingSubordinates?.map((s: any) => s.id) || [];
 
             whereClause = {
                 OR: [
@@ -120,6 +120,28 @@ export async function POST(request: Request) {
     try {
         const body = await request.json();
         const { title, description, deadline, priority, projectId, assignedToId, status, category } = body;
+        const actorId = (session.user as any).id;
+
+        // 1. Hierarchy Validation if assigning to someone else
+        if (assignedToId && assignedToId !== actorId && role !== 'DIRECTOR') {
+            const userWithSubordinates = await prisma.user.findUnique({
+                where: { id: actorId },
+                include: {
+                    reportingSubordinates: {
+                        select: { id: true }
+                    }
+                }
+            }) as any;
+
+            const subordinateIds = userWithSubordinates?.reportingSubordinates?.map((s: any) => s.id) || [];
+
+            if (!subordinateIds.includes(assignedToId)) {
+                return NextResponse.json({
+                    error: 'Forbidden',
+                    message: 'You can only assign tasks to your reporting subordinates.'
+                }, { status: 403 });
+            }
+        }
 
         const newTask = await (prisma as any).task.create({
             data: {
@@ -174,7 +196,10 @@ export async function PATCH(request: Request) {
 
         const oldTask = await (prisma as any).task.findUnique({
             where: { id },
-            include: { assignedTo: true, project: true }
+            include: {
+                assignedTo: true,
+                project: { include: { managers: true } }
+            }
         });
 
         if (!oldTask) {
@@ -192,7 +217,7 @@ export async function PATCH(request: Request) {
 
             await notifyHierarchy({
                 actorId: userId,
-                targetId: oldTask.project?.managerId || undefined, // Notify project manager specifically if exists? hierarchy handles it anyway
+                targetId: oldTask.project?.managers?.[0]?.id || undefined,
                 action: 'Task Completed',
                 title: 'Mission Accomplished',
                 details: `${userName} completed: ${oldTask.title}`,

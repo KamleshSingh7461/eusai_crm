@@ -26,10 +26,10 @@ export async function GET(request: Request) {
             // View own tasks AND tasks assigned to subordinates
             const user = await (prisma as any).user.findUnique({
                 where: { id: userId },
-                include: { subordinates: true }
+                include: { reportingSubordinates: true }
             }) as any;
 
-            const subordinateIds = user?.subordinates?.map((s: any) => s.id) || [];
+            const subordinateIds = user?.reportingSubordinates?.map((s: any) => s.id) || [];
 
             whereClause = {
                 OR: [

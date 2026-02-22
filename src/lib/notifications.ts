@@ -98,17 +98,20 @@ export async function notifyUserManager({
     try {
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { managerId: true }
+            select: { reportingManagers: { select: { id: true } } }
         });
 
-        if (user?.managerId) {
-            return await createNotification({
-                userId: user.managerId,
-                title,
-                message,
-                type,
-                link
-            });
+        if (user?.reportingManagers && user.reportingManagers.length > 0) {
+            const notifications = user.reportingManagers.map(mgr =>
+                createNotification({
+                    userId: mgr.id,
+                    title,
+                    message,
+                    type,
+                    link
+                })
+            );
+            return await Promise.all(notifications);
         }
     } catch (error) {
         console.error('Failed to notify manager:', error);
@@ -148,7 +151,7 @@ export async function notifyHierarchy({
         // 1. Fetch Actor and their hierarchy
         const actor = await prisma.user.findUnique({
             where: { id: actorId },
-            include: { manager: true }
+            include: { reportingManagers: true }
         });
 
         if (!actor) return;
@@ -158,8 +161,8 @@ export async function notifyHierarchy({
 
         // 2. Determine Upstream Recipients
         if (role === 'EMPLOYEE' || role === 'INTERN') {
-            // Find TL (Manager of Employee)
-            if (actor.managerId) recipients.add(actor.managerId);
+            // Find all direct managers (TLs)
+            actor.reportingManagers?.forEach(m => recipients.add(m.id));
 
             // Find Manager (Manager of TL)??
             // Simplified: Fetch all Directors and Managers and TLs associated?
@@ -176,7 +179,7 @@ export async function notifyHierarchy({
             // For now: Direct Manager AND All Directors is a safe bet for "Management"
         } else if (role === 'TEAM_LEADER') {
             // "director and manager of his/her"
-            if (actor.managerId) recipients.add(actor.managerId);
+            actor.reportingManagers?.forEach(m => recipients.add(m.id));
             const directors = await prisma.user.findMany({ where: { role: 'DIRECTOR' }, select: { id: true, email: true } });
             directors.forEach(d => recipients.add(d.id));
         } else if (role === 'MANAGER') {

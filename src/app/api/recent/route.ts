@@ -30,15 +30,15 @@ export async function GET() {
         } else if (role === 'MANAGER') {
             const userWithTeam = await prisma.user.findUnique({
                 where: { id: userId },
-                include: { subordinates: true }
+                include: { reportingSubordinates: true }
             }) as any;
-            const teamIds = userWithTeam?.subordinates?.map((s: any) => s.id) || [];
+            const teamIds = userWithTeam?.reportingSubordinates?.map((s: any) => s.id) || [];
             const allTeamIds = [userId, ...teamIds];
 
             // Projects: Managed by me or my team involved
             projectWhere = {
                 OR: [
-                    { managerId: userId },
+                    { managers: { some: { id: userId } } },
                     { tasks: { some: { userId: { in: allTeamIds } } } },
                     { milestones: { some: { owner: { in: allTeamIds } } } }
                 ]

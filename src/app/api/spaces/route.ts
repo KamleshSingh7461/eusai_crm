@@ -20,9 +20,9 @@ export async function GET() {
             // Managers see spaces they created OR spaces containing projects they manage/team works on
             const userWithTeam = await prisma.user.findUnique({
                 where: { id: userId },
-                include: { subordinates: true }
+                include: { reportingSubordinates: true }
             }) as any;
-            const teamIds = userWithTeam?.subordinates?.map((s: any) => s.id) || [];
+            const teamIds = userWithTeam?.reportingSubordinates?.map((s: any) => s.id) || [];
             const allTeamIds = [userId, ...teamIds];
 
             whereClause = {
@@ -32,7 +32,7 @@ export async function GET() {
                         projects: {
                             some: {
                                 OR: [
-                                    { managerId: userId }, // Managed by me
+                                    { managers: { some: { id: userId } } }, // Managed by me
                                     { tasks: { some: { userId: { in: allTeamIds } } } },
                                     { milestones: { some: { owner: { in: allTeamIds } } } }
                                 ]

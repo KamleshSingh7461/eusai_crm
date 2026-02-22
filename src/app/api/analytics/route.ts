@@ -46,7 +46,7 @@ export async function GET() {
             }),
 
             (prisma as any).user.findMany({
-                where: role === 'TEAM_LEADER' ? { managerId: userId } : {},
+                where: role === 'TEAM_LEADER' ? { reportingManagers: { some: { id: userId } } } : {},
                 select: {
                     id: true,
                     name: true,

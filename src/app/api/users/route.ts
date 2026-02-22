@@ -11,7 +11,9 @@ export async function GET(request: NextRequest) {
                 name: true,
                 role: true,
                 department: true,
-                managerId: true,
+                reportingManagers: {
+                    select: { id: true, name: true }
+                },
             },
             orderBy: [
                 { role: 'asc' },

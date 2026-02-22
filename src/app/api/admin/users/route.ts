@@ -21,15 +21,15 @@ export async function GET() {
     try {
         const users = await prisma.user.findMany({
             include: {
-                manager: {
+                reportingManagers: {
                     select: { id: true, name: true, email: true }
                 },
-                subordinates: {
+                reportingSubordinates: {
                     select: { id: true, name: true, email: true, role: true }
                 },
                 _count: {
                     select: {
-                        projects: true,
+                        managedProjects: true,
                         tasks: true,
                         dailyReports: true
                     }

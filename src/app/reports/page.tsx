@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 
 interface DailyReport {
     id: string;
+    userId: string;
     content: string;
     accomplishments: string;
     challenges: string | null;
@@ -231,13 +232,13 @@ export default function ReportsPage() {
                         </h3>
                         <div className="space-y-4">
                             {employees.topPerformers.map((emp: any) => (
-                                <div key={emp.id} className="flex items-center justify-between group">
+                                <Link href={`/team/${emp.id}`} key={emp.id} className="flex items-center justify-between group hover:bg-[var(--notion-bg-tertiary)] p-2 rounded-sm transition-all">
                                     <div className="flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-full bg-[#2383e2]/20 text-[#2383e2] flex items-center justify-center font-bold text-xs ring-2 ring-transparent group-hover:ring-[#2383e2] transition-all">
                                             {emp.name[0]}
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-[var(--notion-text-primary)]">{emp.name}</p>
+                                            <p className="text-sm font-bold text-[var(--notion-text-primary)] group-hover:text-[#2383e2]">{emp.name}</p>
                                             <div className="flex gap-2">
                                                 <span className="text-[10px] text-[var(--notion-text-tertiary)]">{emp.activeCount} Active Tasks</span>
                                             </div>
@@ -247,7 +248,7 @@ export default function ReportsPage() {
                                         <p className="text-sm font-bold text-[#36B37E]">{emp.completionRate}%</p>
                                         <p className="text-[9px] text-[var(--notion-text-tertiary)] uppercase">Efficiency</p>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
                     </div>
@@ -360,16 +361,12 @@ export default function ReportsPage() {
                                             <span className="text-xs font-bold text-[var(--notion-text-secondary)]">{emp.activeCount} Tasks</span>
                                         </td>
                                         <td className="py-3 text-right">
-                                            <button
-                                                onClick={() => {
-                                                    setActiveTab('TEAM');
-                                                    setSearchQuery(emp.name);
-                                                    // showToast(`Viewing logs for ${emp.name}`, "info");
-                                                }}
+                                            <Link
+                                                href={`/team/${emp.id}`}
                                                 className="text-xs font-bold text-[#2383e2] hover:underline flex items-center justify-end gap-1 ml-auto"
                                             >
-                                                View Logs <ChevronRight className="w-3 h-3" />
-                                            </button>
+                                                Intelligence Profile <ChevronRight className="w-3 h-3" />
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))}
@@ -489,12 +486,12 @@ export default function ReportsPage() {
                             activeTab === 'MY' ? "text-[#2383e2] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#2383e2]" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]"
                         )}
                     >
-                        Personnel Log
+                        Personnel Logs
                     </button>
                 )}
-                {isManager && (
+                {(isManager || isDirector) && (
                     <>
-                        {(isDirector || userRole === 'MANAGER') && (
+                        {(isDirector || isManager) && (
                             <button
                                 onClick={() => setActiveTab('KPI')}
                                 className={cn(
@@ -514,19 +511,16 @@ export default function ReportsPage() {
                         >
                             Team Intelligence
                         </button>
-                        {(isDirector || userRole === 'MANAGER') && (
-                            <>
-
-                                <button
-                                    onClick={() => setActiveTab('RESOURCES')}
-                                    className={cn(
-                                        "pb-4 text-sm font-bold transition-all relative whitespace-nowrap",
-                                        activeTab === 'RESOURCES' ? "text-[#2383e2] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#2383e2]" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]"
-                                    )}
-                                >
-                                    Resource Utilization
-                                </button>
-                            </>
+                        {(isDirector || isManager) && (
+                            <button
+                                onClick={() => setActiveTab('RESOURCES')}
+                                className={cn(
+                                    "pb-4 text-sm font-bold transition-all relative whitespace-nowrap",
+                                    activeTab === 'RESOURCES' ? "text-[#2383e2] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#2383e2]" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]"
+                                )}
+                            >
+                                Resource Utilization
+                            </button>
                         )}
                     </>
                 )}
@@ -656,7 +650,7 @@ export default function ReportsPage() {
                                                             </div>
                                                         </div>
                                                         <div>
-                                                            <h4 className="font-bold text-[var(--notion-text-primary)] group-hover:text-[#2383e2] transition-colors">{report.user.name}</h4>
+                                                            <Link href={`/team/${report.userId}`} className="font-bold text-[var(--notion-text-primary)] hover:text-[#2383e2] transition-colors">{report.user.name}</Link>
                                                             <div className="flex items-center gap-2 text-[10px] text-[var(--notion-text-tertiary)] font-bold uppercase tracking-tighter">
                                                                 <span>{report.user.role}</span>
                                                                 <span>•</span>

@@ -24,7 +24,7 @@ export async function PATCH(
         const milestone = await prisma.milestone.findUnique({
             where: { id: milestoneId },
             include: {
-                project: { select: { managerId: true } },
+                project: { include: { managers: true } },
                 space: { select: { managerId: true } }
             }
         });
@@ -36,16 +36,16 @@ export async function PATCH(
         // Authorization Logic
         const isOwner = milestone.owner === userId;
         const isDirector = userRole === 'DIRECTOR';
-        const isProjectManager = milestone.project?.managerId === userId;
+        const isProjectManager = milestone.project?.managers.some((m: any) => m.id === userId);
         const isSpaceManager = milestone.space?.managerId === userId;
 
         let isDirectManager = false;
         if (userRole === 'MANAGER' || userRole === 'TEAM_LEADER') {
             const manager = await prisma.user.findUnique({
                 where: { id: userId },
-                include: { subordinates: { select: { id: true } } }
+                include: { reportingSubordinates: { select: { id: true } } }
             });
-            isDirectManager = manager?.subordinates.some(s => s.id === milestone.owner) || false;
+            isDirectManager = manager?.reportingSubordinates.some(s => s.id === milestone.owner) || false;
         }
 
         const canUpdateStatus = isOwner || isDirector || isProjectManager || isSpaceManager || isDirectManager;

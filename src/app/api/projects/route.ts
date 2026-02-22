@@ -19,6 +19,11 @@ export async function POST(request: Request) {
                 endDate: new Date(data.endDate),
                 status: 'INITIATION',
                 spaceId: data.spaceId || null,
+                managers: data.managerId ? {
+                    connect: { id: data.managerId }
+                } : data.managerIds ? {
+                    connect: data.managerIds.map((id: string) => ({ id }))
+                } : undefined
             }
         });
 
@@ -67,15 +72,15 @@ export async function GET(request: Request) {
             // Team Leaders and Managers see projects where they OR their team are involved
             const userWithTeam = await prisma.user.findUnique({
                 where: { id: userId },
-                include: { subordinates: true }
+                include: { reportingSubordinates: true }
             }) as any;
 
-            const teamIds = userWithTeam?.subordinates?.map((s: any) => s.id) || [];
+            const teamIds = userWithTeam?.reportingSubordinates?.map((s: any) => s.id) || [];
             const allTeamIds = [userId, ...teamIds];
 
             whereClause = {
                 OR: [
-                    { managerId: userId }, // Managed by me (Explicit project ownership)
+                    { managers: { some: { id: userId } } }, // Managed by me (Explicit project ownership)
                     { tasks: { some: { userId: { in: allTeamIds } } } },
                     { milestones: { some: { owner: { in: allTeamIds } } } },
                     { dailyReports: { some: { userId: { in: allTeamIds } } } }
@@ -95,6 +100,9 @@ export async function GET(request: Request) {
                 },
                 space: {
                     select: { id: true, name: true, color: true }
+                },
+                managers: {
+                    select: { id: true, name: true, image: true }
                 },
                 expenses: {
                     where: { status: 'APPROVED' },
@@ -173,10 +181,12 @@ export async function DELETE(request: Request) {
         if (role === 'MANAGER') {
             const project = await prisma.project.findUnique({
                 where: { id },
-                select: { managerId: true }
+                include: { managers: { select: { id: true } } }
             });
 
-            if (!project || project.managerId !== userId) {
+            const isManager = project?.managers.some((m: any) => m.id === userId);
+
+            if (!project || !isManager) {
                 return NextResponse.json({ error: 'Forbidden: You can only delete projects you manage' }, { status: 403 });
             }
         }

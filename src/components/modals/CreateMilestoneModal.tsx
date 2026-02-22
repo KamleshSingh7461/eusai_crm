@@ -19,7 +19,7 @@ interface User {
     email: string;
     name?: string;
     role: string;
-    managerId?: string;
+    reportingManagers?: { id: string }[];
 }
 
 const MILESTONE_CATEGORIES = [
@@ -87,7 +87,7 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                 if (currentUser?.role === 'DIRECTOR') {
                     setUsers(data);
                 } else {
-                    const juniors = data.filter((u: User) => u.managerId === currentUser?.id);
+                    const juniors = data.filter((u: any) => u.reportingManagers?.some((m: any) => m.id === currentUser?.id));
                     setUsers(juniors);
                 }
             }

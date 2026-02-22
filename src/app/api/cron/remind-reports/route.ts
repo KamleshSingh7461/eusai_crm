@@ -14,15 +14,18 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Day Check (Skip Sat/Sun)
+    // 2. Time Window Check (6-8 PM local time)
     const now = new Date();
-    const day = now.getDay(); // 0 = Sunday, 6 = Saturday
+    const hour = now.getHours();
+    const isWithinWindow = hour >= 18 && hour < 20;
 
     // Allow forcing via ?force=true for testing
     const force = searchParams.get('force') === 'true';
 
-    if ((day === 0 || day === 6) && !force) {
-        return NextResponse.json({ message: 'Weekend - No reports required.' });
+    if (!isWithinWindow && !force) {
+        return NextResponse.json({
+            message: 'Outside reminder window (6:00 PM - 8:00 PM). Reminder skipped.'
+        });
     }
 
     try {
@@ -64,14 +67,15 @@ export async function GET(request: NextRequest) {
 
             const emailHtml = `
                 <div style="font-family: sans-serif; padding: 20px; border: 1px solid #fdc9c9; border-radius: 8px; background-color: #fff5f5;">
-                    <h2 style="color: #c53030;">Action Required: Daily Report Missing</h2>
+                    <h2 style="color: #c53030;">Immediate Action: Daily Report Overdue</h2>
                     <p>Hi ${user.name},</p>
-                    <p>This is a reminder that your <strong>Daily Report</strong> for today (${now.toLocaleDateString()}) has not been submitted yet.</p>
-                    <p>Please submit it immediately to ensure accurate tracking.</p>
+                    <p>This is a recurring alert. Your <strong>Daily Report</strong> for today (${now.toLocaleDateString()}) has not been detected.</p>
+                    <p>Per operational protocol, reports must be submitted within the <strong>6:00 PM - 8:00 PM</strong> window.</p>
+                    <p><strong>Note:</strong> You will receive this reminder every 20 minutes until the report is successfully uploaded.</p>
                     <br/>
-                    <a href="${process.env.NEXTAUTH_URL}/reports/submit" style="background-color: #c53030; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px;">Submit Report Now</a>
+                    <a href="${process.env.NEXTAUTH_URL}/reports/submit" style="background-color: #c53030; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Submit Report Now</a>
                     <br/><br/>
-                    <small style="color: #888;">Deadline: 6:30 PM</small>
+                    <small style="color: #888;">Submission Window: 18:00 - 20:00 Daily</small>
                 </div>
             `;
 

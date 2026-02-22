@@ -28,8 +28,7 @@ const projectSchema = z.object({
     description: z.string().min(10, 'Description must be at least 10 characters'),
     startDate: z.string(),
     endDate: z.string(),
-
-    managerId: z.string().min(1, 'Please select a project manager'),
+    managerIds: z.array(z.string()).min(1, 'Please select at least one project manager'),
     spaceId: z.string().optional(),
 });
 
@@ -55,13 +54,15 @@ export default function NewProjectPage() {
     const [spaces, setSpaces] = useState<Space[]>([]);
     const [isLoadingSpaces, setIsLoadingSpaces] = useState(true);
 
-    const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<ProjectFormValues>({
+    const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<ProjectFormValues>({
         resolver: zodResolver(projectSchema),
         defaultValues: {
             startDate: new Date().toISOString().split('T')[0],
-
+            managerIds: [],
         }
     });
+
+    const selectedManagerIds = watch('managerIds') || [];
 
     useEffect(() => {
         const fetchManagers = async () => {
@@ -78,7 +79,7 @@ export default function NewProjectPage() {
                         // Verify if the manager is in the fetched list (to be safe)
                         const managerExists = data.some((m: User) => m.id === currentUserManagerId);
                         if (managerExists) {
-                            setValue('managerId', currentUserManagerId);
+                            setValue('managerIds', [currentUserManagerId]);
                         }
                     }
                 }
@@ -209,25 +210,43 @@ export default function NewProjectPage() {
 
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider flex items-center gap-2">
-                                    <User className="w-4 h-4" /> Mission Lead
+                                    <User className="w-4 h-4" /> Mission Leads
                                 </label>
-                                <div className="relative">
-                                    <select
-                                        {...register('managerId')}
-                                        className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm py-2 px-4 appearance-none focus:outline-none focus:ring-1 focus:ring-[#2383e2] transition-all text-[var(--notion-text-primary)]"
-                                    >
-                                        <option value="">Select Manager...</option>
-                                        {managers.map((manager) => (
-                                            <option key={manager.id} value={manager.id}>
-                                                {manager.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-[var(--notion-text-tertiary)]">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                                    </div>
+                                <div className="p-3 bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm max-h-48 overflow-y-auto space-y-2">
+                                    {isLoadingManagers ? (
+                                        <div className="flex items-center gap-2 text-[10px] text-body italic">
+                                            <Loader2 className="w-3 h-3 animate-spin" /> Fetching available leads...
+                                        </div>
+                                    ) : (
+                                        managers.map((manager) => (
+                                            <label key={manager.id} className="flex items-center gap-2 cursor-pointer hover:bg-[var(--notion-bg-hover)] p-1.5 rounded-sm transition-colors group">
+                                                <input
+                                                    type="checkbox"
+                                                    value={manager.id}
+                                                    className="rounded-sm border-[var(--notion-border-default)] text-[#2383e2] focus:ring-[#2383e2]"
+                                                    checked={selectedManagerIds.includes(manager.id)}
+                                                    onChange={(e) => {
+                                                        const id = manager.id;
+                                                        const newIds = e.target.checked
+                                                            ? [...selectedManagerIds, id]
+                                                            : selectedManagerIds.filter(mid => mid !== id);
+                                                        setValue('managerIds', newIds);
+                                                    }}
+                                                />
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-6 h-6 rounded-full bg-[var(--notion-bg-secondary)] flex items-center justify-center text-[10px] font-bold border border-[var(--notion-border-default)]">
+                                                        {manager.name?.charAt(0) || 'M'}
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-xs text-[var(--notion-text-primary)] font-medium">{manager.name}</span>
+                                                        <span className="text-[9px] text-[var(--notion-text-disabled)] uppercase">{manager.role}</span>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        ))
+                                    )}
                                 </div>
-                                {errors.managerId && <p className="text-xs text-red-500">{errors.managerId.message}</p>}
+                                {errors.managerIds && <p className="text-xs text-red-500">{errors.managerIds.message}</p>}
                             </div>
                         </div>
 

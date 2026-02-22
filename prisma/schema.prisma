@@ -22,10 +22,13 @@ model User {
   emailVerified DateTime?
   role          String    @default("EMPLOYEE") // DIRECTOR, MANAGER, TEAM_LEADER, EMPLOYEE, INTERN
   department    String? // Optional department/team assignment
-  managerId     String? // Reports to (for hierarchy)
-  manager       User?     @relation("ManagerToEmployees", fields: [managerId], references: [id], onDelete: SetNull)
-  subordinates  User[]    @relation("ManagerToEmployees")
-  projects      Project[] @relation("ProjectManager")
+  
+  // Hierarchy: many-to-many self-relation
+  reportingManagers    User[] @relation("UserHierarchy")
+  reportingSubordinates User[] @relation("UserHierarchy")
+  
+  // Projects: many-to-many relation
+  managedProjects      Project[] @relation("ProjectManagers")
   managedSpaces Space[]   @relation("SpaceManager")
 
   // Compliance
@@ -184,8 +187,8 @@ model Project {
   endDate     DateTime
   budget      Decimal  @default(0)
   status      String   @default("INITIATION") // INITIATION, PLANNING, EXECUTION, MONITORING, CLOSED
-  managerId    String?
-  manager      User?         @relation("ProjectManager", fields: [managerId], references: [id])
+  
+  managers     User[]        @relation("ProjectManagers")
   tasks        Task[]
   reports      Report[]
   resources    Resource[]    @relation("ProjectResources")

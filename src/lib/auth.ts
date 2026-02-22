@@ -1,5 +1,4 @@
 import { NextAuthOptions } from "next-auth";
-import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -33,11 +32,6 @@ export const authOptions: NextAuthOptions = {
                 }
                 return null;
             }
-        }),
-        GithubProvider({
-            clientId: process.env.GITHUB_ID || "MOCK_GITHUB_ID",
-            clientSecret: process.env.GITHUB_SECRET || "MOCK_GITHUB_SECRET",
-            allowDangerousEmailAccountLinking: true,
         }),
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID || "MOCK_GOOGLE_ID",
@@ -114,7 +108,7 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
-                token.managerId = user.managerId;
+                token.managerIds = user.reportingManagers?.map((m: any) => m.id) || [];
                 if (!token.picture && user.image) {
                     token.picture = user.image;
                 }
@@ -132,10 +126,14 @@ export const authOptions: NextAuthOptions = {
                 try {
                     const user = await prisma.user.findUnique({
                         where: { id: token.id },
-                        select: { role: true, managerId: true, image: true }
+                        select: {
+                            role: true,
+                            reportingManagers: { select: { id: true } },
+                            image: true
+                        }
                     });
                     (session.user as any).role = user?.role || "EMPLOYEE";
-                    (session.user as any).managerId = user?.managerId || null;
+                    (session.user as any).managerIds = user?.reportingManagers?.map(m => m.id) || [];
                     // If no token picture (e.g. credentials login), fallback to DB image
                     if (!session.user.image && user?.image) {
                         session.user.image = user.image;

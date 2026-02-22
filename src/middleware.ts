@@ -30,10 +30,11 @@ export const config = {
         /*
          * Match all request paths except:
          * - /login (login page)
-         * - /api/* (ALL API routes - they handle auth internally)
+         * - /api/* (ALL API routes)
          * - /_next (Next.js internals)
          * - /favicon.ico, /robots.txt, etc. (public files)
+         * - Public images (png, jpg, svg)
          */
-        '/((?!login|api|_next/static|_next/image|favicon.ico|robots.txt).*)',
+        '/((?!login|api|_next/static|_next/image|favicon.ico|robots.txt|.*\\.(?:png|jpg|jpeg|gif|svg|webp)$).*)',
     ],
 }

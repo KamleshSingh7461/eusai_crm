@@ -31,6 +31,8 @@ import Link from 'next/link';
 import CreateMilestoneModal from '@/components/modals/CreateMilestoneModal';
 import TaskCreateModal from '@/components/tasks/TaskCreateModal';
 import ProjectEditModal from '@/components/projects/ProjectEditModal';
+import TaskDetailModal from '@/components/modals/TaskDetailModal';
+import MilestoneDetailModal from '@/components/modals/MilestoneDetailModal';
 
 export default function ProjectDetailPage() {
     const { id } = useParams();
@@ -42,6 +44,12 @@ export default function ProjectDetailPage() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showTaskModal, setShowTaskModal] = useState(false);
     const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+
+    // Detailed views
+    const [selectedTask, setSelectedTask] = useState<any>(null);
+    const [showTaskDetail, setShowTaskDetail] = useState(false);
+    const [selectedMilestone, setSelectedMilestone] = useState<any>(null);
+    const [showMilestoneDetail, setShowMilestoneDetail] = useState(false);
 
     const userRole = (session?.user as any)?.role || 'EMPLOYEE';
     const userId = (session?.user as any)?.id;
@@ -96,7 +104,7 @@ export default function ProjectDetailPage() {
         );
     }
 
-    const { stats, space, manager } = project;
+    const { stats, space, managers = [] } = project;
 
     return (
         <div className="min-h-screen bg-[#191919] pb-12">
@@ -133,7 +141,7 @@ export default function ProjectDetailPage() {
                                 <div className="flex items-center gap-4 flex-wrap">
                                     <div className="flex items-center gap-2 text-sm text-[rgba(255,255,255,0.7)] font-medium">
                                         <Briefcase className="w-4 h-4" />
-                                        <span>PM: {manager?.name || 'Unassigned'}</span>
+                                        <span>Leads: {managers.length > 0 ? managers.map((m: any) => m.name).join(', ') : 'Unassigned'}</span>
                                     </div>
                                     <span className="w-1.5 h-1.5 rounded-full bg-[rgba(255,255,255,0.3)]" />
                                     <div className="flex items-center gap-2 text-sm text-[rgba(255,255,255,0.7)] font-medium">
@@ -149,12 +157,18 @@ export default function ProjectDetailPage() {
                                     )}>
                                         {project.status === 'CLOSED' ? 'COMPLETED' : project.status}
                                     </span>
+                                    {project.isRestricted && (
+                                        <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 flex items-center gap-1.5 shadow-sm border border-amber-500/20">
+                                            <AlertCircle className="w-3 h-3" />
+                                            Restricted View
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
                         <div className="flex gap-3 flex-wrap">
-                            {(userRole === 'DIRECTOR' || (userRole === 'MANAGER' && project.manager?.id === userId)) && (
+                            {(userRole === 'DIRECTOR' || managers.some((m: any) => m.id === userId)) && (
                                 <>
                                     {project.status !== 'CLOSED' && (
                                         <Button
@@ -232,7 +246,7 @@ export default function ProjectDetailPage() {
 
             <div className="max-w-7xl mx-auto px-8 py-8">
                 {/* Stats Row */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <div className="bg-[#2f3437] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] shadow-lg hover:shadow-xl transition-all">
                         <div className="flex items-center justify-between mb-4">
                             <div className="p-2 bg-blue-500/10 rounded-lg">
@@ -240,12 +254,51 @@ export default function ProjectDetailPage() {
                             </div>
                             <span className="text-2xl font-black text-[rgba(255,255,255,0.9)]">{stats.progress}%</span>
                         </div>
-                        <p className="text-[10px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-widest">Mission Progress</p>
+                        <p className="text-[10px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-widest">Holistic Mission Progress</p>
                         <div className="h-2 w-full bg-[rgba(255,255,255,0.1)] rounded-full mt-3 overflow-hidden">
                             <div
                                 className="h-full bg-gradient-to-r from-[#0052CC] to-[#2684FF] transition-all duration-1000"
                                 style={{ width: `${stats.progress}%` }}
                             />
+                        </div>
+                        <p className="text-[8px] text-[rgba(255,255,255,0.4)] mt-2 font-black uppercase tracking-widest">Weighted: Tasks + Milestones</p>
+                    </div>
+
+                    <div className="bg-[#2f3437] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] shadow-lg hover:shadow-xl transition-all">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-2 bg-emerald-500/10 rounded-lg">
+                                <Target className="w-5 h-5 text-emerald-400" />
+                            </div>
+                            <span className="text-2xl font-black text-[rgba(255,255,255,0.9)]">{stats.milestones.total}</span>
+                        </div>
+                        <p className="text-[10px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-widest">Your Assigned Roadmap</p>
+                        <div className="flex items-center gap-2 mt-2">
+                            <div className="flex-1 h-1.5 bg-[rgba(255,255,255,0.1)] rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-emerald-500 transition-all duration-1000"
+                                    style={{ width: `${stats.milestones.total > 0 ? (stats.milestones.completed / stats.milestones.total) * 100 : 0}%` }}
+                                />
+                            </div>
+                            <span className="text-xs text-[rgba(255,255,255,0.7)] font-bold whitespace-nowrap">{stats.milestones.completed}/{stats.milestones.total}</span>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#2f3437] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] shadow-lg hover:shadow-xl transition-all">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-2 bg-[#0052CC]/10 rounded-lg">
+                                <CheckCircle2 className="w-5 h-5 text-[#0052CC]" />
+                            </div>
+                            <span className="text-2xl font-black text-[rgba(255,255,255,0.9)]">{stats.tasks.total}</span>
+                        </div>
+                        <p className="text-[10px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-widest">Your Task Scope</p>
+                        <div className="flex items-center gap-2 mt-2">
+                            <div className="flex-1 h-1.5 bg-[rgba(255,255,255,0.1)] rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-[#0052CC] transition-all duration-1000"
+                                    style={{ width: `${stats.tasks.total > 0 ? (stats.tasks.completed / stats.tasks.total) * 100 : 0}%` }}
+                                />
+                            </div>
+                            <span className="text-xs text-[rgba(255,255,255,0.7)] font-bold whitespace-nowrap">{stats.tasks.completed}/{stats.tasks.total}</span>
                         </div>
                     </div>
 
@@ -256,30 +309,11 @@ export default function ProjectDetailPage() {
                             </div>
                             <span className={cn(
                                 "text-2xl font-black",
-                                stats.tasks.overdue > 0 ? "text-orange-400" : "text-[rgba(255,255,255,0.9)]"
-                            )}>{stats.tasks.overdue}</span>
+                                (stats.tasks.overdue > 0 || stats.milestones.overdue > 0) ? "text-orange-400" : "text-[rgba(255,255,255,0.9)]"
+                            )}>{stats.tasks.overdue + stats.milestones.overdue}</span>
                         </div>
-                        <p className="text-[10px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-widest">Critical Delays</p>
-                        <p className="text-xs text-[rgba(255,255,255,0.7)] mt-2 font-medium">Overdue milestones & tasks</p>
-                    </div>
-
-                    <div className="bg-[#2f3437] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] shadow-lg hover:shadow-xl transition-all">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-emerald-500/10 rounded-lg">
-                                <Target className="w-5 h-5 text-emerald-400" />
-                            </div>
-                            <span className="text-2xl font-black text-[rgba(255,255,255,0.9)]">{project._count.tasks}</span>
-                        </div>
-                        <p className="text-[10px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-widest">Total Scope</p>
-                        <div className="flex items-center gap-2 mt-2">
-                            <div className="flex-1 h-1.5 bg-[rgba(255,255,255,0.1)] rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-emerald-500 transition-all duration-1000"
-                                    style={{ width: `${project._count.tasks > 0 ? (stats.tasks.completed / project._count.tasks) * 100 : 0}%` }}
-                                />
-                            </div>
-                            <span className="text-xs text-[rgba(255,255,255,0.7)] font-bold whitespace-nowrap">{stats.tasks.completed}/{project._count.tasks}</span>
-                        </div>
+                        <p className="text-[10px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-widest">Total Delays</p>
+                        <p className="text-xs text-[rgba(255,255,255,0.7)] mt-2 font-medium">Items requiring intervention</p>
                     </div>
                 </div>
 
@@ -291,7 +325,7 @@ export default function ProjectDetailPage() {
                             <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.09)] flex items-center justify-between bg-[rgba(0,0,0,0.2)]">
                                 <h3 className="font-bold text-[rgba(255,255,255,0.9)] flex items-center gap-2 uppercase tracking-tight text-sm">
                                     <TrendingUp className="w-4 h-4 text-[#0052CC]" />
-                                    Initiative Roadmap
+                                    {project.isRestricted ? 'Your Assigned Roadmap' : 'Initiative Roadmap'}
                                 </h3>
                                 {['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole) && (
                                     <Button
@@ -307,7 +341,9 @@ export default function ProjectDetailPage() {
                             <div className="p-6">
                                 {project.milestones.length === 0 ? (
                                     <div className="py-12 text-center text-[rgba(255,255,255,0.5)] border-2 border-dashed border-[rgba(255,255,255,0.09)] rounded-lg">
-                                        No milestones mapped for this initiative.
+                                        {project.isRestricted
+                                            ? "You have no assignments mapped for this project."
+                                            : "No milestones mapped for this initiative."}
                                     </div>
                                 ) : (
                                     <div className="relative space-y-8 before:absolute before:inset-0 before:left-3 before:h-full before:w-0.5 before:bg-[rgba(255,255,255,0.09)]">
@@ -318,7 +354,13 @@ export default function ProjectDetailPage() {
                                                     milestone.status === 'COMPLETED' ? 'bg-emerald-500' :
                                                         milestone.status === 'IN_PROGRESS' ? 'bg-blue-500' : 'bg-[rgba(255,255,255,0.2)]'
                                                 )} />
-                                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[rgba(255,255,255,0.03)] p-4 rounded-lg border border-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.1)] transition-all">
+                                                <div
+                                                    onClick={() => {
+                                                        setSelectedMilestone(milestone);
+                                                        setShowMilestoneDetail(true);
+                                                    }}
+                                                    className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[rgba(255,255,255,0.03)] p-4 rounded-lg border border-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.1)] transition-all cursor-pointer"
+                                                >
                                                     <div>
                                                         <h4 className="font-bold text-[rgba(255,255,255,0.9)] group-hover:text-[#0052CC] transition-colors">{milestone.title}</h4>
                                                         <p className="text-xs text-[rgba(255,255,255,0.6)] mt-1">{milestone.description || "Critical project phase objective."}</p>
@@ -347,7 +389,7 @@ export default function ProjectDetailPage() {
                             <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.09)] flex items-center justify-between bg-[rgba(0,0,0,0.2)]">
                                 <h3 className="font-bold text-[rgba(255,255,255,0.9)] flex items-center gap-2 uppercase tracking-tight text-sm">
                                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                                    Mission Backlog
+                                    {project.isRestricted ? 'Your Assigned Tasks' : 'Mission Backlog'}
                                 </h3>
                                 <div className="flex gap-2">
                                     <Button
@@ -362,13 +404,22 @@ export default function ProjectDetailPage() {
                             <div className="divide-y divide-[rgba(255,255,255,0.05)]">
                                 {project.tasks.length === 0 ? (
                                     <div className="p-12 text-center text-[rgba(255,255,255,0.5)]">
-                                        No active tasks found in the backlog.
+                                        {project.isRestricted
+                                            ? "Clear skies! No tasks currently assigned to you."
+                                            : "No active tasks found in the backlog."}
                                     </div>
                                 ) : (
                                     project.tasks.map((task: any) => (
-                                        <div key={task.id} className="p-4 hover:bg-[rgba(255,255,255,0.03)] transition-colors group flex items-start gap-4">
+                                        <div
+                                            key={task.id}
+                                            onClick={() => {
+                                                setSelectedTask(task);
+                                                setShowTaskDetail(true);
+                                            }}
+                                            className="p-4 hover:bg-[rgba(255,255,255,0.03)] transition-colors group flex items-start gap-4 cursor-pointer"
+                                        >
                                             <div className={cn(
-                                                "mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all cursor-pointer",
+                                                "mt-1 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all",
                                                 task.status === 'DONE' ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-[rgba(255,255,255,0.2)] group-hover:border-[#0052CC]'
                                             )}>
                                                 {task.status === 'DONE' && <CheckCircle2 className="w-4 h-4" />}
@@ -433,15 +484,23 @@ export default function ProjectDetailPage() {
                             </h3>
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <span className="text-[9px] font-black text-[rgba(255,255,255,0.5)] uppercase tracking-widest">Ownership</span>
-                                    <div className="flex items-center gap-3 p-3 bg-[rgba(255,255,255,0.05)] rounded-lg border border-[rgba(255,255,255,0.09)]">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0052CC] to-[#0747A6] flex items-center justify-center font-black text-white shadow-lg">
-                                            {manager?.name?.charAt(0) || 'U'}
-                                        </div>
-                                        <div className="overflow-hidden">
-                                            <p className="text-xs font-black text-[rgba(255,255,255,0.9)] truncate">{manager?.name || 'Unassigned Executive'}</p>
-                                            <p className="text-[9px] text-[rgba(255,255,255,0.6)] font-black uppercase tracking-wider">Initiative Lead</p>
-                                        </div>
+                                    <span className="text-[9px] font-black text-[rgba(255,255,255,0.5)] uppercase tracking-widest">Leadership Team</span>
+                                    <div className="space-y-2">
+                                        {managers.length > 0 ? managers.map((m: any) => (
+                                            <div key={m.id} className="flex items-center gap-3 p-3 bg-[rgba(255,255,255,0.05)] rounded-lg border border-[rgba(255,255,255,0.09)]">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0052CC] to-[#0747A6] flex items-center justify-center font-black text-white shadow-lg">
+                                                    {m.name?.charAt(0) || 'L'}
+                                                </div>
+                                                <div className="overflow-hidden">
+                                                    <p className="text-xs font-black text-[rgba(255,255,255,0.9)] truncate">{m.name}</p>
+                                                    <p className="text-[9px] text-[rgba(255,255,255,0.6)] font-black uppercase tracking-wider">Mission Lead</p>
+                                                </div>
+                                            </div>
+                                        )) : (
+                                            <div className="p-3 bg-[rgba(255,255,255,0.05)] rounded-lg border border-[rgba(255,255,255,0.09)] italic text-[rgba(255,255,255,0.4)] text-[10px]">
+                                                No mission leads assigned.
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -489,6 +548,18 @@ export default function ProjectDetailPage() {
                     setShowMilestoneModal(false);
                     fetchProjectDetails();
                 }}
+            />
+
+            <TaskDetailModal
+                isOpen={showTaskDetail}
+                onClose={() => setShowTaskDetail(false)}
+                task={selectedTask}
+            />
+
+            <MilestoneDetailModal
+                isOpen={showMilestoneDetail}
+                onClose={() => setShowMilestoneDetail(false)}
+                milestone={selectedMilestone}
             />
         </div>
     );

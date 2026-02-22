@@ -35,8 +35,8 @@ interface User {
     performanceTrend?: 'UP' | 'DOWN' | 'NEUTRAL';
     activeTasks?: number;
     rank?: number | null;
-    manager: { id: string; name: string | null } | null;
-    subordinates: { id: string; name: string | null }[];
+    reportingManagers: { id: string; name: string | null }[];
+    reportingSubordinates: { id: string; name: string | null }[];
     _count: {
         tasks: number;
         milestones: number;
@@ -62,7 +62,7 @@ export default function TeamPage() {
         name: '',
         role: 'EMPLOYEE',
         department: '',
-        managerId: ''
+        managerIds: [] as string[]
     });
 
     const userRole = (session?.user as any)?.role;
@@ -143,13 +143,13 @@ export default function TeamPage() {
             name: user.name || '',
             role: user.role,
             department: user.department || '',
-            managerId: user.manager?.id || ''
+            managerIds: user.reportingManagers?.map(m => m.id) || []
         });
         setIsEditModalOpen(true);
     };
 
     const resetForm = () => {
-        setFormData({ email: '', name: '', role: 'EMPLOYEE', department: '', managerId: '' });
+        setFormData({ email: '', name: '', role: 'EMPLOYEE', department: '', managerIds: [] });
         setSelectedUser(null);
     };
 
@@ -397,12 +397,22 @@ export default function TeamPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            {user.manager ? (
-                                                <div className="flex items-center gap-2 text-subheading text-xs">
-                                                    <div className="w-5 h-5 rounded-full bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] flex items-center justify-center text-[8px] font-bold">
-                                                        {user.manager.name?.charAt(0) || 'M'}
-                                                    </div>
-                                                    <span className="truncate max-w-[80px]">{user.manager.name}</span>
+                                            {user.reportingManagers && user.reportingManagers.length > 0 ? (
+                                                <div className="flex -space-x-2 overflow-hidden">
+                                                    {user.reportingManagers.map((mgr) => (
+                                                        <div
+                                                            key={mgr.id}
+                                                            title={mgr.name || 'Manager'}
+                                                            className="w-6 h-6 rounded-full bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] flex items-center justify-center text-[8px] font-bold shrink-0"
+                                                        >
+                                                            {mgr.name?.charAt(0) || 'M'}
+                                                        </div>
+                                                    ))}
+                                                    {user.reportingManagers.length > 2 && (
+                                                        <div className="w-6 h-6 rounded-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] flex items-center justify-center text-[8px] font-bold shrink-0">
+                                                            +{user.reportingManagers.length - 2}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ) : (
                                                 <span className="text-body italic text-[10px]">Independent</span>
@@ -471,13 +481,19 @@ export default function TeamPage() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-body uppercase">System Role</label>
+                                    <label className="text-xs font-bold text-body uppercase flex items-center gap-2">
+                                        System Role
+                                        {userRole !== 'DIRECTOR' && (
+                                            <span className="text-[10px] lowercase font-normal text-body opacity-60">(Director only)</span>
+                                        )}
+                                    </label>
                                     <div className="relative">
                                         <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-body" />
                                         <select
+                                            disabled={userRole !== 'DIRECTOR'}
                                             value={formData.role}
                                             onChange={e => setFormData({ ...formData, role: e.target.value })}
-                                            className="w-full pl-9 pr-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none cursor-pointer"
+                                            className={`w-full pl-9 pr-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none ${userRole !== 'DIRECTOR' ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'}`}
                                         >
                                             <option value="EMPLOYEE">Employee</option>
                                             <option value="INTERN">Intern</option>
@@ -499,24 +515,38 @@ export default function TeamPage() {
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-body uppercase">Reports To (Manager)</label>
-                                <div className="relative">
-                                    <GitMerge className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-body" />
-                                    <select
-                                        value={formData.managerId}
-                                        onChange={e => setFormData({ ...formData, managerId: e.target.value })}
-                                        className="w-full pl-9 pr-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none cursor-pointer"
-                                    >
-                                        <option value="">-- No Manager --</option>
-                                        {users
-                                            .filter(u => u.id !== selectedUser?.id) // Can't report to self
-                                            .filter(u => ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(u.role)) // Only leaders can be managers
-                                            .map(u => (
-                                                <option key={u.id} value={u.id}>
-                                                    {u.name || u.email} ({u.role})
-                                                </option>
-                                            ))}
-                                    </select>
+                                <label className="text-xs font-bold text-body uppercase">Reports To (Multiple Managers Allowed)</label>
+                                <div className="p-3 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm max-h-40 overflow-y-auto space-y-2">
+                                    {users
+                                        .filter(u => u.id !== selectedUser?.id) // Can't report to self
+                                        .filter(u => ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(u.role)) // Only leaders can be managers
+                                        .map(u => (
+                                            <label key={u.id} className="flex items-center gap-2 cursor-pointer hover:bg-[var(--notion-bg-tertiary)] p-1 rounded-sm transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.managerIds.includes(u.id)}
+                                                    onChange={(e) => {
+                                                        const newIds = e.target.checked
+                                                            ? [...formData.managerIds, u.id]
+                                                            : formData.managerIds.filter(id => id !== u.id);
+                                                        setFormData({ ...formData, managerIds: newIds });
+                                                    }}
+                                                    className="rounded-sm border-[var(--notion-border-default)] text-[#0052CC] focus:ring-[#0052CC]"
+                                                />
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-5 h-5 rounded-full bg-[var(--notion-bg-tertiary)] flex items-center justify-center text-[8px] font-bold">
+                                                        {u.name?.charAt(0) || 'M'}
+                                                    </div>
+                                                    <span className="text-xs text-heading font-medium">
+                                                        {u.name || u.email} <span className="text-[10px] text-body opacity-60">({u.role})</span>
+                                                    </span>
+                                                </div>
+                                            </label>
+                                        ))
+                                    }
+                                    {users.filter(u => ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(u.role)).length === 0 && (
+                                        <p className="text-[10px] text-body italic">No eligible managers found.</p>
+                                    )}
                                 </div>
                             </div>
 

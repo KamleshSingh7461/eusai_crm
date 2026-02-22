@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getSubordinateIds } from '@/lib/hierarchy';
 
 // GET /api/reports/daily - Fetch daily reports
 export async function GET(request: NextRequest) {
@@ -24,44 +25,35 @@ export async function GET(request: NextRequest) {
         const targetDate = dateParam ? new Date(dateParam) : new Date();
         targetDate.setHours(0, 0, 0, 0);
 
-        let targetUserIds: string[] = [];
+        const allowedIds = await getSubordinateIds(currentUserId, userRole);
         let allTeamMembers: any[] = [];
 
-        // RBAC Logic & Team Context
-        if (userRole === 'DIRECTOR') {
-            if (userIdParam) {
-                targetUserIds = [userIdParam];
-            }
+        // Handling team context for metadata
+        if (allowedIds) {
+            allTeamMembers = await prisma.user.findMany({
+                where: { id: { in: allowedIds } },
+                select: { id: true, name: true, role: true }
+            });
+        } else {
             allTeamMembers = await prisma.user.findMany({
                 where: { role: { in: ['MANAGER', 'TEAM_LEADER', 'EMPLOYEE', 'INTERN'] } },
                 select: { id: true, name: true, role: true }
             });
-        } else if (['MANAGER', 'TEAM_LEADER'].includes(userRole)) {
-            const currentUser = await prisma.user.findUnique({
-                where: { id: currentUserId },
-                include: { subordinates: true }
-            });
-            allTeamMembers = currentUser?.subordinates || [];
-            const allowedIds = [currentUserId, ...allTeamMembers.map((u: any) => u.id)];
+        }
 
-            if (userIdParam) {
-                if (!allowedIds.includes(userIdParam)) {
-                    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-                }
-                targetUserIds = [userIdParam];
-            } else {
-                targetUserIds = allowedIds;
-            }
-        } else {
-            if (userIdParam && userIdParam !== currentUserId) {
+        let finalTargetIds: string[] | null = null;
+        if (userIdParam) {
+            if (allowedIds && !allowedIds.includes(userIdParam)) {
                 return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
             }
-            targetUserIds = [currentUserId];
+            finalTargetIds = [userIdParam];
+        } else {
+            finalTargetIds = allowedIds;
         }
 
         const where: any = {};
-        if (targetUserIds.length > 0) {
-            where.userId = { in: targetUserIds };
+        if (finalTargetIds) {
+            where.userId = { in: finalTargetIds };
         }
 
         if (dateParam) {
@@ -148,7 +140,24 @@ export async function POST(request: NextRequest) {
             projectId
         } = body;
 
-        // Check if report already exists for today
+        // 1. Time Window Validation (6-8 PM check)
+        const now = new Date();
+        const hour = now.getHours();
+
+        // Check if between 18:00 (inclusive) and 20:00 (exclusive)
+        const isWithinWindow = hour >= 18 && hour < 20;
+
+        // For debugging/emergency, we could check for a "force" flag from directors
+        const isForced = body.forceSubmission === true;
+
+        if (!isWithinWindow && !isForced) {
+            return NextResponse.json({
+                error: 'Submission Restricted',
+                message: 'Daily reports can only be submitted between 6:00 PM and 8:00 PM.'
+            }, { status: 403 });
+        }
+
+        // 2. Check if report already exists for today
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 

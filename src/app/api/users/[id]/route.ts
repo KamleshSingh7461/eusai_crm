@@ -10,7 +10,7 @@ export async function GET(
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
-                manager: {
+                reportingManagers: {
                     select: {
                         id: true,
                         name: true,
@@ -18,13 +18,49 @@ export async function GET(
                         role: true,
                     }
                 },
-                subordinates: {
+                reportingSubordinates: {
                     select: {
                         id: true,
                         name: true,
                         email: true,
                         role: true,
                         department: true,
+                    }
+                },
+                dailyReports: {
+                    orderBy: { date: 'desc' },
+                    take: 50,
+                    include: {
+                        project: {
+                            select: { id: true, name: true }
+                        }
+                    }
+                },
+                weeklyReports: {
+                    orderBy: { weekStartDate: 'desc' },
+                    take: 12
+                },
+                tasks: {
+                    where: { status: { not: 'DONE' } },
+                    include: {
+                        project: {
+                            select: { id: true, name: true }
+                        }
+                    }
+                },
+                milestones: {
+                    where: { status: { not: 'COMPLETED' } },
+                    include: {
+                        project: {
+                            select: { id: true, name: true }
+                        }
+                    }
+                },
+                managedProjects: {
+                    select: {
+                        id: true,
+                        name: true,
+                        status: true
                     }
                 }
             }

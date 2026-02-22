@@ -13,15 +13,20 @@ export async function GET(
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { role, id: currentUserId } = session.user as any;
+    const isRestricted = ['EMPLOYEE', 'INTERN'].includes(role);
+
     try {
         const project = await (prisma as any).project.findUnique({
             where: { id },
             include: {
                 tasks: {
-                    include: { assignedTo: { select: { name: true, image: true } } },
+                    where: isRestricted ? { userId: currentUserId } : {},
+                    include: { assignedTo: { select: { id: true, name: true, image: true } } },
                     orderBy: { deadline: 'asc' }
                 },
                 milestones: {
+                    where: isRestricted ? { owner: currentUserId } : {},
                     include: { ownerUser: { select: { name: true, image: true } } },
                     orderBy: { targetDate: 'asc' }
                 },
@@ -29,10 +34,11 @@ export async function GET(
                     select: { id: true, name: true, color: true }
                 },
                 expenses: {
+                    where: isRestricted ? { userId: currentUserId } : {},
                     include: { user: { select: { name: true } } },
                     orderBy: { date: 'desc' }
                 },
-                manager: {
+                managers: {
                     select: { id: true, name: true, image: true, email: true }
                 },
                 _count: {
@@ -46,7 +52,6 @@ export async function GET(
         }
 
         // Fetch potential assignees based on hierarchy
-        const { role, id: currentUserId } = session.user as any;
         let attendeeWhereClause: any = {};
 
         if (role === 'DIRECTOR') {
@@ -56,9 +61,9 @@ export async function GET(
         } else if (role === 'MANAGER' || role === 'TEAM_LEADER') {
             const userWithSubordinates = await (prisma as any).user.findUnique({
                 where: { id: currentUserId },
-                include: { subordinates: true }
+                include: { reportingSubordinates: true }
             }) as any;
-            const subordinateIds = userWithSubordinates?.subordinates?.map((s: any) => s.id) || [];
+            const subordinateIds = userWithSubordinates?.reportingSubordinates?.map((s: any) => s.id) || [];
             attendeeWhereClause = {
                 id: { in: subordinateIds }
             };
@@ -72,19 +77,28 @@ export async function GET(
             select: { id: true, name: true, image: true, role: true }
         });
 
-        // Calculate some stats on the fly
+        // Calculate holistic stats on the fly
         const budget = Number(project.budget || 0);
         const spent = project.expenses
             .filter((e: any) => e.status === 'APPROVED')
             .reduce((sum: number, e: any) => sum + Number(e.amount), 0);
 
+        const totalTasks = project.tasks.length;
         const completedTasks = project.tasks.filter((t: any) => t.status === 'DONE').length;
-        const progress = project.tasks.length > 0
-            ? Math.round((completedTasks / project.tasks.length) * 100)
+
+        const totalMilestones = project.milestones.length;
+        const completedMilestones = project.milestones.filter((m: any) => m.status === 'COMPLETED').length;
+
+        // Holistic Progress (Weighted average of tasks and milestones)
+        const totalItems = totalTasks + totalMilestones;
+        const completedItems = completedTasks + completedMilestones;
+        const progress = totalItems > 0
+            ? Math.round((completedItems / totalItems) * 100)
             : 0;
 
         return NextResponse.json({
             ...project,
+            isRestricted,
             team: potentialAssignees,
             stats: {
                 financial: {
@@ -94,9 +108,16 @@ export async function GET(
                 },
                 progress,
                 tasks: {
-                    total: project.tasks.length,
+                    total: totalTasks,
                     completed: completedTasks,
+                    pending: totalTasks - completedTasks,
                     overdue: project.tasks.filter((t: any) => t.status !== 'DONE' && new Date(t.deadline) < new Date()).length
+                },
+                milestones: {
+                    total: totalMilestones,
+                    completed: completedMilestones,
+                    pending: totalMilestones - completedMilestones,
+                    overdue: project.milestones.filter((m: any) => m.status !== 'COMPLETED' && new Date(m.targetDate) < new Date()).length
                 }
             }
         });
@@ -131,6 +152,9 @@ export async function PATCH(
                 budget: data.budget,
                 startDate: new Date(data.startDate),
                 endDate: new Date(data.endDate),
+                managers: data.managerIds ? {
+                    set: data.managerIds.map((id: string) => ({ id }))
+                } : undefined
             }
         });
 

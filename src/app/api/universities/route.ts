@@ -28,11 +28,11 @@ export async function GET(request: NextRequest) {
         if (userRole === 'TEAM_LEADER' || userRole === 'MANAGER') {
             const userWithTeam = await (prisma as any).user.findUnique({
                 where: { id: userId },
-                include: { subordinates: true }
+                include: { reportingSubordinates: true }
             });
 
-            if (userWithTeam?.subordinates) {
-                teamIds = [userId, ...userWithTeam.subordinates.map((s: any) => s.id)];
+            if (userWithTeam?.reportingSubordinates) {
+                teamIds = [userId, ...userWithTeam.reportingSubordinates.map((s: any) => s.id)];
             }
         }
 

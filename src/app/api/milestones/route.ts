@@ -39,17 +39,17 @@ export async function GET(request: NextRequest) {
         const userWithSubordinates = await prisma.user.findUnique({
             where: { id: userId },
             include: {
-                subordinates: { select: { id: true } },
-                projects: { select: { id: true } },
+                reportingSubordinates: { select: { id: true } },
+                managedProjects: { select: { id: true } },
                 managedSpaces: {
                     include: { projects: { select: { id: true } } }
                 }
             }
-        });
+        }) as any;
 
-        const subordinateIds = userWithSubordinates?.subordinates.map(u => u.id) || [];
-        const managedProjectIds = userWithSubordinates?.projects.map(p => p.id) || [];
-        const managedSpaceProjectIds = userWithSubordinates?.managedSpaces.flatMap(s => s.projects.map(p => p.id)) || [];
+        const subordinateIds = userWithSubordinates?.reportingSubordinates?.map((u: any) => u.id) || [];
+        const managedProjectIds = userWithSubordinates?.managedProjects?.map((p: any) => p.id) || [];
+        const managedSpaceProjectIds = userWithSubordinates?.managedSpaces?.flatMap((s: any) => s.projects.map((p: any) => p.id)) || [];
 
         const allAssociatedProjectIds = Array.from(new Set([...managedProjectIds, ...managedSpaceProjectIds]));
         const allowedOwnerIds = [userId, ...subordinateIds];
@@ -132,6 +132,21 @@ export async function POST(request: NextRequest) {
                     isFlagged,
                     remarks
                 } = data;
+
+                // Hierarchy Validation: Managers/TLs can only assign to their subordinates
+                const actorId = userId;
+                if (ownerId && ownerId !== actorId && userRole !== 'DIRECTOR') {
+                    const userWithSubordinates = await prisma.user.findUnique({
+                        where: { id: actorId },
+                        include: { reportingSubordinates: { select: { id: true } } }
+                    }) as any;
+
+                    const subordinateIds = userWithSubordinates?.reportingSubordinates?.map((s: any) => s.id) || [];
+
+                    if (!subordinateIds.includes(ownerId)) {
+                        throw new Error(`Forbidden: You cannot assign milestones to user ${ownerId}`);
+                    }
+                }
 
                 const newMilestone = await tx.milestone.create({
                     data: {

@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
     Users,
     Globe,
@@ -14,12 +16,21 @@ import {
     AlertTriangle,
     CheckCircle2,
     Activity,
-    Clock
+    Clock,
+    TrendingUp,
+    ShieldAlert,
+    ChevronRight,
+    Search,
+    Filter,
+    BarChart3,
+    Table,
+    PieChart as PieIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Button from '@/components/ui/Button';
-import UserProfileModal from '@/components/modals/UserProfileModal';
+// import UserProfileModal from '@/components/modals/UserProfileModal';
 import { NotionButton } from '@/components/notion';
+import DashboardAISummary from '@/components/dashboard/DashboardAISummary';
 import {
     XAxis,
     CartesianGrid,
@@ -81,23 +92,26 @@ const COLORS = {
     yellow: '#FFAB00',
     purple: '#6554C0',
     teal: '#00B8D9',
-    darkBg: '#2f3437',
-    darkBorder: 'rgba(255,255,255,0.08)',
-    textPrimary: 'rgba(255,255,255,0.9)',
-    textSecondary: 'rgba(255,255,255,0.6)'
+    darkBg: '#191919',
+    glassBg: 'rgba(25,25,25,0.6)',
+    glassBorder: 'rgba(255,255,255,0.08)',
+    textPrimary: 'rgba(255,255,255,0.95)',
+    textSecondary: 'rgba(255,255,255,0.7)',
+    textTertiary: 'rgba(255,255,255,0.4)'
 };
 
 const PIE_COLORS = [COLORS.blue, COLORS.green, COLORS.yellow, COLORS.red, COLORS.purple];
 
 export default function DirectorDashboard() {
+    const router = useRouter();
     const [data, setData] = useState<DirectorData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeSection, setActiveSection] = useState<'overview' | 'team' | 'projects'>('overview');
 
-    // Profile Modal State
-    const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    // Profile Modal State - Deprecated for new profile page
+    // const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+    // const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchDirectorData = async () => {
@@ -122,8 +136,7 @@ export default function DirectorDashboard() {
     }, []);
 
     const openProfile = (id: string) => {
-        setSelectedUserId(id);
-        setIsProfileModalOpen(true);
+        router.push(`/team/${id}`);
     };
 
     if (isLoading) {
@@ -162,134 +175,195 @@ export default function DirectorDashboard() {
     const { stats, employees, topPerformers, projects, charts } = data;
 
     return (
-        <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
+        <div className="space-y-6 md:space-y-10 animate-in fade-in duration-700 pb-20">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 md:gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-[rgba(255,255,255,0.9)] mb-1 md:mb-2 tracking-tight">Director Master Hub</h1>
-                    <p className="text-[rgba(255,255,255,0.7)] text-sm md:text-lg">Real-time command center for organizational performance.</p>
+                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight font-display">Director Master Hub</h1>
+                    <p className="text-[rgba(255,255,255,0.6)] text-sm md:text-lg font-medium">Real-time command center for organizational intelligence.</p>
                 </div>
-                <div className="hidden md:block">
-                    {/* Placeholder for future actions if needed, or remove completely */}
+                <div className="flex items-center gap-3">
+                    <NotionButton variant="ghost" className="bg-white/5 border border-white/10 hover:bg-white/10">
+                        <Filter className="w-4 h-4 mr-2" /> Global Filter
+                    </NotionButton>
+                    <NotionButton variant="primary" className="bg-[#0052CC] hover:bg-[#0747A6] shadow-lg shadow-[#0052CC]/20">
+                        <Activity className="w-4 h-4 mr-2" /> Analytics Report
+                    </NotionButton>
                 </div>
             </div>
 
+            {/* AI Summary Section */}
+            <DashboardAISummary role="DIRECTOR" contextData={data} />
+
             {/* Navigation Tabs */}
-            <div className="flex border-b border-[rgba(255,255,255,0.09)] overflow-x-auto">
+            <div className="flex border-b border-[rgba(255,255,255,0.08)] overflow-x-auto no-scrollbar">
                 {[
-                    { id: 'overview', label: 'Organization Overview', icon: Globe },
-                    { id: 'team', label: `Team Analytics (${employees.length})`, icon: Users },
+                    { id: 'overview', label: 'Organization Pulse', icon: Globe },
+                    { id: 'team', label: `Staff Analytics (${employees.length})`, icon: Users },
                     { id: 'projects', label: `Project Portfolio (${projects.length})`, icon: Briefcase },
                 ].map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveSection(tab.id as any)}
                         className={cn(
-                            "px-6 py-4 text-sm font-bold flex items-center gap-2 transition-all border-b-2 relative whitespace-nowrap",
+                            "px-8 py-5 text-sm font-bold flex items-center gap-2.5 transition-all relative whitespace-nowrap group",
                             activeSection === tab.id
-                                ? "text-[#0052CC] border-[#0052CC]"
-                                : "text-[rgba(255,255,255,0.6)] border-transparent hover:text-[rgba(255,255,255,0.9)] hover:bg-[#2f3437]"
+                                ? "text-[#0052CC]"
+                                : "text-[rgba(255,255,255,0.5)] hover:text-white"
                         )}
                     >
-                        <tab.icon className="w-4 h-4" />
+                        <tab.icon className={cn("w-4.5 h-4.5", activeSection === tab.id ? "text-[#0052CC]" : "text-[rgba(255,255,255,0.4)] group-hover:text-white")} />
                         {tab.label}
+                        {activeSection === tab.id && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#0052CC] shadow-[0_0_10px_rgba(0,82,204,0.5)]" />
+                        )}
                     </button>
                 ))}
             </div>
 
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {activeSection === 'overview' && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="space-y-8">
                         {/* KPI Cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                            <MetricCard
-                                icon={AlertTriangle}
-                                label="Missing Reports"
-                                value={stats.missingReports || 0}
-                                color={stats.missingReports > 0 ? "red" : "green"}
-                                subtitle={stats.missingReports > 0 ? "Action Required" : "All Clear"}
-                            />
-                            <MetricCard icon={Briefcase} label="Active Projects" value={stats.activeProjects} color="blue" subtitle={`${stats.taskCompletionRate}% Task Completion`} />
-                            <MetricCard icon={Users} label="Total Staff" value={stats.staffCount} color="purple" subtitle="Active Personnel" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <Link href="/reports?activeTab=TEAM" className="block">
+                                <MetricCard
+                                    icon={AlertTriangle}
+                                    label="Missing Reports"
+                                    value={stats.missingReports || 0}
+                                    color={stats.missingReports > 0 ? "red" : "green"}
+                                    subtitle={stats.missingReports > 0 ? "Urgent Action Required" : "All submissions received"}
+                                />
+                            </Link>
+                            <Link href="/projects" className="block">
+                                <MetricCard
+                                    icon={Briefcase}
+                                    label="Active Projects"
+                                    value={stats.activeProjects}
+                                    color="blue"
+                                    subtitle={`${stats.taskCompletionRate}% Operational Efficiency`}
+                                />
+                            </Link>
+                            <Link href="/team" className="block">
+                                <MetricCard
+                                    icon={Users}
+                                    label="Total Staff"
+                                    value={stats.staffCount}
+                                    color="purple"
+                                    subtitle="Active reporting personnel"
+                                />
+                            </Link>
+                            <Link href="/issues?status=CRITICAL" className="block">
+                                <MetricCard
+                                    icon={ShieldAlert}
+                                    label="Critical Risks"
+                                    value={stats.criticalIssues}
+                                    color="red"
+                                    subtitle="Threats requiring immediate focus"
+                                />
+                            </Link>
                         </div>
 
                         {/* Main Charts Row */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Monthly Progress Chart - Taking 2 Cols */}
-                            <div className="lg:col-span-2 bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm">
-                                <div className="flex items-center justify-between mb-6">
+                            <div className="lg:col-span-2 bg-[#191919]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+                                <div className="flex items-center justify-between mb-8 relative z-10">
                                     <div>
-                                        <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider">Monthly Trajectory</h3>
-                                        <p className="text-xs text-[rgba(255,255,255,0.5)] mt-1">6-Month Task Completion Trend</p>
+                                        <h3 className="text-base font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                                            <TrendingUp className="w-4 h-4 text-[#36B37E]" /> Velocity Tracking
+                                        </h3>
+                                        <p className="text-xs text-[rgba(255,255,255,0.4)] mt-1 font-medium">Monthly organizational throughput trend</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <div className="w-3 h-3 rounded-full bg-[#36B37E]/20 border border-[#36B37E]/50" />
+                                        <div className="w-3 h-3 rounded-full bg-[#36B37E]/20 border border-[#36B37E]/50" />
                                     </div>
                                 </div>
-                                <div className="h-[300px] w-full">
+                                <div className="h-[320px] w-full relative z-10">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={charts.monthlyProductivity}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                            <XAxis dataKey="name" stroke="rgba(255,255,255,0.3)" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} dy={10} />
+                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                                            <XAxis dataKey="name" stroke="rgba(255,255,255,0.2)" tick={{ fontSize: 11, fontWeight: 'bold' }} tickLine={false} axisLine={false} dy={10} />
                                             <Tooltip
-                                                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                                                contentStyle={{ backgroundColor: '#1D2125', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '4px' }}
-                                                itemStyle={{ color: '#fff' }}
+                                                cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                                                contentStyle={{ backgroundColor: '#191919', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '12px', backdropFilter: 'blur(10px)' }}
+                                                itemStyle={{ color: '#36B37E', fontWeight: 'bold' }}
                                             />
-                                            <Bar dataKey="tasks" fill={COLORS.green} radius={[4, 4, 0, 0]} barSize={40} />
+                                            <Bar dataKey="tasks" fill={COLORS.green} radius={[6, 6, 0, 0]} barSize={32} />
                                         </BarChart>
                                     </ResponsiveContainer>
                                 </div>
                             </div>
 
                             {/* Recent Activity Feed - Taking 1 Col */}
-                            <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm flex flex-col h-[400px]">
-                                <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider mb-4 flex items-center gap-2">
-                                    <Activity className="w-4 h-4 text-blue-400" /> Recent Intel
-                                </h3>
-                                <div className="flex-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
-                                    {data.globalActivity?.slice(0, 10).map((activity: any) => (
-                                        <div key={activity.id} className="flex gap-3 items-start p-2 hover:bg-[rgba(255,255,255,0.03)] rounded-md transition-colors">
-                                            <div className="mt-1">
-                                                {activity.status === 'DONE' ? (
-                                                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                                                ) : (
-                                                    <Clock className="w-4 h-4 text-orange-400" />
-                                                )}
+                            <div className="bg-[#191919]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl flex flex-col h-[460px] relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+                                <div className="flex items-center justify-between mb-6 relative z-10">
+                                    <h3 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                                        <Activity className="w-4 h-4 text-blue-400" /> Operational Intel
+                                    </h3>
+                                    <Link href="/recent" className="text-[10px] font-bold text-blue-400 hover:underline uppercase">Full Feed</Link>
+                                </div>
+                                <div className="flex-1 space-y-5 overflow-y-auto pr-2 custom-scrollbar relative z-10">
+                                    {data.globalActivity?.slice(0, 8).map((activity: any) => (
+                                        <div key={activity.id} className="flex gap-4 items-start p-3 hover:bg-white/5 rounded-xl transition-all group/item cursor-pointer border border-transparent hover:border-white/5">
+                                            <div className="mt-1 flex-shrink-0">
+                                                <div className={cn(
+                                                    "w-8 h-8 rounded-lg flex items-center justify-center transition-transform group-hover/item:scale-110",
+                                                    activity.status === 'DONE' ? "bg-green-500/10 text-green-500" : "bg-orange-500/10 text-orange-500"
+                                                )}>
+                                                    {activity.status === 'DONE' ? (
+                                                        <CheckCircle2 className="w-4 h-4" />
+                                                    ) : (
+                                                        <Clock className="w-4 h-4" />
+                                                    )}
+                                                </div>
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-sm font-medium text-[rgba(255,255,255,0.9)] leading-tight line-clamp-2">{activity.title}</p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-[10px] font-bold text-[rgba(255,255,255,0.5)] uppercase truncate max-w-[80px]">{activity.assignedTo || 'Unassigned'}</span>
-                                                    <span className="text-[10px] text-[rgba(255,255,255,0.3)]">•</span>
-                                                    <span className="text-[10px] text-[rgba(255,255,255,0.4)]">{new Date(activity.updatedAt).toLocaleDateString()}</span>
+                                                <p className="text-sm font-bold text-white leading-tight line-clamp-2 group-hover/item:text-blue-400 transition-colors">{activity.title}</p>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <span className="text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase truncate max-w-[80px] px-1.5 py-0.5 rounded bg-white/5">{activity.assignedTo || 'Unassigned'}</span>
+                                                    <span className="text-[10px] text-[rgba(255,255,255,0.4)] font-medium">{new Date(activity.updatedAt).toLocaleDateString()}</span>
                                                 </div>
                                             </div>
                                         </div>
                                     ))}
                                     {(!data.globalActivity || data.globalActivity.length === 0) && (
-                                        <p className="text-sm text-[rgba(255,255,255,0.5)] text-center py-4">No recent activity recorded.</p>
+                                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                                            <Activity className="w-12 h-12 text-white/5 mb-3" />
+                                            <p className="text-sm text-[rgba(255,255,255,0.3)] font-medium">No activity intelligence available.</p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             {/* Top Performers Widget */}
-                            <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm flex flex-col">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider flex items-center gap-2">
-                                        <Award className="w-4 h-4 text-yellow-500" /> Top Performers
+                            <div className="bg-[#191919]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl flex flex-col relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+                                <div className="flex items-center justify-between mb-8 relative z-10">
+                                    <h3 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                                        <Award className="w-5 h-5 text-yellow-500" /> Executive Ranking
                                     </h3>
-                                    <NotionButton variant="ghost" size="sm">View All</NotionButton>
+                                    <Link href="/reports/performance" className="text-[10px] font-bold text-blue-400 hover:underline uppercase">All Analytics</Link>
                                 </div>
-                                <div className="flex-1 space-y-4">
+                                <div className="flex-1 space-y-5 relative z-10">
                                     {topPerformers.map((user, index) => (
-                                        <div key={user.id} className="flex items-center gap-3 p-3 rounded-md hover:bg-[rgba(255,255,255,0.03)] transition-colors group cursor-pointer" onClick={() => openProfile(user.id)}>
-                                            <div className="relative">
-                                                <div className="w-10 h-10 rounded-full bg-[#1D2125] flex items-center justify-center text-[rgba(255,255,255,0.9)] font-bold overflow-hidden border border-[rgba(255,255,255,0.1)]">
+                                        <div
+                                            key={user.id}
+                                            className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all group/item cursor-pointer"
+                                            onClick={() => openProfile(user.id)}
+                                        >
+                                            <div className="relative flex-shrink-0">
+                                                <div className="w-12 h-12 rounded-xl bg-[#1D2125] flex items-center justify-center text-white font-bold overflow-hidden border border-white/10 shadow-lg">
                                                     {user.image ? <img src={user.image} alt={user.name} className="w-full h-full object-cover" /> : user.name.charAt(0)}
                                                 </div>
                                                 {index < 3 && (
                                                     <div className={cn(
-                                                        "absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-[#2f3437]",
+                                                        "absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border-2 border-[#191919] shadow-lg",
                                                         index === 0 ? "bg-yellow-500 text-black" :
                                                             index === 1 ? "bg-gray-300 text-black" :
                                                                 "bg-amber-700 text-white"
@@ -299,74 +373,96 @@ export default function DirectorDashboard() {
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex justify-between items-center mb-0.5">
-                                                    <h4 className="font-medium text-[rgba(255,255,255,0.9)] text-sm truncate group-hover:text-[#0052CC] transition-colors">{user.name}</h4>
-                                                    <span className="text-xs font-bold text-[#36B37E] bg-[#36B37E]/10 px-1.5 py-0.5 rounded-full">{user.score} pts</span>
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <h4 className="font-bold text-white text-sm truncate group-hover/item:text-blue-400 transition-colors tracking-tight">{user.name}</h4>
+                                                    <span className="text-[11px] font-black text-[#36B37E] bg-[#36B37E]/20 px-2 py-0.5 rounded-lg border border-[#36B37E]/30">{user.score}</span>
                                                 </div>
-                                                <p className="text-xs text-[rgba(255,255,255,0.5)] truncate">{user.role}</p>
+                                                <p className="text-xs text-[rgba(255,255,255,0.4)] font-bold uppercase tracking-tight truncate">{user.role}</p>
                                             </div>
                                         </div>
                                     ))}
-                                    {topPerformers.length === 0 && <p className="text-sm text-[rgba(255,255,255,0.5)] text-center py-4">No performance data yet.</p>}
+                                    {topPerformers.length === 0 && <p className="text-sm text-[rgba(255,255,255,0.3)] text-center py-10 font-medium">No performance analytics established.</p>}
                                 </div>
                             </div>
 
                             {/* Project Status Pie Chart */}
-                            <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm">
-                                <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider mb-2">Project Portfolio Status</h3>
-                                <div className="h-[200px] w-full flex items-center justify-center">
+                            <div className="bg-[#191919]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+                                <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2 relative z-10">
+                                    <PieIcon className="w-4 h-4 text-purple-400" /> Strategic Distribution
+                                </h3>
+                                <div className="h-[240px] w-full flex items-center justify-center relative z-10">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Pie
                                                 data={charts.projectStatus}
                                                 cx="50%"
                                                 cy="50%"
-                                                innerRadius={60}
-                                                outerRadius={80}
-                                                paddingAngle={5}
+                                                innerRadius={70}
+                                                outerRadius={95}
+                                                paddingAngle={6}
                                                 dataKey="value"
                                             >
                                                 {charts.projectStatus.map((entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="rgba(0,0,0,0)" />
                                                 ))}
                                             </Pie>
-                                            <Tooltip contentStyle={{ backgroundColor: '#1D2125', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '4px' }} />
-                                            <Legend verticalAlign="bottom" align="center" iconSize={10} wrapperStyle={{ fontSize: '10px' }} />
+                                            <Tooltip contentStyle={{ backgroundColor: '#191919', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '12px', backdropFilter: 'blur(10px)' }} />
+                                            <Legend verticalAlign="bottom" align="center" iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', paddingTop: '20px' }} />
                                         </PieChart>
                                     </ResponsiveContainer>
                                 </div>
                             </div>
 
                             {/* Issue Severity breakdown */}
-                            <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 shadow-sm">
-                                <h3 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider mb-4 flex items-center justify-between">
-                                    Issue Severity <span className="text-xs text-[rgba(255,255,255,0.5)]">Total: {stats.totalOpenIssues}</span>
+                            <div className="bg-[#191919]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl relative overflow-hidden group flex flex-col">
+                                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+                                <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-6 flex items-center justify-between relative z-10">
+                                    Risk Exposure <span className="text-[10px] font-bold text-white/30 tracking-tighter">Total Active: {stats.totalOpenIssues}</span>
                                 </h3>
-                                <div className="space-y-4">
+                                <div className="space-y-6 relative z-10 flex-1">
                                     {charts.issueSeverity.map((item, index) => (
-                                        <div key={index} className="space-y-1">
-                                            <div className="flex justify-between text-xs font-medium">
-                                                <span className="text-[rgba(255,255,255,0.7)]">{item.name}</span>
-                                                <span className="text-[rgba(255,255,255,0.9)]">{item.value}</span>
+                                        <div key={index} className="space-y-2">
+                                            <div className="flex justify-between text-[11px] font-black uppercase tracking-widest">
+                                                <span className="text-[rgba(255,255,255,0.5)]">{item.name}</span>
+                                                <span className="text-white">{item.value}</span>
                                             </div>
-                                            <div className="w-full bg-[rgba(255,255,255,0.05)] h-2 rounded-full overflow-hidden">
+                                            <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden border border-white/5">
                                                 <div
                                                     className={cn(
-                                                        "h-full rounded-full",
-                                                        item.name === 'CRITICAL' ? 'bg-[#FF5630]' :
-                                                            item.name === 'HIGH' ? 'bg-[#FFAB00]' :
-                                                                'bg-[#0052CC]'
+                                                        "h-full rounded-full transition-all duration-1000",
+                                                        item.name === 'CRITICAL' ? 'bg-[#FF5630] shadow-[0_0_10px_rgba(255,86,48,0.5)]' :
+                                                            item.name === 'HIGH' ? 'bg-[#FFAB00] shadow-[0_0_10px_rgba(255,171,0,0.5)]' :
+                                                                'bg-[#0052CC] shadow-[0_0_10px_rgba(0,82,204,0.5)]'
                                                     )}
-                                                    style={{ width: `${(item.value / stats.totalOpenIssues) * 100}%` }}
+                                                    style={{ width: `${(item.value / (stats.totalOpenIssues || 1)) * 100}%` }}
                                                 />
                                             </div>
                                         </div>
                                     ))}
-                                    {charts.issueSeverity.length === 0 && <p className="text-xs text-[rgba(255,255,255,0.5)]">No open issues.</p>}
-                                    <div className="mt-4 pt-4 border-t border-[rgba(255,255,255,0.08)] text-center">
-                                        <div className="text-2xl font-bold text-white">{stats.criticalIssues}</div>
-                                        <div className="text-[10px] text-red-400 font-bold uppercase tracking-wider">Critical Issues</div>
-                                        <Button className="mt-3 w-full" variant="secondary" size="sm" onClick={() => (window as any).location.href = '/reports'}>Resolve Now</Button>
+                                    {charts.issueSeverity.length === 0 && (
+                                        <div className="flex flex-col items-center justify-center py-6 text-center">
+                                            <CheckCircle2 className="w-10 h-10 text-green-500/20 mb-2" />
+                                            <p className="text-xs text-[rgba(255,255,255,0.4)] font-bold uppercase">Zero Threats Detected</p>
+                                        </div>
+                                    )}
+                                    <div className="mt-auto pt-6 border-t border-white/10 text-center">
+                                        <div className="flex items-center justify-center gap-4 mb-4">
+                                            <div>
+                                                <div className="text-3xl font-black text-white">{stats.criticalIssues}</div>
+                                                <div className="text-[9px] text-red-400 font-black uppercase tracking-wider">Critical</div>
+                                            </div>
+                                            <div className="w-px h-8 bg-white/10" />
+                                            <div>
+                                                <div className="text-2xl font-black text-white/60">{stats.totalOpenIssues - stats.criticalIssues}</div>
+                                                <div className="text-[9px] text-white/30 font-black uppercase tracking-wider">Total</div>
+                                            </div>
+                                        </div>
+                                        <Link href="/issues" className="block w-full">
+                                            <Button className="w-full bg-red-500 hover:bg-red-600 border-none shadow-lg shadow-red-500/20 text-white font-black uppercase tracking-widest text-[10px]" size="sm" onClick={() => (window as any).location.href = '/issues'}>
+                                                Initiate Counter-Measures
+                                            </Button>
+                                        </Link>
                                     </div>
                                 </div>
                             </div>
@@ -376,35 +472,48 @@ export default function DirectorDashboard() {
 
                 {/* Team Tab Content */}
                 {activeSection === 'team' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
                         {employees.map((emp: any) => (
-                            <div key={emp.id} className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] p-5 rounded-lg hover:shadow-lg hover:border-[#0052CC]/50 transition-all group">
-                                <div className="flex items-center gap-4 mb-4">
-                                    <div className="w-12 h-12 rounded-full bg-[#1D2125] flex items-center justify-center text-[rgba(255,255,255,0.9)] font-bold text-lg overflow-hidden border border-[rgba(255,255,255,0.1)]">
+                            <div
+                                key={emp.id}
+                                className="bg-[#191919]/60 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl hover:shadow-[#0052CC]/5 hover:border-[#0052CC]/40 transition-all group relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
+                                    <Users className="w-20 h-20" />
+                                </div>
+                                <div className="relative z-10 flex items-center gap-6 mb-8">
+                                    <div className="w-16 h-16 rounded-2xl bg-[#1D2125] flex items-center justify-center text-white font-bold text-2xl overflow-hidden border border-white/10 shadow-xl group-hover:scale-105 transition-transform">
                                         {emp.image ? <img src={emp.image} alt={emp.name} className="w-full h-full object-cover" /> : emp.name.charAt(0)}
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <h3 className="font-bold text-[rgba(255,255,255,0.9)] group-hover:text-[#0052CC] transition-colors truncate">{emp.name}</h3>
-                                        <p className="text-xs text-[rgba(255,255,255,0.6)] font-medium truncate">{emp.role}</p>
+                                        <h3 className="text-lg font-black text-white group-hover:text-blue-400 transition-colors truncate tracking-tight">{emp.name}</h3>
+                                        <p className="text-xs text-[rgba(255,255,255,0.4)] font-black uppercase tracking-widest truncate">{emp.role}</p>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[rgba(255,255,255,0.08)]">
-                                    <div className="text-center">
-                                        <div className="text-lg font-bold text-[rgba(255,255,255,0.9)]">{emp.pendingTasks}</div>
-                                        <div className="text-[10px] text-[rgba(255,255,255,0.5)] font-bold uppercase tracking-wider">Open Tasks</div>
+                                <div className="grid grid-cols-2 gap-6 pt-6 border-t border-white/10 relative z-10">
+                                    <div className="space-y-1">
+                                        <div className="text-2xl font-black text-white tracking-tighter">{emp.pendingTasks}</div>
+                                        <div className="text-[10px] text-[rgba(255,255,255,0.3)] font-black uppercase tracking-widest">Active Ops</div>
                                     </div>
-                                    <div className="text-center border-l border-[rgba(255,255,255,0.08)]">
-                                        <div className="text-lg font-bold text-[#0052CC]">{emp.pendingMilestones}</div>
-                                        <div className="text-[10px] text-[rgba(255,255,255,0.5)] font-bold uppercase tracking-wider">Milestones</div>
+                                    <div className="space-y-1 border-l border-white/10 pl-6">
+                                        <div className="text-2xl font-black text-[#0052CC] tracking-tighter">{emp.pendingMilestones}</div>
+                                        <div className="text-[10px] text-[rgba(255,255,255,0.3)] font-black uppercase tracking-widest">Key Goals</div>
                                     </div>
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    className="w-full mt-4 h-8 text-xs bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.05)]"
-                                    onClick={() => openProfile(emp.id)}
-                                >
-                                    View Full Profile
-                                </Button>
+                                <div className="mt-8 flex gap-3 relative z-10">
+                                    <Button
+                                        variant="primary"
+                                        className="h-10 text-[10px] font-black uppercase tracking-widest bg-blue-600 hover:bg-blue-700 flex-1 border-none shadow-lg shadow-blue-600/20"
+                                        onClick={() => openProfile(emp.id)}
+                                    >
+                                        Execute Profile deep-dive
+                                    </Button>
+                                    <Link href={`/reports?type=team&q=${emp.name}`} className="h-10 w-10 shrink-0">
+                                        <Button variant="ghost" className="h-full w-full p-0 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl flex items-center justify-center">
+                                            <Table className="w-4 h-4 text-white" />
+                                        </Button>
+                                    </Link>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -412,61 +521,86 @@ export default function DirectorDashboard() {
 
                 {/* Projects Tab Content */}
                 {activeSection === 'projects' && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg overflow-hidden shadow-sm">
-                            <table className="w-full text-left border-collapse">
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                        <div className="bg-[#191919]/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/2 to-transparent pointer-events-none" />
+                            <table className="w-full text-left border-collapse relative z-10">
                                 <thead>
-                                    <tr className="bg-[#2b3033] border-b border-[rgba(255,255,255,0.08)]">
-                                        <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider">Project Name</th>
-                                        <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider">Manager</th>
-                                        <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider">Status</th>
-                                        <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider text-center">Tasks</th>
-                                        <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider text-center">Milestones</th>
-                                        <th className="px-6 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-wider w-48">Progress</th>
+                                    <tr className="bg-white/2 border-b border-white/10">
+                                        <th className="px-8 py-6 text-[10px] font-black text-[rgba(255,255,255,0.4)] uppercase tracking-widest">Project Mission</th>
+                                        <th className="px-8 py-6 text-[10px] font-black text-[rgba(255,255,255,0.4)] uppercase tracking-widest">Manager</th>
+                                        <th className="px-8 py-6 text-[10px] font-black text-[rgba(255,255,255,0.4)] uppercase tracking-widest">Tactical Status</th>
+                                        <th className="px-8 py-6 text-[10px] font-black text-[rgba(255,255,255,0.4)] uppercase tracking-widest text-center">Ops</th>
+                                        <th className="px-8 py-6 text-[10px] font-black text-[rgba(255,255,255,0.4)] uppercase tracking-widest text-center">Milestones</th>
+                                        <th className="px-8 py-6 text-[10px] font-black text-[rgba(255,255,255,0.4)] uppercase tracking-widest">Completion</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-[rgba(255,255,255,0.05)]">
+                                <tbody className="divide-y divide-white/5">
                                     {projects.map((proj: any) => (
-                                        <tr key={proj.id} className="hover:bg-[rgba(255,255,255,0.02)] transition-colors cursor-pointer group">
-                                            <td className="px-6 py-4">
-                                                <div className="font-bold text-[rgba(255,255,255,0.9)] group-hover:text-[#0052CC]">{proj.name}</div>
+                                        <tr
+                                            key={proj.id}
+                                            className="hover:bg-white/[0.03] transition-all cursor-pointer group"
+                                            onClick={() => (window as any).location.href = `/projects/${proj.id}`}
+                                        >
+                                            <td className="px-8 py-6">
+                                                <div className="font-bold text-white group-hover:text-blue-400 transition-colors text-base tracking-tight">{proj.name}</div>
+                                                <div className="text-[10px] text-[rgba(255,255,255,0.3)] font-bold mt-1 tracking-widest uppercase truncate max-w-[200px]">ID: {proj.id.substring(0, 8)}</div>
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-[rgba(255,255,255,0.6)]">{proj.managerName}</td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-8 py-6">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500 text-[10px] font-black">
+                                                        {proj.managerName?.charAt(0) || 'U'}
+                                                    </div>
+                                                    <span className="text-sm font-bold text-[rgba(255,255,255,0.7)] group-hover:text-white transition-colors">{proj.managerName}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-6">
                                                 <span className={cn(
-                                                    "px-2 py-1 rounded-sm text-[10px] font-bold uppercase",
-                                                    proj.status === 'ACTIVE' ? "bg-[#36B37E]/20 text-[#36B37E]" :
-                                                        proj.status === 'INITIATION' ? "bg-[#FFAB00]/20 text-[#FFAB00]" :
-                                                            "bg-[#0052CC]/20 text-[#0052CC]"
+                                                    "px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border",
+                                                    proj.status === 'ACTIVE' ? "bg-green-500/10 text-green-500 border-green-500/20" :
+                                                        proj.status === 'INITIATION' ? "bg-orange-500/10 text-orange-500 border-orange-500/20" :
+                                                            "bg-blue-500/10 text-blue-500 border-blue-500/20"
                                                 )}>
                                                     {proj.status}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-center font-medium text-[rgba(255,255,255,0.9)]">{proj.taskCount}</td>
-                                            <td className="px-6 py-4 text-center font-medium text-[#0052CC]">{proj.milestoneCount}</td>
-                                            <td className="px-6 py-4">
-                                                <div className="w-full bg-[rgba(255,255,255,0.1)] h-1.5 rounded-full overflow-hidden">
+                                            <td className="px-8 py-6 text-center">
+                                                <div className="font-black text-white text-base">{proj.taskCount}</div>
+                                            </td>
+                                            <td className="px-8 py-6 text-center">
+                                                <div className="font-black text-[#0052CC] text-base">{proj.milestoneCount}</div>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden border border-white/5">
                                                     <div
-                                                        className={cn("h-full transition-all duration-1000", proj.progress > 70 ? "bg-[#36B37E]" : "bg-[#0052CC]")}
+                                                        className={cn("h-full transition-all duration-1000", proj.progress > 70 ? "bg-[#36B37E] shadow-[0_0_8px_rgba(54,179,126,0.3)]" : "bg-[#0052CC] shadow-[0_0_8px_rgba(0,82,204,0.3)]")}
                                                         style={{ width: `${proj.progress}%` }}
                                                     />
                                                 </div>
-                                                <div className="text-right text-[10px] text-[rgba(255,255,255,0.5)] mt-1">{proj.progress}%</div>
+                                                <div className="text-right text-[11px] font-black text-white/40 mt-2 tracking-tighter">{proj.progress}%</div>
                                             </td>
                                         </tr>
                                     ))}
+                                    {projects.length === 0 && (
+                                        <tr>
+                                            <td colSpan={6} className="px-8 py-20 text-center">
+                                                <Briefcase className="w-16 h-16 text-white/5 mx-auto mb-4" />
+                                                <p className="text-sm text-[rgba(255,255,255,0.3)] font-bold uppercase tracking-widest">No active project missions</p>
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 )}
 
-                {/* Profile Modal */}
+                {/* Profile Modal - Deprecated
                 <UserProfileModal
                     userId={selectedUserId}
                     isOpen={isProfileModalOpen}
                     onClose={() => setIsProfileModalOpen(false)}
-                />
+                /> */}
             </div>
         </div>
     );
@@ -476,29 +610,43 @@ export default function DirectorDashboard() {
 
 function MetricCard({ icon: Icon, label, value, color, trend, subtitle }: any) {
     const colors: any = {
-        blue: "text-[#0052CC] bg-[#0052CC]/10",
-        green: "text-[#36B37E] bg-[#36B37E]/10",
-        indigo: "text-[#6554C0] bg-[#6554C0]/10",
-        purple: "text-[#998DD9] bg-[#998DD9]/10"
+        blue: "text-[#0052CC] bg-[#0052CC]/10 border-[#0052CC]/30",
+        green: "text-[#36B37E] bg-[#36B37E]/10 border-[#36B37E]/30",
+        red: "text-[#FF5630] bg-[#FF5630]/10 border-[#FF5630]/30",
+        purple: "text-[#6554C0] bg-[#6554C0]/10 border-[#6554C0]/30",
     };
 
     return (
-        <div className="group bg-[#2f3437] p-6 rounded-lg border border-[rgba(255,255,255,0.08)] shadow-sm hover:shadow-md hover:border-[#0052CC]/30 transition-all relative overflow-hidden">
-            <div className="flex justify-between items-start mb-4">
-                <div className={cn("p-2.5 rounded-lg transition-transform group-hover:scale-110 duration-200", colors[color])}>
-                    <Icon className="w-5 h-5" />
+        <div className="group bg-[#191919]/60 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-2xl hover:border-white/30 transition-all relative overflow-hidden h-full flex flex-col justify-between">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+
+            <div className="flex justify-between items-start mb-6 relative z-10">
+                <div className={cn("p-3 rounded-xl transition-all group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] border", colors[color])}>
+                    <Icon className="w-6 h-6" />
                 </div>
                 {trend && (
-                    <div className="flex items-center gap-1 text-xs font-bold text-[#36B37E] bg-[#36B37E]/10 px-2 py-0.5 rounded-full">
-                        <ArrowUpRight className="w-3 h-3" /> {trend}
+                    <div className="flex items-center gap-1.5 text-xs font-black text-[#36B37E] bg-[#36B37E]/20 px-3 py-1 rounded-full border border-[#36B37E]/30">
+                        <ArrowUpRight className="w-3.5 h-3.5" /> {trend}
+                    </div>
+                )}
+                <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white transition-all transform group-hover:translate-x-1" />
+            </div>
+
+            <div className="relative z-10">
+                <div className="text-4xl font-black text-white tracking-tighter mb-1 font-display group-hover:text-blue-400 transition-colors">{value}</div>
+                <div className="text-[10px] text-[rgba(255,255,255,0.4)] font-black uppercase tracking-[0.2em] mb-3">{label}</div>
+                {subtitle && (
+                    <div className="text-[9px] text-[rgba(255,255,255,0.3)] font-black tracking-wider uppercase leading-relaxed border-t border-white/5 pt-3 group-hover:text-white/60 transition-colors">
+                        {subtitle}
                     </div>
                 )}
             </div>
-            <div>
-                <div className="text-2xl font-bold text-[rgba(255,255,255,0.9)] tracking-tight">{value}</div>
-                <div className="text-xs text-[rgba(255,255,255,0.5)] font-medium uppercase tracking-wider mt-1">{label}</div>
-                {subtitle && <div className="text-[10px] text-[rgba(255,255,255,0.4)] mt-2 pt-2 border-t border-[rgba(255,255,255,0.08)]">{subtitle}</div>}
-            </div>
+
+            {/* Background glow effect */}
+            <div className={cn(
+                "absolute -bottom-10 -right-10 w-24 h-24 rounded-full blur-3xl opacity-0 group-hover:opacity-40 transition-all duration-700",
+                color === 'blue' ? 'bg-[#0052CC]' : color === 'green' ? 'bg-[#36B37E]' : color === 'red' ? 'bg-[#FF5630]' : 'bg-[#6554C0]'
+            )} />
         </div>
     );
 }

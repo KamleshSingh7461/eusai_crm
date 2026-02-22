@@ -18,10 +18,29 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
         name: project.name,
         description: project.description || '',
         status: project.status,
-
+        managerIds: project.managers?.map((m: any) => m.id) || [],
         startDate: project.startDate.split('T')[0],
         endDate: project.endDate.split('T')[0],
     });
+    const [managers, setManagers] = useState<any[]>([]);
+    const [isLoadingManagers, setIsLoadingManagers] = useState(true);
+
+    React.useEffect(() => {
+        const fetchManagers = async () => {
+            try {
+                const response = await fetch('/api/users/managers');
+                if (response.ok) {
+                    const data = await response.json();
+                    setManagers(data);
+                }
+            } catch (error) {
+                console.error("Failed to load managers", error);
+            } finally {
+                setIsLoadingManagers(false);
+            }
+        };
+        fetchManagers();
+    }, []);
     const { showToast } = useToast();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -122,6 +141,40 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
                             required
                             className="bg-[var(--notion-bg-tertiary)] border-[var(--notion-border-default)] text-[var(--notion-text-primary)]"
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider">Mission Leads</label>
+                        <div className="p-3 bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm max-h-40 overflow-y-auto space-y-2">
+                            {isLoadingManagers ? (
+                                <div className="flex items-center gap-2 text-[10px] text-body italic">
+                                    <Loader2 className="w-3 h-3 animate-spin" /> Loading available leads...
+                                </div>
+                            ) : (
+                                managers.map((manager) => (
+                                    <label key={manager.id} className="flex items-center gap-2 cursor-pointer hover:bg-[var(--notion-bg-hover)] p-1 rounded-sm transition-colors group">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.managerIds.includes(manager.id)}
+                                            onChange={(e) => {
+                                                const id = manager.id;
+                                                const newIds = e.target.checked
+                                                    ? [...formData.managerIds, id]
+                                                    : formData.managerIds.filter(mid => mid !== id);
+                                                setFormData({ ...formData, managerIds: newIds });
+                                            }}
+                                            className="rounded-sm border-[var(--notion-border-default)] text-[#2383e2] focus:ring-[#2383e2]"
+                                        />
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-5 h-5 rounded-full bg-[var(--notion-bg-secondary)] flex items-center justify-center text-[8px] font-bold border border-[var(--notion-border-default)]">
+                                                {manager.name?.charAt(0) || 'M'}
+                                            </div>
+                                            <span className="text-xs text-[var(--notion-text-primary)] font-medium">{manager.name}</span>
+                                        </div>
+                                    </label>
+                                ))
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4 border-t border-[var(--notion-border-default)]">

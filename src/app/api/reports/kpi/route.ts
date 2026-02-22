@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getSubordinateIds, getAccessibleProjectIds } from '@/lib/hierarchy';
 
 export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -10,14 +11,23 @@ export async function GET(request: NextRequest) {
     }
 
     const userRole = (session.user as any).role;
-    if (!['DIRECTOR', 'MANAGER'].includes(userRole)) {
+    const currentUserId = (session.user as any).id;
+
+    if (!['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     try {
+        // Fetch Hierarchy Data
+        const targetUserIds = await getSubordinateIds(currentUserId, userRole);
+        const targetProjectIds = await getAccessibleProjectIds(currentUserId, userRole, targetUserIds);
+
         // 1. Employee KPIs & Department Pulse
         const employees = await prisma.user.findMany({
-            where: { role: { not: 'DIRECTOR' } },
+            where: {
+                role: { not: 'DIRECTOR' },
+                ...(targetUserIds ? { id: { in: targetUserIds } } : {})
+            },
             include: {
                 tasks: {
                     select: { status: true, deadline: true, updatedAt: true }
@@ -69,6 +79,9 @@ export async function GET(request: NextRequest) {
 
         // 2. Project KPIs & Financials
         const projects = await prisma.project.findMany({
+            where: {
+                ...(targetProjectIds ? { id: { in: targetProjectIds } } : {})
+            },
             include: {
                 tasks: { select: { status: true } },
                 issues: { select: { severity: true, status: true } },
@@ -108,13 +121,14 @@ export async function GET(request: NextRequest) {
         const criticalIssues = await prisma.issue.findMany({
             where: {
                 status: { not: 'CLOSED' },
-                severity: { in: ['CRITICAL', 'HIGH'] }
+                severity: { in: ['CRITICAL', 'HIGH'] },
+                ...(targetProjectIds ? { projectId: { in: targetProjectIds } } : {})
             },
             include: {
                 project: { select: { name: true } },
                 space: { select: { name: true } }
             },
-            orderBy: { severity: 'asc' }, // Critical first (alphabetical C before H... wait, Critical vs High. Actually 'CRITICAL' < 'HIGH' alphabetically? No. C comes before H. So asc is correct for Critical first? C < H. Yes.)
+            orderBy: { severity: 'asc' },
             take: 5
         });
 
@@ -127,8 +141,14 @@ export async function GET(request: NextRequest) {
         }));
 
 
-        // 4. Task KPIs (Global)
+        // 4. Task KPIs (Global/Team)
         const allTasks = await prisma.task.findMany({
+            where: {
+                OR: [
+                    targetUserIds ? { userId: { in: targetUserIds } } : {},
+                    targetProjectIds ? { projectId: { in: targetProjectIds } } : {}
+                ]
+            },
             select: { status: true, priority: true, deadline: true, createdAt: true, updatedAt: true }
         });
 
