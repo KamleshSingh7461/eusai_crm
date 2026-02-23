@@ -1,7 +1,8 @@
 import nodemailer from 'nodemailer';
 
 interface EmailPayload {
-    to: string;
+    to: string | string[];
+    cc?: string | string[];
     subject: string;
     html: string;
 }
@@ -29,7 +30,7 @@ const transporter = hasCredentials
     })
     : null;
 
-export async function sendEmail({ to, subject, html }: EmailPayload): Promise<boolean> {
+export async function sendEmail({ to, cc, subject, html }: EmailPayload): Promise<boolean> {
     const from = process.env.SMTP_USER
         ? `"EuSai Alert System" <${process.env.SMTP_USER}>`
         : '"EuSai Alert System" <alert@eusaiteam.com>';
@@ -39,7 +40,8 @@ export async function sendEmail({ to, subject, html }: EmailPayload): Promise<bo
       [MOCK EMAIL SERVICE]
       ---------------------------------------------------
       FROM: ${from}
-      TO: ${to}
+      TO: ${Array.isArray(to) ? to.join(', ') : to}
+      ${cc ? `CC: ${Array.isArray(cc) ? cc.join(', ') : cc}` : ''}
       SUBJECT: ${subject}
       ---------------------------------------------------
       BODY:
@@ -54,10 +56,11 @@ export async function sendEmail({ to, subject, html }: EmailPayload): Promise<bo
         await transporter.sendMail({
             from,
             to,
+            cc,
             subject,
             html,
         });
-        console.log(`[EMAIL SENT] To: ${to} | Subject: ${subject}`);
+        console.log(`[EMAIL SENT] To: ${Array.isArray(to) ? to.join(', ') : to} ${cc ? `| CC: ${Array.isArray(cc) ? cc.join(', ') : cc}` : ''} | Subject: ${subject}`);
         return true;
     } catch (error) {
         console.error('[EMAIL FAILED]', error);
