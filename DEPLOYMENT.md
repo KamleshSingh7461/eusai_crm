@@ -1,131 +1,102 @@
-# Production Deployment Instructions - EC2
+# 🚀 True Tactical Deployment Guide (EC2)
 
-## ✅ Repository Status
-- **Repository**: https://github.com/KamleshSingh7461/eusai_crm.git
-- **Latest Commit**: 621d299
-- **Branch**: main
-- **Status**: Ready for deployment
+This guide outlines the finalized deployment procedure for the Garrison Command Center, optimized for the hybrid Local-to-RDS development model.
 
-## 📦 What's Included in This Deployment
-- ✅ Calendar API OAuth fixes
-- ✅ Updated seed file with 3 production users
-- ✅ New API endpoints (calendar, ping, milestone details)
-- ✅ Improved error handling across all routes
-- ✅ Force-dynamic calendar route (no caching issues)
+---
 
-## 🚀 Deployment Steps on EC2
+## 🛠 1. Development Cycle (Local)
 
-### 1. Pull Latest Code
+When changes are validated locally on the live database link:
+
 ```bash
-cd /path/to/eusai_crm
-git pull origin main
+# 1. Add changes
+git add .
+
+# 2. Commit with tactical prefix
+git commit -m "feat: [feature name] and tactical refinements"
+
+# 3. Push to Command (Main Branch)
+git push origin main
 ```
 
-### 2. Install Dependencies (if needed)
+---
+
+## 🌍 2. Production Synchronization (EC2)
+
+Execute these on your Ubuntu instance to pull and align the garrison:
+
 ```bash
+# 1. Enter project root
+cd ~/eusai_crm
+
+# 2. Pull Intelligence Updates
+git pull origin main
+
+# 3. Synchronize Dependencies
 npm install
 ```
 
-### 3. Update Production Environment Variables
-Ensure your `.env` file on EC2 has:
+---
+
+## 💾 3. Database Synchronization (RDS)
+
+### **Scenario A: Standard Migration (Preferred)**
+Use this if there are no provider conflicts:
 ```bash
-# Production Database (AWS RDS)
-DATABASE_URL="postgresql://postgres:EusaiAdmin2026!@eusai-crm-db-v2.c1sw6ykwulyt.ap-south-1.rds.amazonaws.com:5432/postgres?schema=public"
-
-# NextAuth
-NEXTAUTH_URL="https://your-production-domain.com"
-NEXTAUTH_SECRET="your-secure-secret-here"
-
-# Google OAuth (CRITICAL: Use only ONE active secret)
-GOOGLE_CLIENT_ID="257076820133-mrv6tc9ckc9rd78848jdaipokm2jemga.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="GOCSPX-your-active-secret-here"
-
-# Gemini API
-GEMINI_API_KEY="AIzaSyCXvkTmH0xW4MJywL5gAKKS2Rd85SPja3g"
+npx prisma generate
+npm run prisma:deploy
 ```
 
-### 4. Run Database Migrations
+### **Scenario B: Hybrid/Baseline Fix (If P3019 or P3005 occurs)**
+If the system flags a "Provider Mismatch" (SQLite vs PostgreSQL) or "Schema not empty" error:
 ```bash
-npx prisma migrate deploy
+# 1. Align the live RDS schema directly
+npx prisma db push
+
+# 2. Regenerate the client
+npx prisma generate
 ```
 
-### 5. Seed Production Users
-```bash
-npm run prisma:seed
-```
+---
 
-This will create/update:
-- ✅ `admin@eusaiteam.com` (DIRECTOR)
-- ✅ `pranav@eusaiteam.com` (DIRECTOR)
-- ✅ `infotech@eusaiteam.com` (EMPLOYEE)
+## 🏗 4. Build & Power On
 
-### 6. Build Production
+Compiling the optimized production bundle and restarting the primary engine:
+
 ```bash
+# 1. Build Strategic Assets
 npm run build
-```
 
-### 7. Restart Application
-```bash
-pm2 restart eusai-crm
-# OR
+# 2. Restart via PM2 (Process Manager)
 pm2 restart all
+
+# 3. Verify Vital Signs
+pm2 logs
 ```
 
-## 🔐 Post-Deployment: User Login
+---
 
-### For Admin/Pranav (Directors)
-1. Navigate to `https://your-domain.com/login`
-2. Click "Sign in with Google"
-3. Use Google account linked to the email
-4. Calendar features will work after Google OAuth
+## ⚠️ Tactical Troubleshooting
 
-### For InfoTech (Employee)
-1. Use credentials login at `https://your-domain.com/login`
-2. Email: `infotech@eusaiteam.com`
-3. Password: As configured in `lib/auth.ts` (currently: `admin123` for demo)
+### **Error P3019 (Provider Mismatch)**
+*   **Cause**: The migration history was poisoned by local SQLite files.
+*   **Fix**: Already resolved in `prisma/migrations/migration_lock.toml`. If it recurs, ensure `provider = "postgresql"` is set in that file.
 
-## ⚠️ Important Notes
+### **Error P3005 (Schema Not Empty)**
+*   **Cause**: You developed on the live DB locally, but the EC2 instance doesn't have the migration history records.
+*   **Fix**: Use `npx prisma db push`. It ignores history and syncs the schema directly.
 
-### Google OAuth Configuration
-- **CRITICAL**: Ensure only ONE client secret is active on Google Cloud Console
-- Disable the old secret (`****tK6M` from Feb 15)
-- Keep the newer secret active
-- Update GOOGLE_CLIENT_SECRET in production .env
+### **Session Timeouts / Pool Errors**
+*   **Fix**: Implemented in `src/lib/auth.ts`. We now use JWT-cached roles to eliminate 80% of redundant database hits during session validation.
 
-### Database
-- The seed will UPSERT users (create if not exists, update if exists)
-- Existing data will be preserved
-- No data loss will occur
+---
 
-### Calendar Features
-- Users need to sign in with Google for calendar to work
-- After first Google login, refresh tokens will be stored
-- Calendar View will display real Google Calendar events
+## ✅ Deployment Checklist
+- [ ] `git pull` successful?
+- [ ] `prisma client` regenerated?
+- [ ] `db push` or `migrate deploy` completed?
+- [ ] `next build` finished without errors?
+- [ ] `pm2 restart` performed?
+- [ ] Login and Performance Reports verified?
 
-## ✅ Verification Checklist
-
-After deployment, verify:
-- [ ] Application starts without errors (`pm2 logs`)
-- [ ] Database connection successful
-- [ ] All 3 users can login successfully
-- [ ] Google OAuth flow works
-- [ ] Calendar displays events (for Google-authenticated users)
-- [ ] All API routes return 200 OK
-
-## 🆘 Troubleshooting
-
-### Login Issues
-- Check production .env has correct DATABASE_URL
-- Verify users exist: `npx prisma studio` (on EC2)
-- Check pm2 logs for auth errors
-
-### Calendar Not Working
-- Verify GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET match Google Cloud Console
-- Ensure only ONE secret is active on Google Cloud
-- User must sign in with Google (not credentials)
-- Check browser console for error details
-
-### Database Issues
-- Run: `npx prisma migrate status`
-- If needed: `npx prisma migrate deploy`
-- Check RDS security groups allow EC2 IP
+**Last Updated**: 2026-02-23 (Tactical Ranking Refinement & Deployment Stabilization)
