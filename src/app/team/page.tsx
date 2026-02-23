@@ -20,7 +20,9 @@ import {
     TrendingDown,
     Minus,
     PieChart,
-    Briefcase
+    Briefcase,
+    Send,
+    Edit2
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
@@ -136,6 +138,22 @@ export default function TeamPage() {
             }
         } catch (error) {
             showToast('Error updating user', 'error');
+        }
+    };
+
+    const handleResendInvite = async (userId: string) => {
+        try {
+            const res = await fetch(`/api/team/${userId}/invite`, {
+                method: 'POST'
+            });
+
+            if (res.ok) {
+                showToast('Invitation resent successfully', 'success');
+            } else {
+                showToast('Failed to resend invitation', 'error');
+            }
+        } catch (error) {
+            showToast('Error resending invitation', 'error');
         }
     };
 
@@ -427,12 +445,22 @@ export default function TeamPage() {
                                         </td>
                                         {['DIRECTOR', 'MANAGER'].includes(userRole) && (
                                             <td className="px-6 py-4 text-right">
-                                                <button
-                                                    onClick={() => openEditModal(user)}
-                                                    className="p-1.5 hover:bg-[var(--notion-bg-tertiary)] rounded-sm text-subheading transition-colors"
-                                                >
-                                                    <MoreVertical className="w-4 h-4" />
-                                                </button>
+                                                <div className="flex items-center justify-end gap-1">
+                                                    <button
+                                                        onClick={() => handleResendInvite(user.id)}
+                                                        className="p-1.5 hover:bg-[var(--notion-bg-tertiary)] rounded-sm text-subheading transition-colors"
+                                                        title="Resend Invitation"
+                                                    >
+                                                        <Send className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => openEditModal(user)}
+                                                        className="p-1.5 hover:bg-[var(--notion-bg-tertiary)] rounded-sm text-subheading transition-colors"
+                                                        title="Edit User"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </td>
                                         )}
                                     </tr>
