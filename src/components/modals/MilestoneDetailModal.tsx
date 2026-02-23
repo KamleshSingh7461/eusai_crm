@@ -14,11 +14,15 @@ import {
     Shield,
     FileText,
     ExternalLink,
-    Briefcase as WorkIcon
+    Briefcase as WorkIcon,
+    Trash2,
+    Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatusBadge } from '@/components/notion';
 import type { StatusType } from '@/components/notion/StatusBadge';
+import { useSession } from 'next-auth/react';
+import { useToast } from '@/context/ToastContext';
 
 interface Milestone {
     id: string;
@@ -49,11 +53,20 @@ interface Milestone {
 interface MilestoneDetailModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onDelete?: () => void;
     milestone: Milestone | null;
 }
 
-export default function MilestoneDetailModal({ isOpen, onClose, milestone }: MilestoneDetailModalProps) {
+export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milestone }: MilestoneDetailModalProps) {
+    const { data: session } = useSession();
+    const { showToast } = useToast();
+    const [isDeleting, setIsDeleting] = React.useState(false);
+
     if (!isOpen || !milestone) return null;
+
+    const userRole = (session?.user as any)?.role;
+    const userId = (session?.user as any)?.id;
+    const canDelete = userRole === 'DIRECTOR' || userRole === 'MANAGER' || milestone.owner === userId;
 
     const mapStatusForBadge = (status: string): StatusType => {
         switch (status) {
@@ -62,6 +75,27 @@ export default function MilestoneDetailModal({ isOpen, onClose, milestone }: Mil
             case 'PENDING': return 'not-started';
             case 'DELAYED': return 'under-review';
             default: return 'not-started';
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!confirm('Are you sure you want to decommission this strategic objective? This action is irreversible.')) return;
+
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/milestones?id=${milestone.id}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('Objective decommissioned successfully', 'success');
+                if (onDelete) onDelete();
+                onClose();
+            } else {
+                const data = await res.json();
+                showToast(data.error || 'Failed to delete objective', 'error');
+            }
+        } catch (error) {
+            showToast('Network error during deletion', 'error');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -283,7 +317,23 @@ export default function MilestoneDetailModal({ isOpen, onClose, milestone }: Mil
                 </div>
 
                 {/* Footer */}
-                <div className="px-8 py-6 border-t border-[rgba(255,255,255,0.08)] bg-gradient-to-b from-transparent to-[rgba(0,0,0,0.2)] shrink-0 flex justify-end">
+                <div className="px-8 py-6 border-t border-[rgba(255,255,255,0.08)] bg-gradient-to-b from-transparent to-[rgba(0,0,0,0.2)] shrink-0 flex items-center justify-between">
+                    <div className="flex gap-3">
+                        {canDelete && (
+                            <button
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                className="flex items-center gap-2 px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-red-500/20 active:scale-95 disabled:opacity-50"
+                            >
+                                {isDeleting ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                )}
+                                Decommission
+                            </button>
+                        )}
+                    </div>
                     <button
                         onClick={onClose}
                         className="px-8 py-2.5 bg-[#2f3437] hover:bg-[#3b4045] text-white rounded-lg text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-[rgba(255,255,255,0.05)] active:scale-95 shadow-lg"

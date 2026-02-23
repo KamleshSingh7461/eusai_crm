@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
             whereClause.OR = [
                 { owner: { in: allowedOwnerIds } },
                 { projectId: { in: allAssociatedProjectIds } },
-                { spaceId: { in: userWithSubordinates?.managedSpaces.map(s => s.id) || [] } }
+                { spaceId: { in: userWithSubordinates?.managedSpaces.map((s: any) => s.id) || [] } }
             ];
         }
     }
@@ -124,6 +124,7 @@ export async function POST(request: NextRequest) {
                     targetDate,
                     description,
                     ownerId,
+                    ownerIds,
                     projectId,
                     universityId,
                     mouType,
@@ -133,9 +134,14 @@ export async function POST(request: NextRequest) {
                     remarks
                 } = data;
 
+                // Normalize owners into an array
+                const targetOwnerIds: string[] = ownerIds && Array.isArray(ownerIds)
+                    ? ownerIds
+                    : ownerId ? [ownerId] : [userId];
+
                 // Hierarchy Validation: Managers/TLs can only assign to their subordinates
                 const actorId = userId;
-                if (ownerId && ownerId !== actorId && userRole !== 'DIRECTOR') {
+                if (targetOwnerIds.length > 0 && userRole !== 'DIRECTOR') {
                     const userWithSubordinates = await prisma.user.findUnique({
                         where: { id: actorId },
                         include: { reportingSubordinates: { select: { id: true } } }
@@ -143,52 +149,56 @@ export async function POST(request: NextRequest) {
 
                     const subordinateIds = userWithSubordinates?.reportingSubordinates?.map((s: any) => s.id) || [];
 
-                    if (!subordinateIds.includes(ownerId)) {
-                        throw new Error(`Forbidden: You cannot assign milestones to user ${ownerId}`);
+                    for (const targetId of targetOwnerIds) {
+                        if (targetId !== actorId && !subordinateIds.includes(targetId)) {
+                            throw new Error(`Forbidden: You cannot assign milestones to user ${targetId}`);
+                        }
                     }
                 }
 
-                const newMilestone = await tx.milestone.create({
-                    data: {
-                        title,
-                        category,
-                        priority,
-                        targetDate: new Date(targetDate),
-                        description,
-                        owner: ownerId || userId,
-                        projectId: projectId || null,
-                        universityId: universityId || null,
-                        mouType: mouType || null,
-                        status: 'PENDING',
-                        progress: 0,
-                        isFlagged: isFlagged || false,
-                        remarks: remarks || null,
-                        ...(category === 'BUSINESS_ORDER' && universityName ? {
-                            businessOrders: {
-                                create: {
-                                    title: `Order for ${universityName}`,
-                                    universityName,
-                                    orderType,
-                                    amount: 0,
-                                    universityId: universityId || 'MANUAL_ENTRY'
+                for (const targetId of targetOwnerIds) {
+                    const newMilestone = await tx.milestone.create({
+                        data: {
+                            title,
+                            category,
+                            priority,
+                            targetDate: new Date(targetDate),
+                            description,
+                            owner: targetId,
+                            projectId: projectId || null,
+                            universityId: universityId || null,
+                            mouType: mouType || null,
+                            status: 'PENDING',
+                            progress: 0,
+                            isFlagged: isFlagged || false,
+                            remarks: remarks || null,
+                            ...(category === 'BUSINESS_ORDER' && universityName ? {
+                                businessOrders: {
+                                    create: {
+                                        title: `Order for ${universityName}`,
+                                        universityName,
+                                        orderType,
+                                        amount: 0,
+                                        universityId: universityId || 'MANUAL_ENTRY'
+                                    }
                                 }
-                            }
-                        } : {})
-                    }
-                });
-
-                if (ownerId && ownerId !== userId) {
-                    await notifyHierarchy({
-                        actorId: userId,
-                        targetId: ownerId,
-                        action: 'Milestone Assigned',
-                        title: 'New Milestone Assigned',
-                        details: `Mission objective assigned: ${title}`,
-                        link: '/milestones'
+                            } : {})
+                        }
                     });
-                }
 
-                createdMilestones.push(newMilestone);
+                    if (targetId !== userId) {
+                        await notifyHierarchy({
+                            actorId: userId,
+                            targetId: targetId,
+                            action: 'Milestone Assigned',
+                            title: 'New Milestone Assigned',
+                            details: `Mission objective assigned: ${title}`,
+                            link: '/milestones'
+                        });
+                    }
+
+                    createdMilestones.push(newMilestone);
+                }
             }
             return createdMilestones;
         });
@@ -246,6 +256,48 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json(updatedMilestone);
     } catch (error: any) {
         console.error('Failed to update milestone:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+// DELETE /api/milestones - Delete milestone
+export async function DELETE(request: NextRequest) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'Milestone ID is required' }, { status: 400 });
+        }
+
+        const userRole = (session.user as any).role;
+        const userId = (session.user as any).id;
+
+        const milestone = await prisma.milestone.findUnique({
+            where: { id }
+        });
+
+        if (!milestone) {
+            return NextResponse.json({ error: 'Milestone not found' }, { status: 404 });
+        }
+
+        // Permission check: Director, Manager, or the Owner of the milestone
+        if (userRole !== 'DIRECTOR' && userRole !== 'MANAGER' && milestone.owner !== userId) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        await prisma.milestone.delete({
+            where: { id }
+        });
+
+        return NextResponse.json({ message: 'Milestone deleted successfully' });
+    } catch (error: any) {
+        console.error('Failed to delete milestone:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

@@ -32,20 +32,37 @@ export async function GET(request: NextRequest) {
                 tasks: {
                     select: { status: true, deadline: true, updatedAt: true }
                 },
+                milestones: {
+                    select: { status: true, targetDate: true, updatedAt: true }
+                },
                 _count: {
-                    select: { tasks: true }
+                    select: {
+                        tasks: true,
+                        milestones: true
+                    }
                 }
             }
         });
 
         const employeeKPIs = employees.map(emp => {
             const completedTasks = emp.tasks.filter(t => t.status === 'DONE');
-            const totalTasks = emp._count.tasks || 1;
-            const completionRate = Math.round((completedTasks.length / totalTasks) * 100);
+            const completedMilestones = emp.milestones.filter(m => m.status === 'COMPLETED');
+
+            const totalObjectivesCount = emp._count.tasks + emp._count.milestones;
+            const totalCompletedCount = completedTasks.length + completedMilestones.length;
+
+            // Avoid division by zero for rates while keeping actual count for load
+            const completionRate = totalObjectivesCount > 0
+                ? Math.round((totalCompletedCount / totalObjectivesCount) * 100)
+                : 0;
 
             const onTimeTasks = completedTasks.filter(t => new Date(t.updatedAt) <= new Date(t.deadline));
-            const onTimeRate = completedTasks.length > 0
-                ? Math.round((onTimeTasks.length / completedTasks.length) * 100)
+            const onTimeMilestones = completedMilestones.filter(m => m.targetDate && new Date(m.updatedAt) <= new Date(m.targetDate));
+
+            const totalOnTime = onTimeTasks.length + onTimeMilestones.length;
+
+            const onTimeRate = totalCompletedCount > 0
+                ? Math.round((totalOnTime / totalCompletedCount) * 100)
                 : 100;
 
             return {
@@ -55,7 +72,7 @@ export async function GET(request: NextRequest) {
                 department: emp.department || 'General',
                 completionRate,
                 onTimeRate,
-                activeCount: totalTasks - completedTasks.length
+                activeCount: totalObjectivesCount - totalCompletedCount
             };
         });
 
@@ -176,7 +193,10 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
             employees: {
                 avgCompletion: avgEmployeeCompletion,
-                topPerformers: employeeKPIs.sort((a, b) => b.completionRate - a.completionRate).slice(0, 5),
+                topPerformers: employeeKPIs
+                    .filter(emp => ['EMPLOYEE', 'INTERN'].includes(emp.role))
+                    .sort((a, b) => b.completionRate - a.completionRate)
+                    .slice(0, 5),
                 list: employeeKPIs
             },
             projects: {

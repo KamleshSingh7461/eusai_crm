@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 
 export async function PATCH(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
@@ -13,7 +13,7 @@ export async function PATCH(
     }
 
     const { role, id: userId } = session.user as any;
-    const taskId = params.id;
+    const { id: taskId } = await params;
 
     try {
         const body = await request.json();
@@ -125,7 +125,7 @@ export async function PATCH(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
@@ -140,8 +140,9 @@ export async function DELETE(
     }
 
     try {
+        const { id } = await params;
         await (prisma as any).task.delete({
-            where: { id: params.id }
+            where: { id: id }
         });
 
         return NextResponse.json({ success: true });

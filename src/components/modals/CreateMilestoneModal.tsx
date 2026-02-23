@@ -62,6 +62,8 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
         remarks: ''
     }]);
     const [ownerId, setOwnerId] = useState('');
+    const [ownerIds, setOwnerIds] = useState<string[]>([]);
+    const [isBulkMode, setIsBulkMode] = useState(false);
     const [projectId, setProjectId] = useState(defaultProjectId || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [users, setUsers] = useState<User[]>([]);
@@ -147,7 +149,8 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
             const submissionData = entries.map(entry => ({
                 ...entry,
                 targetDate: new Date(entry.targetDate).toISOString(),
-                ownerId: ownerId || undefined,
+                ownerId: isBulkMode ? undefined : (ownerId || undefined),
+                ownerIds: isBulkMode ? ownerIds : undefined,
                 projectId: projectId || undefined,
                 mouType: entry.category === 'MOU' ? entry.mouType : undefined,
                 universityName: entry.category === 'BUSINESS_ORDER' ? entry.universityName : undefined,
@@ -176,6 +179,8 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                     remarks: ''
                 }]);
                 setOwnerId('');
+                setOwnerIds([]);
+                setIsBulkMode(false);
                 setProjectId('');
                 onSuccess();
                 onClose();
@@ -224,13 +229,40 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                     {/* Global Settings */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-white/5 border border-white/10 rounded-2xl">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                Assign All To
-                            </label>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                    Assign All To
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsBulkMode(!isBulkMode)}
+                                    className="text-[9px] font-black text-[#0052CC] uppercase tracking-tighter hover:underline"
+                                >
+                                    {isBulkMode ? "Single Mode" : "Bulk Assign"}
+                                </button>
+                            </div>
+
                             {isLoadingUsers ? (
                                 <div className="h-11 flex items-center text-xs text-gray-500 gap-2">
                                     <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                    Synchronizing Member List...
+                                    Synchronizing...
+                                </div>
+                            ) : isBulkMode ? (
+                                <div className="w-full bg-white/5 border border-white/10 rounded-xl p-3 max-h-32 overflow-y-auto space-y-2 scrollbar-hide">
+                                    {[
+                                        ...(session?.user ? [{ id: (session.user as any).id, name: 'Assign to Me', role: 'Self' }] : []),
+                                        ...users.filter(u => u.id !== (session?.user as any)?.id)
+                                    ].map(u => (
+                                        <label key={u.id} className="flex items-center gap-3 cursor-pointer group">
+                                            <input
+                                                type="checkbox"
+                                                checked={ownerIds.includes(u.id)}
+                                                onChange={() => setOwnerIds(prev => prev.includes(u.id) ? prev.filter(i => i !== u.id) : [...prev, u.id])}
+                                                className="w-4 h-4 rounded border-white/10 bg-white/5 text-[#0052CC] focus:ring-0 transition-all"
+                                            />
+                                            <span className="text-xs font-medium text-gray-300 group-hover:text-white">{u.name || (u as any).email}</span>
+                                        </label>
+                                    ))}
                                 </div>
                             ) : (
                                 <select
@@ -240,9 +272,10 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
                                 >
                                     <option value="" className="bg-[#191919]">Select Assignee...</option>
-                                    {users.map(user => (
+                                    <option value={(session?.user as any)?.id} className="bg-[#191919]">Assign to Me</option>
+                                    {users.filter(u => u.id !== (session?.user as any)?.id).map(user => (
                                         <option key={user.id} value={user.id} className="bg-[#191919]">
-                                            {user.name || user.email} ({user.role})
+                                            {user.name || (user as any).email} ({user.role})
                                         </option>
                                     ))}
                                 </select>

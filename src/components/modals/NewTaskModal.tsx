@@ -23,6 +23,7 @@ const taskSchema = z.object({
     priority: z.string().min(1, 'Priority is required'),
     projectId: z.string().optional().or(z.literal('')),
     assignedToId: z.string().optional().or(z.literal('')),
+    assignedToIds: z.array(z.string()).optional(),
     status: z.string().optional().or(z.literal('')),
     category: z.string().min(1, 'Category is required')
 });
@@ -52,6 +53,8 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
     const [teamMembers, setTeamMembers] = useState<User[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoadingData, setIsLoadingData] = useState(false);
+    const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
+    const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
 
     const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<TaskFormValues>({
         resolver: zodResolver(taskSchema),
@@ -93,16 +96,28 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
         }
     }, [isOpen, session]);
 
-    const onSubmit = async (data: TaskFormValues) => {
+    const toggleAssignee = (id: string) => {
+        setSelectedAssignees(prev =>
+            prev.includes(id) ? prev.filter(uid => uid !== id) : [...prev, id]
+        );
+    };
+
+    const onSubmit = async (values: TaskFormValues) => {
         try {
+            const submitData = {
+                ...values,
+                assignedToIds: isMultiSelectMode ? selectedAssignees : (values.assignedToId ? [values.assignedToId] : [])
+            };
+
             const response = await fetch('/api/tasks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
+                body: JSON.stringify(submitData),
             });
 
             if (response.ok) {
                 reset();
+                setSelectedAssignees([]);
                 showToast('Task created successfully', 'success');
                 onTaskCreated();
                 onClose();
@@ -191,22 +206,51 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
 
                         {/* Assignee */}
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                <UserIcon className="w-3 h-3 text-purple-400" /> Assignee
-                            </label>
-                            <div className="relative">
-                                <select
-                                    {...register('assignedToId')}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
+                            <div className="flex items-center justify-between">
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                    <UserIcon className="w-3 h-3 text-purple-400" /> Assignees
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMultiSelectMode(!isMultiSelectMode)}
+                                    className="text-[9px] font-black text-[#0052CC] uppercase tracking-tighter hover:underline"
                                 >
-                                    <option value="" className="bg-[#191919]">Select Member...</option>
-                                    <option value={(session?.user as any)?.id} className="bg-[#191919]">Assign to Me</option>
-                                    {teamMembers.map(u => (
-                                        <option key={u.id} value={u.id} className="bg-[#191919]">{u.name} ({u.role})</option>
-                                    ))}
-                                </select>
-                                {errors.assignedToId && <p className="text-[10px] font-bold text-red-400 uppercase mt-1">{errors.assignedToId.message}</p>}
+                                    {isMultiSelectMode ? "Switch to Single" : "Bulk Assign"}
+                                </button>
                             </div>
+
+                            {isMultiSelectMode ? (
+                                <div className="w-full bg-white/5 border border-white/10 rounded-xl p-3 max-h-32 overflow-y-auto space-y-2 scrollbar-hide">
+                                    {[
+                                        ...(session?.user ? [{ id: (session.user as any).id, name: 'Assign to Me', role: 'Self' }] : []),
+                                        ...teamMembers.filter(u => u.id !== (session?.user as any)?.id)
+                                    ].map(u => (
+                                        <label key={u.id} className="flex items-center gap-3 cursor-pointer group">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedAssignees.includes(u.id)}
+                                                onChange={() => toggleAssignee(u.id)}
+                                                className="w-4 h-4 rounded border-white/10 bg-white/5 text-[#0052CC] focus:ring-0 focus:ring-offset-0 transition-all"
+                                            />
+                                            <span className="text-xs font-medium text-gray-300 group-hover:text-white transition-colors">{u.name}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="relative">
+                                    <select
+                                        {...register('assignedToId')}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
+                                    >
+                                        <option value="" className="bg-[#191919]">Select Member...</option>
+                                        <option value={(session?.user as any)?.id} className="bg-[#191919]">Assign to Me</option>
+                                        {teamMembers.filter(u => u.id !== (session?.user as any)?.id).map(u => (
+                                            <option key={u.id} value={u.id} className="bg-[#191919]">{u.name} ({u.role})</option>
+                                        ))}
+                                    </select>
+                                    {errors.assignedToId && <p className="text-[10px] font-bold text-red-400 uppercase mt-1">{errors.assignedToId.message}</p>}
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -257,8 +301,8 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
                                         type="button"
                                         onClick={() => setValue('priority', p.val)}
                                         className={`px-3 py-1 rounded-md text-[10px] font-bold uppercase border transition-all ${watch('priority') === p.val
-                                                ? `${p.color} ring-2 ring-white/10 scale-105 shadow-lg`
-                                                : 'bg-white/5 text-gray-500 border-white/5 hover:bg-white/10'
+                                            ? `${p.color} ring-2 ring-white/10 scale-105 shadow-lg`
+                                            : 'bg-white/5 text-gray-500 border-white/5 hover:bg-white/10'
                                             }`}
                                     >
                                         {p.label}

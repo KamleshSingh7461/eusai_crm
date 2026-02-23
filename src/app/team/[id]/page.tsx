@@ -47,6 +47,8 @@ interface UserDetails {
     weeklyReports: any[];
     tasks: any[];
     milestones: any[];
+    activeTasks: any[];
+    activeMilestones: any[];
     managedProjects: any[];
 }
 
@@ -100,14 +102,26 @@ export default function UserProfilePage() {
                     .filter((r: any) => r.performanceScore !== null)
                     .map((r: any) => r.performanceScore);
 
+                const totalMissions = data.tasks.length + data.milestones.length;
+                const completedMissions = data.tasks.filter((t: any) => t.status === 'DONE').length +
+                    data.milestones.filter((m: any) => m.status === 'COMPLETED').length;
+
+                const liveCompletionRate = totalMissions > 0
+                    ? Math.round((completedMissions / totalMissions) * 100)
+                    : 0;
+
                 const avgScore = weeklyScores.length > 0
                     ? Math.round(weeklyScores.reduce((a: number, b: number) => a + b, 0) / weeklyScores.length)
-                    : 0;
+                    : liveCompletionRate;
 
                 let trend: 'UP' | 'DOWN' | 'NEUTRAL' = 'NEUTRAL';
                 if (weeklyScores.length >= 2) {
                     if (weeklyScores[0] > weeklyScores[1]) trend = 'UP';
                     else if (weeklyScores[0] < weeklyScores[1]) trend = 'DOWN';
+                } else if (weeklyScores.length === 1) {
+                    // Compare single report to live data if available
+                    if (weeklyScores[0] > liveCompletionRate) trend = 'DOWN';
+                    else if (weeklyScores[0] < liveCompletionRate) trend = 'UP';
                 }
 
                 setUser({
@@ -202,30 +216,30 @@ export default function UserProfilePage() {
                         <ProfileMetricCard
                             icon={TrendingUp}
                             label="Efficacy Rating"
-                            value={`${user.performanceScore}%`}
+                            value={`${user.performanceScore || 0}%`}
                             color="green"
                             description={`${user.performanceTrend === 'UP' ? 'Trending Positive' : user.performanceTrend === 'DOWN' ? 'Delta Negative' : 'Stable'}`}
                         />
                         <ProfileMetricCard
                             icon={Award}
-                            label="Organizational Rank"
+                            label="Tactical Rank"
                             value={`#${user.rank || 'N/A'}`}
                             color="blue"
-                            description="Relative Performance"
+                            description="Garrison Standing"
                         />
                         <ProfileMetricCard
                             icon={Target}
                             label="Active Missions"
-                            value={user.tasks.length + user.milestones.length}
+                            value={(user as any).activeTasks.length + (user as any).activeMilestones.length}
                             color="purple"
                             description="Current Workload"
                         />
                         <ProfileMetricCard
                             icon={BriefcaseIcon}
-                            label="Managed Assets"
-                            value={user.managedProjects?.length || 0}
+                            label="Resource Yield"
+                            value={user.tasks.length + user.milestones.length}
                             color="yellow"
-                            description="Strategic Projects"
+                            description="Historical Total"
                         />
                     </div>
                 </div>
@@ -343,16 +357,19 @@ export default function UserProfilePage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-500">
                             <div className="space-y-6">
                                 <h4 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-2">Assigned Milestones</h4>
-                                {user.milestones.length === 0 ? (
+                                {user.activeMilestones.length === 0 ? (
                                     <p className="text-xs font-black text-white/10 uppercase italic p-6 border border-white/5 rounded-2xl">No critical milestones assigned</p>
                                 ) : (
-                                    user.milestones.map((ms: any) => (
+                                    user.activeMilestones.map((ms: any) => (
                                         <div key={ms.id} className="p-6 rounded-3xl bg-[#191919]/40 border border-white/5 hover:border-blue-500/30 transition-all">
                                             <div className="flex justify-between items-start mb-4">
                                                 <span className="text-[8px] font-black text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-sm uppercase tracking-widest">{ms.priority}</span>
-                                                <span className="text-[10px] font-black text-white/20 uppercase">{ms.progress}% Complete</span>
+                                                <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.1em]">{ms.progress}% Complete</span>
                                             </div>
-                                            <h5 className="text-sm font-black text-white mb-2">{ms.title}</h5>
+                                            <h5 className="text-sm font-black text-white mb-2 uppercase tracking-tight">{ms.title}</h5>
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em]">{ms.project?.name || 'GENERAL'}</span>
+                                            </div>
                                             <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
                                                 <div className="h-full bg-blue-500" style={{ width: `${ms.progress}%` }} />
                                             </div>
@@ -362,17 +379,17 @@ export default function UserProfilePage() {
                             </div>
                             <div className="space-y-6">
                                 <h4 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-2">Active Tasks</h4>
-                                {user.tasks.length === 0 ? (
+                                {user.activeTasks.length === 0 ? (
                                     <p className="text-xs font-black text-white/10 uppercase italic p-6 border border-white/5 rounded-2xl">Task buffer empty</p>
                                 ) : (
-                                    user.tasks.map((task: any) => (
+                                    user.activeTasks.map((task: any) => (
                                         <div key={task.id} className="p-6 rounded-3xl bg-[#191919]/40 border border-white/5 flex items-center justify-between group hover:bg-[#191919]/60 transition-all">
                                             <div>
-                                                <h5 className="text-sm font-black text-white group-hover:text-blue-400 transition-colors">{task.title}</h5>
-                                                <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mt-1">{task.project?.name || 'No Project'}</p>
+                                                <h5 className="text-sm font-black text-white group-hover:text-blue-400 transition-colors uppercase tracking-tight">{task.title}</h5>
+                                                <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mt-1.5">{task.project?.name || 'GENERAL'}</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-[9px] font-black text-white/40 uppercase">Deadline</p>
+                                                <p className="text-[9px] font-black text-white/40 uppercase tracking-widest">Deadline</p>
                                                 <p className="text-[10px] font-black text-white/60">{new Date(task.deadline).toLocaleDateString()}</p>
                                             </div>
                                         </div>

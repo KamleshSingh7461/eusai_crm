@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 // PATCH /api/milestones/[id] - Update milestone
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
@@ -16,7 +16,7 @@ export async function PATCH(
     try {
         const body = await request.json();
         const { status, progress, remarks, isFlagged, completionRemark, completionProof } = body;
-        const milestoneId = params.id;
+        const { id: milestoneId } = await params;
         const userRole = (session.user as any).role;
         const userId = (session.user as any).id;
 
@@ -104,7 +104,7 @@ export async function PATCH(
 // DELETE /api/milestones/[id] - Delete milestone
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
@@ -117,8 +117,9 @@ export async function DELETE(
     }
 
     try {
+        const { id } = await params;
         await (prisma as any).milestone.delete({
-            where: { id: params.id }
+            where: { id: id }
         });
         return NextResponse.json({ message: 'Milestone deleted' });
     } catch (error) {

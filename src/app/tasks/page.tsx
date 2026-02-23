@@ -26,7 +26,8 @@ import {
     AlertCircle,
     User as UserIcon,
     TrendingDown,
-    Shield
+    Shield,
+    Trash
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import NewTaskModal from '@/components/modals/NewTaskModal';
@@ -225,6 +226,26 @@ export default function TasksPage() {
             }
         } catch (error) {
             showToast('Strategic synchronization failure', 'error');
+        }
+    };
+
+    const handleDeleteTask = async (taskId: string) => {
+        if (!confirm('Are you sure you want to terminate this mission record? This action is irreversible.')) return;
+
+        try {
+            const res = await fetch(`/api/tasks?id=${taskId}`, {
+                method: 'DELETE',
+            });
+
+            if (res.ok) {
+                showToast('Mission record terminated successfully', 'success');
+                fetchData();
+            } else {
+                const data = await res.json();
+                showToast(data.error || 'Failed to terminate mission record', 'error');
+            }
+        } catch (error) {
+            showToast('Strategic communication failure', 'error');
         }
     };
 
@@ -578,6 +599,15 @@ export default function TasksPage() {
                                                                     <CheckCircle2 className="w-4 h-4" />
                                                                 </button>
                                                             )}
+                                                            {isManager && (
+                                                                <button
+                                                                    onClick={() => handleDeleteTask(t.id)}
+                                                                    className="p-2 hover:bg-red-500/20 text-red-400 rounded-md border border-transparent hover:border-red-500/30 transition-all active:scale-90"
+                                                                    title="Delete Task"
+                                                                >
+                                                                    <Trash className="w-4 h-4" />
+                                                                </button>
+                                                            )}
                                                             <button className="p-2 hover:bg-[rgba(255,255,255,0.05)] border border-transparent hover:border-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.3)] hover:text-white rounded-md transition-all">
                                                                 <MoreHorizontal className="w-4 h-4" />
                                                             </button>
@@ -640,6 +670,15 @@ export default function TasksPage() {
                                                             Complete Task
                                                         </button>
                                                     )}
+                                                    {isManager && (
+                                                        <button
+                                                            onClick={() => handleDeleteTask(t.id)}
+                                                            className="p-2 text-red-500/60 hover:text-red-500 transition-colors"
+                                                            title="Delete Task"
+                                                        >
+                                                            <Trash className="w-5 h-5" />
+                                                        </button>
+                                                    )}
                                                     <button className="p-2 text-[rgba(255,255,255,0.2)] hover:text-white transition-colors">
                                                         <MoreHorizontal className="w-5 h-5" />
                                                     </button>
@@ -664,6 +703,7 @@ export default function TasksPage() {
                 <TaskDetailModal
                     isOpen={!!selectedTaskForDetail}
                     onClose={() => setSelectedTaskForDetail(null)}
+                    onDelete={fetchData}
                     task={selectedTaskForDetail}
                 />
 

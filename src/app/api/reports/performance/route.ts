@@ -32,7 +32,10 @@ export async function GET(request: NextRequest) {
         const weeklyReports = await prisma.weeklyReport.findMany({
             where: {
                 weekStartDate: { gte: startDate, lte: endDate },
-                ...(targetUserIds ? { userId: { in: targetUserIds } } : {})
+                ...(targetUserIds ?
+                    { userId: { in: targetUserIds } } :
+                    { user: { role: { not: 'DIRECTOR' } } }
+                )
             },
             include: {
                 user: {

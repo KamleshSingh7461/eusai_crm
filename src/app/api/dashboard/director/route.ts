@@ -106,6 +106,7 @@ export async function GET() {
         });
 
         const topPerformers = userPerformance
+            .filter((u: any) => ['EMPLOYEE', 'INTERN'].includes(u.role))
             .sort((a: any, b: any) => b.completedCount - a.completedCount)
             .slice(0, 5)
             .map((u: any) => ({

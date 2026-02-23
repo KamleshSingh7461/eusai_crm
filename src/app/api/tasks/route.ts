@@ -119,11 +119,16 @@ export async function POST(request: Request) {
 
     try {
         const body = await request.json();
-        const { title, description, deadline, priority, projectId, assignedToId, status, category } = body;
+        const { title, description, deadline, priority, projectId, assignedToId, assignedToIds, status, category } = body;
         const actorId = (session.user as any).id;
 
+        // Normalize assignees into an array
+        const targetIds: string[] = assignedToIds && Array.isArray(assignedToIds)
+            ? assignedToIds
+            : assignedToId ? [assignedToId] : [];
+
         // 1. Hierarchy Validation if assigning to someone else
-        if (assignedToId && assignedToId !== actorId && role !== 'DIRECTOR') {
+        if (targetIds.length > 0 && role !== 'DIRECTOR') {
             const userWithSubordinates = await prisma.user.findUnique({
                 where: { id: actorId },
                 include: {
@@ -135,36 +140,46 @@ export async function POST(request: Request) {
 
             const subordinateIds = userWithSubordinates?.reportingSubordinates?.map((s: any) => s.id) || [];
 
-            if (!subordinateIds.includes(assignedToId)) {
-                return NextResponse.json({
-                    error: 'Forbidden',
-                    message: 'You can only assign tasks to your reporting subordinates.'
-                }, { status: 403 });
+            // Check each targetId
+            for (const targetId of targetIds) {
+                if (targetId !== actorId && !subordinateIds.includes(targetId)) {
+                    return NextResponse.json({
+                        error: 'Forbidden',
+                        message: `Access Denied: Sector personnel ${targetId} is outside your command hierarchy.`
+                    }, { status: 403 });
+                }
             }
         }
 
-        const newTask = await (prisma as any).task.create({
-            data: {
-                title,
-                description,
-                deadline: new Date(deadline),
-                priority: parseInt(priority) || 1,
-                projectId: projectId || null,
-                userId: assignedToId || null,
-                status: status || 'TODO',
-                category: category || 'CUSTOM'
-            }
-        });
+        const tasksToCreate = targetIds.length > 0 ? targetIds : [null];
+        const createdTasks = [];
 
-        if (assignedToId) {
-            await notifyHierarchy({
-                actorId: (session.user as any).id,
-                targetId: assignedToId,
-                action: 'Task Assigned',
-                title: 'New Mission Assigned',
-                details: `You have been assigned to task: ${title}`,
-                link: projectId ? `/projects/${projectId}` : '/tasks'
+        for (const targetId of tasksToCreate) {
+            const newTask = await (prisma as any).task.create({
+                data: {
+                    title,
+                    description,
+                    deadline: new Date(deadline),
+                    priority: parseInt(priority) || 1,
+                    projectId: projectId || null,
+                    userId: targetId,
+                    status: status || 'TODO',
+                    category: category || 'CUSTOM'
+                }
             });
+
+            createdTasks.push(newTask);
+
+            if (targetId) {
+                await notifyHierarchy({
+                    actorId: (session.user as any).id,
+                    targetId: targetId,
+                    action: 'Task Assigned',
+                    title: 'New Mission Assigned',
+                    details: `You have been assigned to task: ${title}`,
+                    link: projectId ? `/projects/${projectId}` : '/tasks'
+                });
+            }
         }
 
         if (projectId) {
@@ -173,12 +188,12 @@ export async function POST(request: Request) {
                     projectId,
                     userId: (session.user as any).id,
                     action: 'TASK_CREATED',
-                    metadata: { title, category: category || 'CUSTOM' }
+                    metadata: { title, category: category || 'CUSTOM', count: createdTasks.length }
                 }
             }).catch((err: any) => console.error("Failed to log activity:", err));
         }
 
-        return NextResponse.json(newTask);
+        return NextResponse.json(createdTasks.length === 1 ? createdTasks[0] : createdTasks);
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
@@ -237,6 +252,52 @@ export async function PATCH(request: Request) {
         }
 
         return NextResponse.json(updatedTask);
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: Request) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'Task ID is required' }, { status: 400 });
+        }
+
+        const { role } = session.user as any;
+        const actorId = (session.user as any).id;
+
+        // Fetch task to check ownership/permissions
+        const task = await (prisma as any).task.findUnique({
+            where: { id },
+            include: { project: true }
+        });
+
+        if (!task) {
+            return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+        }
+
+        // Permission check: Director, or Manager/Team Leader logic
+        // For now, let's allow Directors and Managers to delete any task,
+        // and users to delete their own tasks if they are managers of the project.
+        if (role !== 'DIRECTOR' && role !== 'MANAGER') {
+            // Check if user is the assignee OR the project manager
+            // For simplicity, sticking to role-based for now as a baseline
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+
+        await (prisma as any).task.delete({
+            where: { id }
+        });
+
+        return NextResponse.json({ message: 'Task deleted successfully' });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

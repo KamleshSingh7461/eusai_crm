@@ -13,11 +13,15 @@ import {
     Activity,
     FileText,
     Image as ImageIcon,
-    ExternalLink
+    ExternalLink,
+    Trash2,
+    Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatusBadge } from '@/components/notion';
 import type { StatusType } from '@/components/notion/StatusBadge';
+import { useSession } from 'next-auth/react';
+import { useToast } from '@/context/ToastContext';
 
 interface Task {
     id: string;
@@ -26,6 +30,7 @@ interface Task {
     deadline: string;
     status: string;
     priority: number;
+    userId?: string;
     project?: { id: string; name: string };
     assignedTo?: { id: string; name: string; role: string; email: string };
     updatedAt: string;
@@ -41,11 +46,20 @@ interface Task {
 interface TaskDetailModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onDelete?: () => void;
     task: Task | null;
 }
 
-export default function TaskDetailModal({ isOpen, onClose, task }: TaskDetailModalProps) {
+export default function TaskDetailModal({ isOpen, onClose, onDelete, task }: TaskDetailModalProps) {
+    const { data: session } = useSession();
+    const { showToast } = useToast();
+    const [isDeleting, setIsDeleting] = React.useState(false);
+
     if (!isOpen || !task) return null;
+
+    const userRole = (session?.user as any)?.role;
+    const userId = (session?.user as any)?.id;
+    const canDelete = userRole === 'DIRECTOR' || userRole === 'MANAGER' || task.userId === userId;
 
     const mapStatusForBadge = (status: string): StatusType => {
         switch (status) {
@@ -54,6 +68,27 @@ export default function TaskDetailModal({ isOpen, onClose, task }: TaskDetailMod
             case 'REVIEW': return 'under-review';
             case 'TODO': return 'not-started';
             default: return 'not-started';
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!confirm('Are you sure you want to decommission this strategic objective? This action is irreversible.')) return;
+
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/tasks?id=${task.id}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('Objective decommissioned successfully', 'success');
+                if (onDelete) onDelete();
+                onClose();
+            } else {
+                const data = await res.json();
+                showToast(data.error || 'Failed to delete objective', 'error');
+            }
+        } catch (error) {
+            showToast('Network error during deletion', 'error');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -69,7 +104,7 @@ export default function TaskDetailModal({ isOpen, onClose, task }: TaskDetailMod
                         <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg">
                             <CheckSquare className="w-5 h-5 text-white" />
                         </div>
-                        <h3 className="text-[11px] font-black text-white uppercase tracking-[0.25em]">Tactical Objective Details</h3>
+                        <h3 className="text-[11px] font-black text-white uppercase tracking-[0.25em]">Strategic Objective Details</h3>
                     </div>
                     <button
                         onClick={onClose}
@@ -92,7 +127,7 @@ export default function TaskDetailModal({ isOpen, onClose, task }: TaskDetailMod
                                         'bg-blue-500/10 text-blue-400 border-blue-500/20'
                             )}>
                                 <Activity className="w-3 h-3" />
-                                {task.priority === 3 ? 'Priority: High' : task.priority === 2 ? 'Priority: Medium' : 'Priority: Low'}
+                                {task.priority === 3 ? 'Priority: Critical' : task.priority === 2 ? 'Priority: High' : 'Priority: Standard'}
                             </div>
                         </div>
                         <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter leading-tight">
@@ -160,7 +195,7 @@ export default function TaskDetailModal({ isOpen, onClose, task }: TaskDetailMod
                     {/* Description */}
                     <div className="space-y-3">
                         <span className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.25em] flex items-center gap-2">
-                            <Target className="w-3 h-3" />
+                            <Target className="w-3 h-3 text-[#0052CC]" />
                             Operational Briefing
                         </span>
                         <div className="bg-[#141414] border border-[rgba(255,255,255,0.05)] rounded-xl p-6 shadow-inner text-sm text-[rgba(255,255,255,0.85)] leading-relaxed whitespace-pre-wrap font-medium tracking-tight">
@@ -168,7 +203,7 @@ export default function TaskDetailModal({ isOpen, onClose, task }: TaskDetailMod
                         </div>
                     </div>
 
-                    {/* Mission Evidence & Audit Trail (Comments) */}
+                    {/* Mission Evidence ... */}
                     {task.comments && task.comments.length > 0 && (
                         <div className="space-y-4 pt-4 border-t border-[rgba(255,255,255,0.05)]">
                             <span className="text-[9px] font-black text-[#10B981] uppercase tracking-[0.25em] flex items-center gap-2">
@@ -238,7 +273,23 @@ export default function TaskDetailModal({ isOpen, onClose, task }: TaskDetailMod
                 </div>
 
                 {/* Footer */}
-                <div className="px-8 py-6 border-t border-[rgba(255,255,255,0.08)] bg-gradient-to-b from-transparent to-[rgba(0,0,0,0.2)] shrink-0 flex justify-end">
+                <div className="px-8 py-6 border-t border-[rgba(255,255,255,0.08)] bg-gradient-to-b from-transparent to-[rgba(0,0,0,0.2)] shrink-0 flex items-center justify-between">
+                    <div className="flex gap-3">
+                        {canDelete && (
+                            <button
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                className="flex items-center gap-2 px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-red-500/20 active:scale-95 disabled:opacity-50"
+                            >
+                                {isDeleting ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                )}
+                                Decommission
+                            </button>
+                        )}
+                    </div>
                     <button
                         onClick={onClose}
                         className="px-8 py-2.5 bg-[#2f3437] hover:bg-[#3b4045] text-white rounded-lg text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-[rgba(255,255,255,0.05)] active:scale-95 shadow-lg"

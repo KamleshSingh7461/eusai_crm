@@ -324,7 +324,7 @@ export default function ReportsPage() {
                                     <th className="pb-2 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase">Role / Dept</th>
                                     <th className="pb-2 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase text-center">Efficiency</th>
                                     <th className="pb-2 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase text-center">On-Time Rate</th>
-                                    <th className="pb-2 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase text-center">Active Load</th>
+                                    <th className="pb-2 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase text-center">Active Objectives</th>
                                     <th className="pb-2 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase text-right">Actions</th>
                                 </tr>
                             </thead>
@@ -358,7 +358,7 @@ export default function ReportsPage() {
                                             <span className="text-sm font-mono text-[var(--notion-text-secondary)]">{emp.onTimeRate}%</span>
                                         </td>
                                         <td className="py-3 text-center">
-                                            <span className="text-xs font-bold text-[var(--notion-text-secondary)]">{emp.activeCount} Tasks</span>
+                                            <span className="text-xs font-bold text-[var(--notion-text-secondary)]">{emp.activeCount} Objectives</span>
                                         </td>
                                         <td className="py-3 text-right">
                                             <Link

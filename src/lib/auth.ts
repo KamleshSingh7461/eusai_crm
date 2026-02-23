@@ -118,29 +118,11 @@ export const authOptions: NextAuthOptions = {
         async session({ session, token }: any) {
             if (session.user && token.id) {
                 (session.user as any).id = token.id;
+                (session.user as any).role = token.role || "EMPLOYEE";
+                (session.user as any).managerIds = token.managerIds || [];
                 (session as any).accessToken = token.accessToken;
                 if (token.picture) {
                     session.user.image = token.picture;
-                }
-
-                try {
-                    const user = await prisma.user.findUnique({
-                        where: { id: token.id },
-                        select: {
-                            role: true,
-                            reportingManagers: { select: { id: true } },
-                            image: true
-                        }
-                    });
-                    (session.user as any).role = user?.role || "EMPLOYEE";
-                    (session.user as any).managerIds = user?.reportingManagers?.map(m => m.id) || [];
-                    // If no token picture (e.g. credentials login), fallback to DB image
-                    if (!session.user.image && user?.image) {
-                        session.user.image = user.image;
-                    }
-                } catch (error) {
-                    console.error("🔴 Error fetching user role:", error);
-                    (session.user as any).role = "EMPLOYEE";
                 }
             }
             return session;

@@ -3,10 +3,10 @@ import prisma from '@/lib/prisma';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const userId = params.id;
+        const { id: userId } = await params;
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
@@ -41,26 +41,22 @@ export async function GET(
                     take: 12
                 },
                 tasks: {
-                    where: { status: { not: 'DONE' } },
-                    include: {
-                        project: {
-                            select: { id: true, name: true }
-                        }
-                    }
+                    select: { id: true, title: true, status: true, deadline: true, updatedAt: true, project: { select: { name: true } } }
                 },
                 milestones: {
-                    where: { status: { not: 'COMPLETED' } },
-                    include: {
-                        project: {
-                            select: { id: true, name: true }
-                        }
-                    }
+                    select: { id: true, title: true, status: true, targetDate: true, updatedAt: true, project: { select: { name: true } } }
                 },
                 managedProjects: {
                     select: {
                         id: true,
                         name: true,
                         status: true
+                    }
+                },
+                _count: {
+                    select: {
+                        tasks: true,
+                        milestones: true
                     }
                 }
             }
@@ -73,7 +69,40 @@ export async function GET(
             );
         }
 
-        return NextResponse.json(user);
+        // Calculate Ranking (Provisional Logic)
+        const allUsers = await prisma.user.findMany({
+            where: {
+                role: {
+                    notIn: ['DIRECTOR', 'MANAGER', 'TEAM_LEADER']
+                }
+            },
+            include: {
+                _count: {
+                    select: {
+                        tasks: { where: { status: 'DONE' } },
+                        milestones: { where: { status: 'COMPLETED' } }
+                    }
+                }
+            }
+        });
+
+        const userScores = allUsers.map(u => ({
+            id: u.id,
+            totalDone: u._count.tasks + u._count.milestones
+        })).sort((a, b) => b.totalDone - a.totalDone);
+
+        const rank = userScores.findIndex(s => s.id === userId) + 1;
+
+        // Add calculated fields to response
+        const enhancedUser = {
+            ...user,
+            rank: rank > 0 ? rank : null,
+            // Only include non-done items in the list to match frontend "Active missions" filter but keep counts accurate
+            activeTasks: user.tasks.filter(t => t.status !== 'DONE'),
+            activeMilestones: user.milestones.filter(m => m.status !== 'COMPLETED'),
+        };
+
+        return NextResponse.json(enhancedUser);
     } catch (error) {
         console.error('Failed to fetch user:', error);
         return NextResponse.json(

@@ -689,6 +689,7 @@ export default function MilestonesPage() {
                 <MilestoneDetailModal
                     isOpen={!!selectedMilestoneForDetail}
                     onClose={() => setSelectedMilestoneForDetail(null)}
+                    onDelete={fetchMilestones}
                     milestone={selectedMilestoneForDetail}
                 />
 

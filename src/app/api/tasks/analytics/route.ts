@@ -105,27 +105,31 @@ export async function GET(request: Request) {
                 highPriorityTasks++;
             }
 
-            // User performance
+            // User performance - only for operational roles
             const assigneeId = task.userId || 'unassigned';
             const assigneeName = task.assignedTo?.name || 'Unassigned';
-            if (!userPerformance[assigneeId]) {
-                userPerformance[assigneeId] = {
-                    id: assigneeId,
-                    name: assigneeName,
-                    role: task.assignedTo?.role || 'N/A',
-                    total: 0,
-                    completed: 0,
-                    overdue: 0,
-                    highPriority: 0
-                };
-            }
-            userPerformance[assigneeId].total++;
-            if (task.status === 'DONE') userPerformance[assigneeId].completed++;
-            if (task.deadline && new Date(task.deadline) < now && task.status !== 'DONE') {
-                userPerformance[assigneeId].overdue++;
-            }
-            if (task.priority === 3 && task.status !== 'DONE') {
-                userPerformance[assigneeId].highPriority++;
+            const assigneeRoleForPerformance = task.assignedTo?.role || 'N/A';
+
+            if (['EMPLOYEE', 'INTERN'].includes(assigneeRoleForPerformance)) {
+                if (!userPerformance[assigneeId]) {
+                    userPerformance[assigneeId] = {
+                        id: assigneeId,
+                        name: assigneeName,
+                        role: assigneeRoleForPerformance,
+                        total: 0,
+                        completed: 0,
+                        overdue: 0,
+                        highPriority: 0
+                    };
+                }
+                userPerformance[assigneeId].total++;
+                if (task.status === 'DONE') userPerformance[assigneeId].completed++;
+                if (task.deadline && new Date(task.deadline) < now && task.status !== 'DONE') {
+                    userPerformance[assigneeId].overdue++;
+                }
+                if (task.priority === 3 && task.status !== 'DONE') {
+                    userPerformance[assigneeId].highPriority++;
+                }
             }
         });
 

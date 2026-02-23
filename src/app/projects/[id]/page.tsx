@@ -553,12 +553,14 @@ export default function ProjectDetailPage() {
             <TaskDetailModal
                 isOpen={showTaskDetail}
                 onClose={() => setShowTaskDetail(false)}
+                onDelete={fetchProjectDetails}
                 task={selectedTask}
             />
 
             <MilestoneDetailModal
                 isOpen={showMilestoneDetail}
                 onClose={() => setShowMilestoneDetail(false)}
+                onDelete={fetchProjectDetails}
                 milestone={selectedMilestone}
             />
         </div>
