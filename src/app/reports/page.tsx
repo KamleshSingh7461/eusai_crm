@@ -66,14 +66,16 @@ export default function ReportsPage() {
     const userRole = session?.user?.role || '';
     const isDirector = userRole === 'DIRECTOR';
     const isManager = userRole === 'MANAGER';
+    const isTeamLeader = userRole === 'TEAM_LEADER';
+    const isLeadership = isDirector || isManager || isTeamLeader;
 
-    const [activeTab, setActiveTab] = useState<'MY' | 'TEAM' | 'RESOURCES' | 'KPI'>('MY');
+    const [activeTab, setActiveTab] = useState<'MY' | 'TEAM' | 'RESOURCES' | 'KPI'>(
+        isDirector || isManager ? 'KPI' : 'MY'
+    );
 
     useEffect(() => {
-        if (isDirector) {
-            setActiveTab('KPI');
-        }
-    }, [isDirector]);
+        // Initial load default is already handled in useState
+    }, [isDirector, isManager]);
 
     const [reports, setReports] = useState<DailyReport[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -478,7 +480,7 @@ export default function ReportsPage() {
 
             {/* Filter Tabs */}
             <div className="flex items-center gap-6 md:gap-8 border-b border-[var(--notion-border-default)] overflow-x-auto no-scrollbar">
-                {!isDirector && (
+                {(!isDirector && !isManager) && (
                     <button
                         onClick={() => setActiveTab('MY')}
                         className={cn(
@@ -489,7 +491,7 @@ export default function ReportsPage() {
                         Personnel Logs
                     </button>
                 )}
-                {(isManager || isDirector) && (
+                {(isLeadership) && (
                     <>
                         {(isDirector || isManager) && (
                             <button
