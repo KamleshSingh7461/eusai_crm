@@ -60,7 +60,8 @@ export default function SubmitReportPage() {
                 setTomorrowPlan('');
                 router.push('/reports');
             } else {
-                showToast('Uplink failed: Unable to submit report', 'error');
+                const data = await response.json().catch(() => ({}));
+                showToast(`Uplink failed: ${data.message || 'Unable to submit report'}`, 'error');
             }
         } catch (error) {
             showToast('Transmission error: Check network connection', 'error');

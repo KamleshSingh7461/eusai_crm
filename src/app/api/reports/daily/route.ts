@@ -140,11 +140,14 @@ export async function POST(request: NextRequest) {
             projectId
         } = body;
 
-        // 1. Time Window Validation (6-8 PM check)
+        // 1. Time Window Validation (6-8 PM check in IST)
         const now = new Date();
-        const hour = now.getHours();
+        const istTimeOptions: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Kolkata', hour: '2-digit', hour12: false };
+        const istHourStr = new Intl.DateTimeFormat('en-US', istTimeOptions).format(now);
+        let hour = parseInt(istHourStr, 10);
+        if (hour === 24) hour = 0; // standardizing midnight
 
-        // Check if between 18:00 (inclusive) and 20:00 (exclusive)
+        // Check if between 18:00 (inclusive) and 20:00 (exclusive) in IST
         const isWithinWindow = hour >= 18 && hour < 20;
 
         // For debugging/emergency, we could check for a "force" flag from directors
