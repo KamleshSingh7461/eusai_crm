@@ -3,6 +3,7 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
@@ -15,11 +16,27 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
-                if (credentials?.email === "admin@eusaiteam.com" && credentials?.password === "admin123") {
+                if (!credentials?.email || !credentials?.password) {
+                    return null;
+                }
+
+                // Real DB Lookup
+                const user = await prisma.user.findUnique({
+                    where: { email: credentials.email.toLowerCase() }
+                });
+
+                if (user && user.password) {
+                    const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+                    if (isPasswordValid) {
+                        return user as any;
+                    }
+                }
+
+                // Hardcoded fallback for initial admin
+                if (credentials.email === "admin@eusaiteam.com" && credentials.password === "admin123") {
                     const email = credentials.email;
-                    // find or create the user in the database
                     // @ts-ignore
-                    const user = await prisma.user.upsert({
+                    const adminUser = await prisma.user.upsert({
                         where: { email },
                         update: {},
                         create: {
@@ -28,8 +45,9 @@ export const authOptions: NextAuthOptions = {
                             role: "DIRECTOR",
                         }
                     });
-                    return user as any;
+                    return adminUser as any;
                 }
+
                 return null;
             }
         }),
