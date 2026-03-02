@@ -166,6 +166,17 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model OTPToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String
+  type      String   @default("RESET") // RESET, SETUP
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
 model Space {
   id          String      @id @default(uuid())
   name        String

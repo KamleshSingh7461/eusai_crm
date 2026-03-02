@@ -17,7 +17,6 @@
     "@prisma/client": "5.10.2",
     "@sendgrid/mail": "^8.1.6",
     "@tailwindcss/postcss": "^4",
-    "@types/nodemailer": "^7.0.9",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -45,6 +44,7 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
+    "@types/nodemailer": "^7.0.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

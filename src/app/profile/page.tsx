@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { User, Mail, Shield, LogOut, Save } from 'lucide-react';
+import { User, Mail, Shield, LogOut, Save, Lock } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 export default function ProfilePage() {
@@ -13,6 +13,11 @@ export default function ProfilePage() {
     const [email, setEmail] = useState('');
     const [role, setRole] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+
+    // Security Credentials State
+    const [newPassword, setNewPassword] = useState('');
+    const [isSettingPassword, setIsSettingPassword] = useState(false);
+    const [passwordMessage, setPasswordMessage] = useState({ text: '', type: '' });
 
     useEffect(() => {
         if (session?.user) {
@@ -32,6 +37,36 @@ export default function ProfilePage() {
             });
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleSetupPassword = async () => {
+        if (newPassword.length < 6) {
+            setPasswordMessage({ text: 'Security Key must be at least 6 characters long.', type: 'error' });
+            return;
+        }
+
+        setIsSettingPassword(true);
+        setPasswordMessage({ text: '', type: '' });
+
+        try {
+            const res = await fetch('/api/auth/password/setup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newPassword }),
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                setPasswordMessage({ text: 'Tactical Credentials established successfully.', type: 'success' });
+                setNewPassword(''); // Clear the field
+            } else {
+                setPasswordMessage({ text: data.error || 'Failed to setup credentials.', type: 'error' });
+            }
+        } catch (error) {
+            setPasswordMessage({ text: 'A network error occurred.', type: 'error' });
+        } finally {
+            setIsSettingPassword(false);
         }
     };
 
@@ -108,7 +143,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-end pt-4">
+                <div className="flex justify-end pt-4 pb-6 border-b border-[#DFE1E6]">
                     <Button
                         variant="primary"
                         leftIcon={<Save className="w-4 h-4" />}
@@ -117,6 +152,41 @@ export default function ProfilePage() {
                     >
                         Save Changes
                     </Button>
+                </div>
+
+                {/* Security Credentials Section */}
+                <div className="pt-4 space-y-4">
+                    <h3 className="font-bold text-[#172B4D] mb-1 flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-[#0052CC]" />
+                        Credentials Configuration
+                    </h3>
+                    <p className="text-sm text-[#6B778C] mb-4">Set a Tactical Security Key to bypass external provider requirements (Google). This allows local email-based authentication.</p>
+
+                    <div className="flex items-end gap-4 max-w-md">
+                        <div className="flex-1">
+                            <Input
+                                label="New Security Key"
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                leftIcon={<Lock className="w-4 h-4" />}
+                                placeholder="••••••••"
+                            />
+                        </div>
+                        <Button
+                            variant="secondary"
+                            onClick={handleSetupPassword}
+                            isLoading={isSettingPassword}
+                        >
+                            Establish Key
+                        </Button>
+                    </div>
+
+                    {passwordMessage.text && (
+                        <div className={`p-3 rounded-lg text-sm border flex items-center gap-2 ${passwordMessage.type === 'success' ? 'bg-[#E3FCEF] border-[#36B37E]/20 text-[#006644]' : 'bg-[#FFEBE6] border-[#FF5630]/20 text-[#BF2600]'}`}>
+                            <Shield className="w-4 h-4 shrink-0" /> {passwordMessage.text}
+                        </div>
+                    )}
                 </div>
             </div>
 
