@@ -106,9 +106,10 @@ const PIE_COLORS = [COLORS.blue, COLORS.green, COLORS.yellow, COLORS.red, COLORS
 export default function DirectorDashboard() {
     const router = useRouter();
     const [data, setData] = useState<DirectorData | null>(null);
+    const [activityData, setActivityData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeSection, setActiveSection] = useState<'overview' | 'team' | 'projects'>('overview');
+    const [activeSection, setActiveSection] = useState<'overview' | 'team' | 'projects' | 'activity'>('overview');
 
     // Profile Modal State - Deprecated for new profile page
     // const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
@@ -117,13 +118,22 @@ export default function DirectorDashboard() {
     useEffect(() => {
         const fetchDirectorData = async () => {
             try {
-                const response = await fetch('/api/dashboard/director');
+                const [response, activityResponse] = await Promise.all([
+                    fetch('/api/dashboard/director'),
+                    fetch('/api/users/activity')
+                ]);
+
                 if (response.ok) {
                     const result = await response.json();
                     setData(result);
                 } else {
                     const err = await response.json();
                     setError(err.details || err.error || "Failed to load data");
+                }
+
+                if (activityResponse.ok) {
+                    const actResult = await activityResponse.json();
+                    setActivityData(actResult.activity || []);
                 }
             } catch (error: any) {
                 console.error("Failed to fetch director dashboard data:", error);
@@ -202,6 +212,7 @@ export default function DirectorDashboard() {
                     { id: 'overview', label: 'Organization Pulse', icon: Globe },
                     { id: 'team', label: `Staff Analytics (${employees.length})`, icon: Users },
                     { id: 'projects', label: `Project Portfolio (${projects.length})`, icon: Briefcase },
+                    { id: 'activity', label: 'Timestamp Activity', icon: Clock },
                 ].map((tab) => (
                     <button
                         key={tab.id}
@@ -587,6 +598,112 @@ export default function DirectorDashboard() {
                                             <td colSpan={6} className="px-8 py-20 text-center">
                                                 <Briefcase className="w-16 h-16 text-white/5 mx-auto mb-4" />
                                                 <p className="text-sm text-[rgba(255,255,255,0.3)] font-bold uppercase tracking-widest">No active project missions</p>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* Timestamp Activity Tab Content */}
+                {activeSection === 'activity' && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                                    <Clock className="w-5 h-5 text-blue-400" />
+                                    Real-Time Presence Tracker
+                                </h2>
+                                <p className="text-xs text-[rgba(255,255,255,0.5)] font-medium mt-1">Live monitoring of staff session connections and last seen timestamps.</p>
+                            </div>
+                            <div className="flex items-center gap-4 bg-white/5 py-2 px-4 rounded-xl border border-white/10">
+                                <div className="text-center">
+                                    <div className="text-sm font-black text-green-400">{activityData.filter(u => u.isOnline).length}</div>
+                                    <div className="text-[9px] uppercase font-bold text-white/40 tracking-widest">Online Now</div>
+                                </div>
+                                <div className="w-px h-6 bg-white/10" />
+                                <div className="text-center">
+                                    <div className="text-sm font-black text-white">{activityData.length}</div>
+                                    <div className="text-[9px] uppercase font-bold text-white/40 tracking-widest">Total Staff</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-[#191919]/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/2 to-transparent pointer-events-none" />
+                            <table className="w-full text-left border-collapse relative z-10">
+                                <thead>
+                                    <tr className="bg-white/2 border-b border-white/10">
+                                        <th className="px-8 py-6 text-[10px] font-black text-[rgba(255,255,255,0.4)] uppercase tracking-widest">Personnel</th>
+                                        <th className="px-8 py-6 text-[10px] font-black text-[rgba(255,255,255,0.4)] uppercase tracking-widest">Role</th>
+                                        <th className="px-8 py-6 text-[10px] font-black text-[rgba(255,255,255,0.4)] uppercase tracking-widest">Live Status</th>
+                                        <th className="px-8 py-6 text-[10px] font-black text-[rgba(255,255,255,0.4)] uppercase tracking-widest">Last Auth Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5">
+                                    {activityData.map((user: any) => (
+                                        <tr key={user.id} className="hover:bg-white/[0.03] transition-all group">
+                                            <td className="px-8 py-6">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#1D2125] flex items-center justify-center text-white font-bold overflow-hidden border border-white/10 shadow-lg relative">
+                                                        <Avatar src={user.image} alt={user.name} fallback={user.name.charAt(0)} className="w-full h-full object-cover" />
+                                                        <div className={cn(
+                                                            "absolute bottom-0.5 right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#101214] shadow-[0_0_5px_rgba(0,0,0,0.5)]",
+                                                            user.isOnline ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-gray-500"
+                                                        )} />
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-bold text-white group-hover:text-blue-400 transition-colors text-sm tracking-tight">{user.name}</div>
+                                                        <div className="text-[10px] text-[rgba(255,255,255,0.4)] font-medium mt-0.5">{user.email}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <span className="text-[10px] font-bold text-[rgba(255,255,255,0.6)] uppercase tracking-widest border border-white/10 bg-white/5 px-2 py-1 rounded-md">
+                                                    {user.role}
+                                                </span>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                {user.isOnline ? (
+                                                    <div className="flex flex-col items-start gap-1">
+                                                        <span className="px-3 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded-md text-[9px] font-black uppercase tracking-widest animate-pulse flex items-center gap-1.5 flex-nowrap shrink-0 max-w-min">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+                                                            SESSION_ACTIVE
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col items-start gap-1">
+                                                        <span className="px-3 py-1 bg-white/5 text-white/50 border border-white/10 rounded-md text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 flex-nowrap shrink-0 max-w-min">
+                                                            OFFLINE
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                {user.lastLogin ? (
+                                                    <div className="flex flex-col">
+                                                        <div className="font-mono text-xs font-bold text-white/90">
+                                                            {new Date(user.lastLogin).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                        </div>
+                                                        <div className="font-mono text-[10px] text-[#2383e2] font-black tracking-widest mt-1">
+                                                            {new Date(user.lastLogin).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-[10px] font-black uppercase text-red-400/70 tracking-widest px-2 py-1 bg-red-500/5 rounded-md border border-red-500/10 max-w-max">
+                                                        NO_AUTH_RECORD
+                                                    </div>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {activityData.length === 0 && (
+                                        <tr>
+                                            <td colSpan={4} className="px-8 py-20 text-center">
+                                                <Activity className="w-16 h-16 text-white/5 mx-auto mb-4" />
+                                                <p className="text-sm text-[rgba(255,255,255,0.3)] font-bold uppercase tracking-widest">No activity data found.</p>
                                             </td>
                                         </tr>
                                     )}

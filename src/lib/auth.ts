@@ -52,10 +52,26 @@ export const authOptions: NextAuthOptions = {
     },
     session: {
         strategy: "jwt",
+        maxAge: 24 * 60 * 60, // 24 hours expiration 
     },
     callbacks: {
         async signIn({ user, account, profile }: any) {
             console.log("🔵 SignIn Callback:", { user, account, profile });
+
+            // Track Last Login
+            if (user?.id) {
+                try {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: {
+                            lastLogin: new Date(),
+                            isOnline: true
+                        }
+                    });
+                } catch (e) {
+                    console.error("🔴 Failed to update lastLogin:", e);
+                }
+            }
 
             if (account && account.provider === 'google') {
                 try {

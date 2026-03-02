@@ -55,6 +55,10 @@ model User {
   organizedMeetings Meeting[] @relation("OrganizedMeetings")
   meetingAttendance Meeting[] @relation("MeetingAttendees")
 
+  // Activity & Session Tracking
+  lastLogin DateTime?
+  isOnline  Boolean   @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
