@@ -572,7 +572,7 @@ export default function TeamPage() {
                                                 );
                                             })()}
                                         </div>
-                                    </div>   </div>
+                                    </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
