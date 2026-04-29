@@ -21,26 +21,26 @@ export async function GET(request: NextRequest) {
     try {
         let whereClause: any = {};
 
-        const currentUser = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { department: true }
-        });
-
         if (startRole === 'TEAM_LEADER') {
-            // For TLs, only show their direct reports
             whereClause = { reportingManagers: { some: { id: userId } } };
         } else if (startRole === 'MANAGER') {
-            // For Managers, show their subordinates OR people in the same department
+            // Manager sees users who are members of their managed spaces OR their direct reports
+            const managedSpaces = await prisma.space.findMany({
+                where: { managerId: userId },
+                include: { members: { select: { id: true } } }
+            });
+            const spaceMemberIds = managedSpaces.flatMap((s: any) => s.members.map((m: any) => m.id));
             whereClause = {
                 OR: [
                     { reportingManagers: { some: { id: userId } } },
-                    { department: currentUser?.department }
+                    { memberSpaces: { some: { managerId: userId } } },
+                    ...(spaceMemberIds.length > 0 ? [{ id: { in: spaceMemberIds } }] : [])
                 ]
             };
         }
         // DIRECTOR: See all (empty whereClause)
 
-        const users = await prisma.user.findMany({
+        const users = await (prisma as any).user.findMany({
             where: whereClause,
             select: {
                 id: true,
@@ -49,39 +49,29 @@ export async function GET(request: NextRequest) {
                 role: true,
                 department: true,
                 image: true,
-                reportingManagers: {
+                memberSpaces: {
                     select: {
                         id: true,
                         name: true,
+                        color: true
                     }
+                },
+                reportingManagers: {
+                    select: { id: true, name: true }
                 },
                 reportingSubordinates: {
-                    select: {
-                        id: true,
-                        name: true,
-                        role: true
-                    }
+                    select: { id: true, name: true, role: true }
                 },
                 weeklyReports: {
-                    select: {
-                        performanceScore: true,
-                        createdAt: true
-                    },
-                    orderBy: {
-                        weekStartDate: 'desc'
-                    },
+                    select: { performanceScore: true, createdAt: true },
+                    orderBy: { weekStartDate: 'desc' },
                     take: 4
                 },
                 _count: {
-                    select: {
-                        tasks: true,
-                        milestones: true,
-                    }
+                    select: { tasks: true, milestones: true }
                 }
             },
-            orderBy: {
-                role: 'asc'
-            }
+            orderBy: { role: 'asc' }
         });
 
         // Calculate rankings and scores
@@ -95,7 +85,6 @@ export async function GET(request: NextRequest) {
                 ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length)
                 : 0;
 
-            // Trend calculation (last vs previous)
             let trend: 'UP' | 'DOWN' | 'NEUTRAL' = 'NEUTRAL';
             if (scores.length >= 2) {
                 if (scores[0] > scores[1]) trend = 'UP';
@@ -106,28 +95,28 @@ export async function GET(request: NextRequest) {
                 ...user,
                 performanceScore: avgScore,
                 performanceTrend: trend,
-                activeTasks: user._count.tasks, // Simplified for now
-                weeklyReports: undefined // Don't return the raw reports
+                activeTasks: user._count.tasks,
+                weeklyReports: undefined
             };
         });
 
-        // Sort by score to determine rank
         const sortedUsers = [...usersWithPerformance].sort((a: any, b: any) => b.performanceScore - a.performanceScore);
 
         const finalUsers = usersWithPerformance.map((user: any) => {
             const rank = sortedUsers.findIndex((u: any) => u.id === user.id) + 1;
-            return {
-                ...user,
-                rank: user.performanceScore > 0 ? rank : null
-            };
+            return { ...user, rank: user.performanceScore > 0 ? rank : null };
         });
 
-        // Department Breakdown for Managers
+        // Department/Space Breakdown
         let departments: any = {};
         if (['DIRECTOR', 'MANAGER'].includes(startRole)) {
             finalUsers.forEach((u: any) => {
-                const dept = u.department || 'Unassigned';
-                departments[dept] = (departments[dept] || 0) + 1;
+                const spaces = u.memberSpaces?.length > 0
+                    ? u.memberSpaces.map((s: any) => s.name)
+                    : [u.department || 'Unassigned'];
+                spaces.forEach((dept: string) => {
+                    departments[dept] = (departments[dept] || 0) + 1;
+                });
             });
         }
 
@@ -154,13 +143,15 @@ export async function POST(request: NextRequest) {
     }
 
     const userRole = (session.user as any).role;
+    const currentUserId = (session.user as any).id;
+
     if (!['DIRECTOR', 'MANAGER'].includes(userRole)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     try {
         const body = await request.json();
-        const { email, name, role, managerId, department } = body;
+        const { email, name, role, managerId, spaceIds = [] } = body;
 
         if (!email) {
             return NextResponse.json({ error: 'Email is required' }, { status: 400 });
@@ -173,19 +164,33 @@ export async function POST(request: NextRequest) {
         const isAllowedDomain = allowedDomains.some(domain => normalizedEmail.endsWith(domain));
 
         if (!isAllowedDomain) {
-            return NextResponse.json({ 
+            return NextResponse.json({
                 error: 'Unauthorized Domain',
                 message: 'You can only invite users from approved domains.'
             }, { status: 403 });
         }
 
+        // Managers can only assign to their own managed spaces
+        let validatedSpaceIds = spaceIds;
+        if (userRole === 'MANAGER' && spaceIds.length > 0) {
+            const managedSpaces = await prisma.space.findMany({
+                where: { managerId: currentUserId },
+                select: { id: true }
+            });
+            const managedSpaceIdSet = new Set(managedSpaces.map((s: any) => s.id));
+            validatedSpaceIds = spaceIds.filter((id: string) => managedSpaceIdSet.has(id));
+        }
+
+        // Get space names for the department display field
+        const spaces = validatedSpaceIds.length > 0
+            ? await prisma.space.findMany({ where: { id: { in: validatedSpaceIds } }, select: { name: true } })
+            : [];
+        const departmentDisplay = (spaces as any[]).map((s: any) => s.name).join(', ') || null;
+
         // Check if user exists
-        const existingUser = await (prisma as any).user.findUnique({
-            where: { email }
-        });
+        const existingUser = await (prisma as any).user.findUnique({ where: { email: normalizedEmail } });
 
         if (existingUser) {
-            // Check if role is being changed
             const isRoleChanging = role && role !== existingUser.role;
 
             if (isRoleChanging && userRole !== 'DIRECTOR') {
@@ -195,18 +200,18 @@ export async function POST(request: NextRequest) {
                 }, { status: 403 });
             }
 
-            // Update existing user's role/manager
             const updatedUser = await (prisma as any).user.update({
-                where: { email },
+                where: { email: normalizedEmail },
                 data: {
                     role: isRoleChanging ? role : existingUser.role,
-                    reportingManagers: managerId ? {
-                        set: [{ id: managerId }]
-                    } : body.managerIds ? {
-                        set: body.managerIds.map((id: string) => ({ id }))
-                    } : undefined,
-                    department,
-                    name: name || existingUser.name
+                    reportingManagers: managerId ? { set: [{ id: managerId }] }
+                        : body.managerIds ? { set: body.managerIds.map((id: string) => ({ id })) }
+                        : undefined,
+                    memberSpaces: validatedSpaceIds.length > 0
+                        ? { set: validatedSpaceIds.map((id: string) => ({ id })) }
+                        : undefined,
+                    department: departmentDisplay || existingUser.department,
+                    name: body.name || existingUser.name
                 }
             });
             return NextResponse.json(updatedUser);
@@ -222,19 +227,20 @@ export async function POST(request: NextRequest) {
 
         const newUser = await (prisma as any).user.create({
             data: {
-                email,
+                email: normalizedEmail,
                 name,
                 role: role || 'EMPLOYEE',
-                reportingManagers: managerId ? {
-                    connect: { id: managerId }
-                } : body.managerIds ? {
-                    connect: body.managerIds.map((id: string) => ({ id }))
-                } : undefined,
-                department,
+                department: departmentDisplay,
+                reportingManagers: managerId ? { connect: { id: managerId } }
+                    : body.managerIds ? { connect: body.managerIds.map((id: string) => ({ id })) }
+                    : undefined,
+                memberSpaces: validatedSpaceIds.length > 0
+                    ? { connect: validatedSpaceIds.map((id: string) => ({ id })) }
+                    : undefined,
             }
         });
 
-        // Send the actual invite email
+        // Send invite email
         const loginUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/login`;
         const emailHtml = `
             <div style="font-family: monospace; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ccc;">
@@ -242,21 +248,19 @@ export async function POST(request: NextRequest) {
                 <p>Attention ${name || 'Operative'},</p>
                 <p>You have been provisioned access to the EUSAI Tactical Core.</p>
                 <p>Your designated role parameter is: <strong style="color: #36B37E;">[${role || 'EMPLOYEE'}]</strong>.</p>
-                
+                ${departmentDisplay ? `<p>Department Assignment: <strong>${departmentDisplay}</strong></p>` : ''}
                 <div style="background-color: #f4f5f7; border: 1px solid #dfe1e6; padding: 15px; margin: 20px 0; border-radius: 4px;">
                     <p style="font-size: 12px; color: #5e6c84; font-weight: bold; margin-top: 0;">INITIALIZATION DIRECTIVES:</p>
                     <ol style="font-size: 14px; margin-bottom: 0; padding-left: 20px;">
                         <li>Access the secure portal via the uplink below.</li>
                         <li>Authenticate using your registered Google Workspace credentials.</li>
-                        <li>Review pending tactical objectives (Tasks & Milestones).</li>
+                        <li>Review pending tactical objectives (Tasks &amp; Milestones).</li>
                         <li>Acknowledge communication protocol (Daily Submission Window: 18:00 - 20:00).</li>
                     </ol>
                 </div>
-                
                 <div style="text-align: center; margin: 30px 0;">
                     <a href="${loginUrl}" style="background-color: #0052CC; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-family: sans-serif; font-weight: bold; display: inline-block;">Initiate Secure Uplink</a>
                 </div>
-                
                 <div style="font-size: 11px; color: #7a869a; border-top: 1px solid #dfe1e6; padding-top: 15px;">
                     <p style="margin: 0 0 5px 0;">Auth Token: ${Math.random().toString(36).substring(2, 15).toUpperCase()}</p>
                     <p style="margin: 0;">Transmission Origin: EUSAI Command Center</p>
@@ -265,7 +269,7 @@ export async function POST(request: NextRequest) {
         `;
 
         await sendEmail({
-            to: email,
+            to: normalizedEmail,
             cc: body.ccEmails || [],
             subject: 'Secure Access Provisioned: EUSAI Tactical Core',
             html: emailHtml
@@ -278,7 +282,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// PUT /api/team - Update User Hierarchy/Role
+// PUT /api/team - Update User Hierarchy/Role/Spaces
 export async function PUT(request: NextRequest) {
     const session = await getServerSession(authOptions);
 
@@ -287,15 +291,16 @@ export async function PUT(request: NextRequest) {
     }
 
     const userRole = (session.user as any).role;
+    const currentUserId = (session.user as any).id;
+
     if (!['DIRECTOR', 'MANAGER'].includes(userRole)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     try {
         const body = await request.json();
-        const { id, role, managerId, department } = body;
+        const { id, role, managerId, spaceIds = [] } = body;
 
-        // Security check: Only Directors can change roles
         const targetUser = await (prisma as any).user.findUnique({
             where: { id },
             select: { role: true }
@@ -313,16 +318,32 @@ export async function PUT(request: NextRequest) {
             }, { status: 403 });
         }
 
+        // Managers can only assign their own managed spaces
+        let validatedSpaceIds = spaceIds;
+        if (userRole === 'MANAGER' && spaceIds.length > 0) {
+            const managedSpaces = await prisma.space.findMany({
+                where: { managerId: currentUserId },
+                select: { id: true }
+            });
+            const managedSpaceIdSet = new Set(managedSpaces.map((s: any) => s.id));
+            validatedSpaceIds = spaceIds.filter((sid: string) => managedSpaceIdSet.has(sid));
+        }
+
+        // Get space names for department display
+        const spaces = validatedSpaceIds.length > 0
+            ? await prisma.space.findMany({ where: { id: { in: validatedSpaceIds } }, select: { name: true } })
+            : [];
+        const departmentDisplay = (spaces as any[]).map((s: any) => s.name).join(', ') || null;
+
         const updatedUser = await (prisma as any).user.update({
             where: { id },
             data: {
                 role: isRoleChanging ? role : targetUser.role,
-                reportingManagers: managerId ? {
-                    set: [{ id: managerId }]
-                } : body.managerIds ? {
-                    set: body.managerIds.map((id: string) => ({ id }))
-                } : undefined,
-                department
+                reportingManagers: managerId ? { set: [{ id: managerId }] }
+                    : body.managerIds ? { set: body.managerIds.map((mid: string) => ({ id: mid })) }
+                    : undefined,
+                memberSpaces: { set: validatedSpaceIds.map((sid: string) => ({ id: sid })) },
+                ...(departmentDisplay !== null && { department: departmentDisplay }),
             }
         });
 

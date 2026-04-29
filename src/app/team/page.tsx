@@ -59,6 +59,7 @@ export default function TeamPage() {
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [spaces, setSpaces] = useState<{ id: string; name: string; color: string; managerId?: string }[]>([]);
 
     // Form States
     const [formData, setFormData] = useState({
@@ -66,7 +67,7 @@ export default function TeamPage() {
         ccEmails: [] as string[],
         name: '',
         role: 'EMPLOYEE',
-        department: '',
+        spaceIds: [] as string[],
         managerIds: [] as string[]
     });
 
@@ -74,8 +75,21 @@ export default function TeamPage() {
     const userId = (session?.user as any)?.id;
 
     useEffect(() => {
-        if (session) fetchTeam();
+        if (session) {
+            fetchTeam();
+            fetchSpaces();
+        }
     }, [session]);
+
+    const fetchSpaces = async () => {
+        try {
+            const res = await fetch('/api/spaces');
+            if (res.ok) {
+                const data = await res.json();
+                setSpaces(data);
+            }
+        } catch {}
+    };
 
     const fetchTeam = async () => {
         setIsLoading(true);
@@ -164,14 +178,14 @@ export default function TeamPage() {
             ccEmails: [],
             name: user.name || '',
             role: user.role,
-            department: user.department || '',
+            spaceIds: (user as any).memberSpaces?.map((s: any) => s.id) || [],
             managerIds: user.reportingManagers?.map(m => m.id) || []
         });
         setIsEditModalOpen(true);
     };
 
     const resetForm = () => {
-        setFormData({ email: '', ccEmails: [], name: '', role: 'EMPLOYEE', department: '', managerIds: [] });
+        setFormData({ email: '', ccEmails: [], name: '', role: 'EMPLOYEE', spaceIds: [], managerIds: [] });
         setSelectedUser(null);
     };
 
@@ -387,7 +401,16 @@ export default function TeamPage() {
                                                 <span className={`inline-flex items-center w-fit px-2 py-0.5 roundedElement text-[10px] font-bold uppercase tracking-wide ${getRoleColor(user.role)}`}>
                                                     {user.role.replace('_', ' ')}
                                                 </span>
-                                                <span className="text-[9px] font-bold text-body uppercase">{user.department || 'General'}</span>
+                                                <div className="flex flex-wrap gap-1 mt-0.5">
+                                                    {(user as any).memberSpaces?.length > 0
+                                                        ? (user as any).memberSpaces.map((s: any) => (
+                                                            <span key={s.id} className="text-[8px] font-bold px-1.5 py-0.5 rounded-sm text-white uppercase tracking-tight" style={{ backgroundColor: s.color || '#0052CC' }}>
+                                                                {s.name}
+                                                            </span>
+                                                        ))
+                                                        : <span className="text-[9px] font-bold text-body uppercase">{user.department || 'No Dept'}</span>
+                                                    }
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
@@ -519,6 +542,37 @@ export default function TeamPage() {
                                             placeholder="e.g. John Doe"
                                         />
                                     </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-body uppercase">Departments (Spaces)</label>
+                                        <div className="p-3 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm overflow-y-auto space-y-2 min-h-[5rem] max-h-[8rem]">
+                                            {(() => {
+                                                const visibleSpaces = userRole === 'DIRECTOR'
+                                                    ? spaces
+                                                    : spaces.filter(s => s.managerId === userId);
+                                                return visibleSpaces.length > 0 ? visibleSpaces.map(s => (
+                                                    <label key={s.id} className="flex items-center gap-2 cursor-pointer hover:bg-[var(--notion-bg-tertiary)] p-1 rounded-sm transition-colors">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={formData.spaceIds.includes(s.id)}
+                                                            onChange={(e) => {
+                                                                const newIds = e.target.checked
+                                                                    ? [...formData.spaceIds, s.id]
+                                                                    : formData.spaceIds.filter(id => id !== s.id);
+                                                                setFormData({ ...formData, spaceIds: newIds });
+                                                            }}
+                                                            className="rounded-sm border-[var(--notion-border-default)] text-[#0052CC] focus:ring-[#0052CC] shrink-0"
+                                                        />
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color || '#0052CC' }} />
+                                                            <span className="text-xs text-heading font-medium">{s.name}</span>
+                                                        </div>
+                                                    </label>
+                                                )) : (
+                                                    <p className="text-[10px] text-body italic">No spaces available. Create a space first.</p>
+                                                );
+                                            })()}
+                                        </div>
+                                    </div>   </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-1.5">

@@ -17,19 +17,20 @@ export async function GET() {
     }
 
     try {
-        // 0. Get current user's department
-        const currentUser = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { department: true }
+        // 1. Get all spaces managed by this user and their members
+        const managedSpaces = await prisma.space.findMany({
+            where: { managerId: userId },
+            include: { members: { select: { id: true } } }
         });
+        const spaceMemberIds = (managedSpaces as any[]).flatMap((s: any) => s.members.map((m: any) => m.id));
 
-        // 1. Get entire team (direct and grand-subordinates OR same department)
+        // Get entire team (direct reports OR members of managed spaces)
         const teamMembers = await prisma.user.findMany({
             where: {
                 OR: [
                     { reportingManagers: { some: { id: userId } } },
                     { reportingManagers: { some: { reportingManagers: { some: { id: userId } } } } },
-                    { department: currentUser?.department }
+                    ...(spaceMemberIds.length > 0 ? [{ id: { in: spaceMemberIds } }] : [])
                 ]
             },
             select: { id: true, name: true, role: true, image: true, email: true }
