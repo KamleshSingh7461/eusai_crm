@@ -76,24 +76,46 @@ export const authOptions: NextAuthOptions = {
         async signIn({ user, account, profile }: any) {
             console.log("🔵 SignIn Callback:", { user, account, profile });
 
-            // Track Last Login
-            if (user?.id) {
-                try {
-                    await prisma.user.update({
-                        where: { id: user.id },
-                        data: {
-                            lastLogin: new Date(),
-                            isOnline: true
-                        }
-                    });
-                } catch (e) {
-                    console.error("🔴 Failed to update lastLogin:", e);
-                }
+            const email = user?.email || profile?.email;
+            if (!email) return false;
+
+            const normalizedEmail = email.toLowerCase();
+
+            // 1. Enforce Allowed Domains
+            const allowedDomains = ["@eusaiteam.com", "@aumniindia.com", "@fgsnlive.com", "@teamfibreinc.com"];
+            const isAllowedDomain = allowedDomains.some(domain => normalizedEmail.endsWith(domain));
+
+            if (!isAllowedDomain) {
+                console.log(`🔴 Rejected login attempt from unauthorized domain: ${normalizedEmail}`);
+                return "/login?error=UnauthorizedDomain";
             }
 
+            // 2. Enforce 'Invited Only' Rule (User must already exist in our DB)
+            const dbUser = await prisma.user.findUnique({
+                where: { email: normalizedEmail }
+            });
+
+            if (!dbUser) {
+                console.log(`🔴 Rejected login attempt from uninvited user: ${normalizedEmail}`);
+                return "/login?error=NotInvited";
+            }
+
+            // 3. Track Last Login
+            try {
+                await prisma.user.update({
+                    where: { id: dbUser.id },
+                    data: {
+                        lastLogin: new Date(),
+                        isOnline: true
+                    }
+                });
+            } catch (e) {
+                console.error("🔴 Failed to update lastLogin:", e);
+            }
+
+            // 4. Force update the account tokens in the database
             if (account && account.provider === 'google') {
                 try {
-                    // Force update the account tokens in the database
                     await prisma.account.upsert({
                         where: {
                             provider_providerAccountId: {
@@ -111,7 +133,7 @@ export const authOptions: NextAuthOptions = {
                             session_state: account.session_state
                         },
                         create: {
-                            userId: user.id,
+                            userId: dbUser.id,
                             type: account.type,
                             provider: account.provider,
                             providerAccountId: account.providerAccountId,
@@ -124,7 +146,7 @@ export const authOptions: NextAuthOptions = {
                             session_state: account.session_state
                         }
                     });
-                    console.log("✅ Google tokens updated in DB for user:", user.email);
+                    console.log("✅ Google tokens updated in DB for user:", dbUser.email);
                 } catch (error) {
                     console.error("🔴 Failed to save Google tokens:", error);
                 }

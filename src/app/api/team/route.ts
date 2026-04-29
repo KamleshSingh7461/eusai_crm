@@ -162,6 +162,23 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { email, name, role, managerId, department } = body;
 
+        if (!email) {
+            return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+        }
+
+        const normalizedEmail = email.toLowerCase();
+
+        // Enforce Allowed Domains for Invites
+        const allowedDomains = ["@eusaiteam.com", "@aumniindia.com", "@fgsnlive.com", "@teamfibreinc.com"];
+        const isAllowedDomain = allowedDomains.some(domain => normalizedEmail.endsWith(domain));
+
+        if (!isAllowedDomain) {
+            return NextResponse.json({ 
+                error: 'Unauthorized Domain',
+                message: 'You can only invite users from approved domains.'
+            }, { status: 403 });
+        }
+
         // Check if user exists
         const existingUser = await (prisma as any).user.findUnique({
             where: { email }

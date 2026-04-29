@@ -504,7 +504,7 @@ export default function TeamPage() {
                                                     value={formData.email}
                                                     onChange={e => setFormData({ ...formData, email: e.target.value })}
                                                     className="w-full pl-9 pr-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                                    placeholder="colleague@eusaiteam.com"
+                                                    placeholder="name@eusaiteam.com or @aumniindia.com"
                                                 />
                                             </div>
                                         </div>
