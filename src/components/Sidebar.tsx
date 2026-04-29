@@ -318,7 +318,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                 </Link>
 
                                 {/* Individual Spaces */}
-                                {spaces && spaces.length > 0 && (
+                                {((spaces && spaces.length > 0) || canCreateSpace) && (
                                     <ExpandableSection
                                         title="Your Spaces"
                                         icon={<Layers className="w-3.5 h-3.5" />}
@@ -326,7 +326,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                         storageKey="sidebar-spaces-expanded"
                                     >
                                         <div className="space-y-0.5">
-                                            {spaces.map((space: any) => (
+                                            {spaces && spaces.map((space: any) => (
                                                 <Link
                                                     key={space.id}
                                                     href={`/spaces/${space.id}`}
