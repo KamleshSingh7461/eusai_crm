@@ -42,16 +42,27 @@ export async function GET() {
                 ]
             };
         } else {
-            // Employees/Team Leaders see spaces where they have assignments
+            // Employees / Interns / Team Leaders:
+            // See spaces they are directly appointed to (department membership)
+            // OR spaces where they have task/milestone assignments
             whereClause = {
-                projects: {
-                    some: {
-                        OR: [
-                            { tasks: { some: { userId: userId } } },
-                            { milestones: { some: { owner: userId } } }
-                        ]
+                OR: [
+                    {
+                        // Appointed via department checkboxes (memberSpaces)
+                        members: { some: { id: userId } }
+                    },
+                    {
+                        // Has work assigned in this space
+                        projects: {
+                            some: {
+                                OR: [
+                                    { tasks: { some: { userId: userId } } },
+                                    { milestones: { some: { owner: userId } } }
+                                ]
+                            }
+                        }
                     }
-                }
+                ]
             };
         }
 
