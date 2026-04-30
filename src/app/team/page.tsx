@@ -598,15 +598,6 @@ export default function TeamPage() {
                                                 </select>
                                             </div>
                                         </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-bold text-body uppercase">Department</label>
-                                            <input
-                                                value={formData.department}
-                                                onChange={e => setFormData({ ...formData, department: e.target.value })}
-                                                className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
-                                                placeholder="e.g. Sales"
-                                            />
-                                        </div>
                                     </div>
 
                                     <div className={cn("gap-4 flex-1 min-h-0", !isEditModalOpen ? "grid grid-cols-2" : "flex flex-col")}>

@@ -82,7 +82,7 @@ export const authOptions: NextAuthOptions = {
             const normalizedEmail = email.toLowerCase();
 
             // 1. Enforce Allowed Domains
-            const allowedDomains = ["@eusaiteam.com", "@aumniindia.com", "@fgsnlive.com", "@teamfibreinc.com"];
+            const allowedDomains = ["@eusaiteam.com", "@alumniindia.com", "@fgsnlive.com", "@teamfibreinc.com"];
             const isAllowedDomain = allowedDomains.some(domain => normalizedEmail.endsWith(domain));
 
             if (!isAllowedDomain) {

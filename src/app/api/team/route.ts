@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
         const normalizedEmail = email.toLowerCase();
 
         // Enforce Allowed Domains for Invites
-        const allowedDomains = ["@eusaiteam.com", "@aumniindia.com", "@fgsnlive.com", "@teamfibreinc.com"];
+        const allowedDomains = ["@eusaiteam.com", "@alumniindia.com", "@fgsnlive.com", "@teamfibreinc.com"];
         const isAllowedDomain = allowedDomains.some(domain => normalizedEmail.endsWith(domain));
 
         if (!isAllowedDomain) {
