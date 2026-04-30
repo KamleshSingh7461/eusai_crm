@@ -10,7 +10,7 @@ export async function GET() {
     }
 
     const { role } = session.user as any;
-    if (role !== 'DIRECTOR') {
+    if (role !== 'DIRECTOR' && role !== 'MANAGEMENT') {
         return NextResponse.json({ error: 'Forbidden: Director access only' }, { status: 403 });
     }
 
@@ -39,7 +39,7 @@ export async function GET() {
             // All Users with their task summaries + COMPLETED counts for Top Performer calc
             (prisma as any).user.findMany({
                 where: {
-                    role: { not: 'DIRECTOR' }
+                    role: { notIn: ['DIRECTOR', 'MANAGEMENT'] }
                 },
                 select: {
                     id: true,
@@ -251,7 +251,7 @@ export async function GET() {
                 projectStatus: projectDistribution.map((p: any) => ({ name: p.status, value: p._count })),
                 issueSeverity: issueStats.map((i: any) => ({ name: i.severity, value: i._count }))
             },
-            role: 'DIRECTOR'
+            role: role
         });
     } catch (error: any) {
         console.error('Director Dashboard API Error:', error);

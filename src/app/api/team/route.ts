@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const userId = (session.user as any).id;
     const startRole = (session.user as any).role;
 
-    if (!['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(startRole)) {
+    if (!['DIRECTOR', 'MANAGEMENT', 'MANAGER', 'TEAM_LEADER'].includes(startRole)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
                 ]
             };
         }
-        // DIRECTOR: See all (empty whereClause)
+        // DIRECTOR / MANAGEMENT: See all (empty whereClause)
 
         const users = await (prisma as any).user.findMany({
             where: whereClause,
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
 
         // Department/Space Breakdown
         let departments: any = {};
-        if (['DIRECTOR', 'MANAGER'].includes(startRole)) {
+        if (['DIRECTOR', 'MANAGEMENT', 'MANAGER'].includes(startRole)) {
             finalUsers.forEach((u: any) => {
                 const spaces = u.memberSpaces?.length > 0
                     ? u.memberSpaces.map((s: any) => s.name)

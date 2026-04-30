@@ -13,7 +13,7 @@ export async function GET() {
         const { role, id: userId } = session.user as any;
         let whereClause: any = {};
 
-        if (role === 'DIRECTOR') {
+        if (role === 'DIRECTOR' || role === 'MANAGEMENT') {
             // Directors see all spaces
             whereClause = {};
         } else if (role === 'MANAGER') {

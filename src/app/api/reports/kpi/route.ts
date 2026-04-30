@@ -13,19 +13,19 @@ export async function GET(request: NextRequest) {
     const userRole = (session.user as any).role;
     const currentUserId = (session.user as any).id;
 
-    if (!['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole)) {
+    if (!['DIRECTOR', 'MANAGEMENT', 'MANAGER', 'TEAM_LEADER'].includes(userRole)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     try {
         // Fetch Hierarchy Data
-        const targetUserIds = await getSubordinateIds(currentUserId, userRole);
-        const targetProjectIds = await getAccessibleProjectIds(currentUserId, userRole, targetUserIds);
+        const targetUserIds = await getSubordinateIds(currentUserId, userRole === 'MANAGEMENT' ? 'DIRECTOR' : userRole);
+        const targetProjectIds = await getAccessibleProjectIds(currentUserId, userRole === 'MANAGEMENT' ? 'DIRECTOR' : userRole, targetUserIds);
 
         // 1. Employee KPIs & Department Pulse
         const employees = await prisma.user.findMany({
             where: {
-                role: { not: 'DIRECTOR' },
+                role: { notIn: ['DIRECTOR', 'MANAGEMENT'] },
                 ...(targetUserIds ? { id: { in: targetUserIds } } : {})
             },
             include: {

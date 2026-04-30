@@ -191,11 +191,12 @@ export default function TeamPage() {
 
     const getRoleColor = (role: string) => {
         switch (role) {
-            case 'DIRECTOR': return 'bg-[#EAE6FF] text-[#403294]'; // Purple
-            case 'MANAGER': return 'bg-[#DEEBFF] text-[#0052CC]'; // Blue
+            case 'DIRECTOR': return 'bg-[#EAE6FF] text-[#403294]';    // Purple
+            case 'MANAGEMENT': return 'bg-[#FFF7D6] text-[#974F0C]';  // Gold (read-only)
+            case 'MANAGER': return 'bg-[#DEEBFF] text-[#0052CC]';     // Blue
             case 'TEAM_LEADER': return 'bg-[#E3FCEF] text-[#006644]'; // Green
-            case 'EMPLOYEE': return 'bg-[#DFE1E6] text-heading'; // Gray
-            case 'INTERN': return 'bg-[#FFEBE6] text-[#BF2600]'; // Red/Orange
+            case 'EMPLOYEE': return 'bg-[#DFE1E6] text-heading';       // Gray
+            case 'INTERN': return 'bg-[#FFEBE6] text-[#BF2600]';       // Red/Orange
             default: return 'bg-[var(--notion-bg-tertiary)] text-heading';
         }
     };
@@ -224,6 +225,8 @@ export default function TeamPage() {
                     <p className="text-body text-sm md:text-base">
                         {userRole === 'TEAM_LEADER'
                             ? "View your team's tactical activity."
+                            : userRole === 'MANAGEMENT'
+                            ? "Read-only view of all team data, reports, and KPIs."
                             : "Manage users, roles, and hierarchy."}
                     </p>
                 </div>
@@ -239,7 +242,7 @@ export default function TeamPage() {
             </div>
 
             {/* Team Overview Stats */}
-            {['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole) && (
+            {['DIRECTOR', 'MANAGEMENT', 'MANAGER', 'TEAM_LEADER'].includes(userRole) && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 animate-in slide-in-from-top-4 duration-500">
                     <div className="card-jira p-5 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm shadow-sm">
                         <div className="flex items-center gap-4">
@@ -595,6 +598,7 @@ export default function TeamPage() {
                                                     <option value="TEAM_LEADER">Team Leader</option>
                                                     <option value="MANAGER">Manager</option>
                                                     <option value="DIRECTOR">Director</option>
+                                                    <option value="MANAGEMENT">Management (Read-only)</option>
                                                 </select>
                                             </div>
                                         </div>

@@ -73,10 +73,12 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
 
     const userRole = (session?.user as any)?.role || 'EMPLOYEE';
     const canManageTeam = ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole);
+    const canViewTeam = ['DIRECTOR', 'MANAGEMENT', 'MANAGER', 'TEAM_LEADER'].includes(userRole);
     const canCreateSpace = ['DIRECTOR', 'MANAGER'].includes(userRole);
+    const canViewAll = ['DIRECTOR', 'MANAGEMENT'].includes(userRole);
 
 
-    const canViewResources = ['DIRECTOR', 'MANAGER'].includes(userRole);
+    const canViewResources = ['DIRECTOR', 'MANAGEMENT', 'MANAGER'].includes(userRole);
 
     const handleCreateSpace = async (e: React.FormEvent) => {
         e.preventDefault();
