@@ -171,7 +171,7 @@ export default function SubmitReportPage() {
                         </label>
                         <textarea
                             className="w-full bg-[#1D2125] border border-[rgba(255,255,255,0.1)] rounded-md px-4 py-3 text-[rgba(255,255,255,0.9)] placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-[#2383e2]/40 focus:border-[#2383e2] transition-all min-h-[140px] resize-y"
-                            placeholder="itemize your tactical achievements... Daily upland window is active from 6:00 PM to 9:30 PM IST. Maintain your tactical streak."
+                            placeholder="Itemize your tactical achievements... Daily submission window is 5:00 PM – 11:59 PM IST. Maintain your tactical streak."
                             value={accomplishments}
                             onChange={(e) => setAccomplishments(e.target.value)}
                             required

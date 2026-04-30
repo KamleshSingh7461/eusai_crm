@@ -140,28 +140,24 @@ export async function POST(request: NextRequest) {
             projectId
         } = body;
 
-        // 1. Time Window Validation (6:00 PM - 9:30 PM check in IST)
+        // 1. Time Window Validation (5:00 PM - 11:59 PM IST)
         const now = new Date();
         const istTimeOptions: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false };
         const istTimeStr = new Intl.DateTimeFormat('en-US', istTimeOptions).format(now);
-        // Returns "HH:MM", so parse it
         const [hourStr, minuteStr] = istTimeStr.split(':');
         let hour = parseInt(hourStr, 10);
-        let minute = parseInt(minuteStr, 10);
-        if (hour === 24) hour = 0; // standardizing midnight
+        if (hour === 24) hour = 0; // standardize midnight
 
-        // Check if between 18:00 (inclusive) and 21:30 (inclusive) in IST
-        const isPastSix = hour >= 18;
-        const isBeforeNineThirty = hour < 21 || (hour === 21 && minute <= 30);
-        const isWithinWindow = isPastSix && isBeforeNineThirty;
+        // Check if between 17:00 (inclusive) and 23:59 (inclusive) in IST
+        const isWithinWindow = hour >= 17; // 5 PM to midnight
 
-        // For debugging/emergency, we could check for a "force" flag from directors
+        // Directors/Managers can force submit outside the window
         const isForced = body.forceSubmission === true;
 
         if (!isWithinWindow && !isForced) {
             return NextResponse.json({
                 error: 'Submission Restricted',
-                message: 'Daily reports can only be submitted between 6:00 PM and 9:30 PM IST.'
+                message: 'Daily reports can only be submitted between 5:00 PM and 11:59 PM IST.'
             }, { status: 403 });
         }
 
