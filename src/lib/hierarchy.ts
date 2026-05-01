@@ -9,7 +9,7 @@ import prisma from '@/lib/prisma';
  * For TEAM_LEADER, it returns just their direct reports.
  */
 export async function getSubordinateIds(userId: string, role: string): Promise<string[] | null> {
-    if (role === 'DIRECTOR') {
+    if (role === 'DIRECTOR' || role === 'MANAGEMENT') {
         return null; // null = all users
     }
 
@@ -57,7 +57,7 @@ export async function getSubordinateIds(userId: string, role: string): Promise<s
  * Fetches all projects that a user has access to based on their role and hierarchy.
  */
 export async function getAccessibleProjectIds(userId: string, role: string, subordinateIds: string[] | null): Promise<string[] | null> {
-    if (role === 'DIRECTOR') {
+    if (role === 'DIRECTOR' || role === 'MANAGEMENT') {
         return null; // All projects
     }
 

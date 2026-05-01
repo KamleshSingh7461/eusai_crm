@@ -101,7 +101,15 @@ const COLORS = {
     textTertiary: 'rgba(255,255,255,0.4)'
 };
 
-const PIE_COLORS = [COLORS.blue, COLORS.green, COLORS.yellow, COLORS.red, COLORS.purple];
+const PIE_COLORS: Record<string, string> = {
+    'ACTIVE': COLORS.green,
+    'INITIATION': COLORS.blue,
+    'ON_HOLD': COLORS.yellow,
+    'CLOSED': COLORS.red,
+    'PLANNING': COLORS.purple,
+};
+
+const DEFAULT_PIE_COLORS = [COLORS.blue, COLORS.green, COLORS.yellow, COLORS.red, COLORS.purple];
 
 export default function DirectorDashboard() {
     const router = useRouter();
@@ -194,12 +202,18 @@ export default function DirectorDashboard() {
                     <p className="text-[rgba(255,255,255,0.6)] text-sm md:text-lg font-medium">Real-time command center for organizational intelligence.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <NotionButton variant="ghost" className="bg-white/5 border border-white/10 hover:bg-white/10">
+                    <NotionButton 
+                        variant="ghost" 
+                        className="bg-white/5 border border-white/10 hover:bg-white/10 cursor-not-allowed opacity-60"
+                        title="Advanced filtering is being synchronized"
+                    >
                         <Filter className="w-4 h-4 mr-2" /> Global Filter
                     </NotionButton>
-                    <NotionButton variant="primary" className="bg-[#0052CC] hover:bg-[#0747A6] shadow-lg shadow-[#0052CC]/20">
-                        <Activity className="w-4 h-4 mr-2" /> Analytics Report
-                    </NotionButton>
+                    <Link href="/reports">
+                        <NotionButton variant="primary" className="bg-[#0052CC] hover:bg-[#0747A6] shadow-lg shadow-[#0052CC]/20">
+                            <Activity className="w-4 h-4 mr-2" /> Analytics Report
+                        </NotionButton>
+                    </Link>
                 </div>
             </div>
 
@@ -416,7 +430,11 @@ export default function DirectorDashboard() {
                                                 dataKey="value"
                                             >
                                                 {charts.projectStatus.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} stroke="rgba(0,0,0,0)" />
+                                                    <Cell 
+                                                        key={`cell-${index}`} 
+                                                        fill={PIE_COLORS[entry.name] || DEFAULT_PIE_COLORS[index % DEFAULT_PIE_COLORS.length]} 
+                                                        stroke="rgba(0,0,0,0)" 
+                                                    />
                                                 ))}
                                             </Pie>
                                             <Tooltip contentStyle={{ backgroundColor: '#191919', borderColor: 'rgba(255,255,255,0.1)', color: '#fff', borderRadius: '12px', backdropFilter: 'blur(10px)' }} />

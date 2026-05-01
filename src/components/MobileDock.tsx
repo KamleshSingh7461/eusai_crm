@@ -11,7 +11,10 @@ import {
     CheckSquare,
     X,
     FileText,
-    LayoutDashboard
+    LayoutDashboard,
+    MessageSquare,
+    Zap,
+    Users
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -34,26 +37,18 @@ export default function MobileDock({ onMenuClick, closeMenu }: MobileDockProps) 
 
     const navItems = [
         { name: 'Home', href: '/', icon: Home },
-        { name: 'Projects', href: '/projects', icon: Briefcase },
-        { name: 'Tasks', href: '/tasks', icon: CheckSquare },
+        { name: 'Inbox', href: '/inbox', icon: MessageSquare },
     ];
 
     const quickActions = [
-        { name: 'New Task', icon: CheckSquare, action: () => { router.push('/tasks'); closeMenu(); } },
-        { name: 'New Project', icon: Briefcase, action: () => { router.push('/projects/new'); closeMenu(); } },
-        { name: 'Ask AI', icon: Sparkles, action: () => { router.push('/ai-assistant'); closeMenu(); } },
-        { name: 'Submit Report', icon: FileText, action: () => { router.push('/reports/submit'); closeMenu(); } },
+        { name: 'Establish Group', icon: Users, action: () => { router.push('/inbox'); closeMenu(); } },
+        { name: 'AI Consultation', icon: Sparkles, action: () => { router.push('/ai-assistant'); closeMenu(); } },
+        { name: 'System Report', icon: FileText, action: () => { router.push('/reports/submit'); closeMenu(); } },
     ];
-
-    const handleSearch = () => {
-        // Trigger the command palette
-        const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
-        document.dispatchEvent(event);
-    };
 
     return (
         <>
-            {/* Quick Action Overlay */}
+            {/* Ultra-Premium Quick Action Overlay */}
             <AnimatePresence>
                 {isQuickMenuOpen && (
                     <>
@@ -62,25 +57,26 @@ export default function MobileDock({ onMenuClick, closeMenu }: MobileDockProps) 
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsQuickMenuOpen(false)}
-                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] lg:hidden"
+                            className="fixed inset-0 bg-black/80 backdrop-blur-md z-[90] lg:hidden"
                         />
-                        <div className="fixed bottom-24 left-0 right-0 z-[91] flex flex-col items-center gap-3 lg:hidden px-4 pointer-events-none">
+                        <div className="fixed bottom-28 left-0 right-0 z-[91] flex flex-col items-center gap-4 lg:hidden px-6 pointer-events-none">
                             {quickActions.map((action, index) => (
                                 <motion.button
                                     key={action.name}
-                                    initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                                    initial={{ opacity: 0, y: 30, scale: 0.9 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: 10, scale: 0.8 }}
-                                    transition={{ delay: index * 0.05, type: 'spring', damping: 20 }}
+                                    exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                                    transition={{ delay: index * 0.05, type: 'spring', stiffness: 300, damping: 25 }}
                                     onClick={() => {
                                         action.action();
                                         setIsQuickMenuOpen(false);
                                     }}
-                                    className="pointer-events-auto bg-[#191919]/90 backdrop-blur-xl border border-[rgba(255,255,255,0.1)] text-white w-full max-w-xs py-3 px-4 rounded-xl flex items-center justify-between shadow-xl active:scale-95 transition-transform"
+                                    className="pointer-events-auto w-full max-w-sm bg-[#111111] border border-white/10 text-white py-4 px-6 rounded-2xl flex items-center justify-between shadow-2xl active:scale-95 transition-all group overflow-hidden"
                                 >
-                                    <span className="font-medium">{action.name}</span>
-                                    <div className="p-2 bg-[#0052CC]/20 rounded-lg">
-                                        <action.icon className="w-5 h-5 text-[#0052CC]" />
+                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <span className="font-black text-[11px] uppercase tracking-[0.2em] relative z-10">{action.name}</span>
+                                    <div className="p-2 bg-blue-600/10 rounded-lg relative z-10">
+                                        <action.icon className="w-5 h-5 text-blue-400" />
                                     </div>
                                 </motion.button>
                             ))}
@@ -89,31 +85,31 @@ export default function MobileDock({ onMenuClick, closeMenu }: MobileDockProps) 
                 )}
             </AnimatePresence>
 
-            {/* Floating Dock */}
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-md lg:hidden">
-                <div className="bg-[#0f0f0f]/80 backdrop-blur-2xl border border-[rgba(255,255,255,0.08)] rounded-2xl shadow-2xl p-2 flex items-center justify-between relative overflow-hidden ring-1 ring-white/5">
+            {/* Tactical Orbital Dock */}
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-md lg:hidden">
+                <div className="bg-[#0A0A0A]/90 backdrop-blur-3xl border border-white/[0.08] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-2 flex items-center justify-between relative overflow-hidden">
+                    
+                    {/* Interior Glow */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-blue-500/20 blur-md" />
 
-                    {/* Glass Reflection Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
-
-                    {/* Left Items */}
-                    <div className="flex items-center justify-around flex-1">
-                        {navItems.slice(0, 2).map((item) => {
+                    {/* Nav Items Left */}
+                    <div className="flex items-center justify-around flex-1 px-2">
+                        {navItems.map((item) => {
                             const isActive = pathname === item.href;
                             return (
                                 <button
                                     key={item.name}
                                     onClick={() => handleNavigation(item.href)}
                                     className={cn(
-                                        "flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300 relative group",
-                                        isActive ? "text-white" : "text-[rgba(255,255,255,0.5)] hover:bg-white/5"
+                                        "relative flex flex-col items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300",
+                                        isActive ? "text-blue-400 bg-blue-600/5" : "text-white/20 hover:text-white/40"
                                     )}
                                 >
-                                    <item.icon className={cn("w-6 h-6 transition-transform", isActive && "scale-110")} />
+                                    <item.icon className={cn("w-6 h-6", isActive && "drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]")} />
                                     {isActive && (
                                         <motion.div
-                                            layoutId="activeTab"
-                                            className="absolute -bottom-2 w-1 h-1 rounded-full bg-[#0052CC]"
+                                            layoutId="navGlow"
+                                            className="absolute -bottom-1 w-1 h-1 rounded-full bg-blue-400 shadow-[0_0_10px_#3b82f6]"
                                         />
                                     )}
                                 </button>
@@ -121,34 +117,37 @@ export default function MobileDock({ onMenuClick, closeMenu }: MobileDockProps) 
                         })}
                     </div>
 
-                    {/* Center Action Button */}
-                    <div className="px-2 -mt-8 relative">
-                        <div className="absolute -inset-4 bg-gradient-to-t from-black/50 to-transparent blur-md rounded-full -z-10" />
+                    {/* Center Tactical Orb */}
+                    <div className="relative px-2">
+                        <div className="absolute -inset-6 bg-blue-600/10 blur-2xl rounded-full" />
                         <button
                             onClick={() => setIsQuickMenuOpen(!isQuickMenuOpen)}
                             className={cn(
-                                "w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-[#0052CC]/40 transition-all duration-300 border-2 border-[#191919]",
+                                "w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 relative z-10 border-4 border-[#0A0A0A] shadow-2xl",
                                 isQuickMenuOpen
-                                    ? "bg-[#FF5630] rotate-45"
-                                    : "bg-[#0052CC] hover:scale-105 active:scale-95"
+                                    ? "bg-red-600 rotate-[135deg] shadow-red-900/40"
+                                    : "bg-gradient-to-br from-blue-600 to-blue-800 shadow-blue-900/40 hover:scale-105"
                             )}
                         >
-                            <Plus className="w-8 h-8 text-white stroke-[3px]" />
+                            <Plus className="w-8 h-8 text-white stroke-[3.5px]" />
                         </button>
                     </div>
 
-                    {/* Right Items */}
-                    <div className="flex items-center justify-around flex-1">
+                    {/* Nav Items Right */}
+                    <div className="flex items-center justify-around flex-1 px-2">
                         <button
-                            onClick={handleSearch}
-                            className="flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300 text-[rgba(255,255,255,0.5)] hover:bg-white/5"
+                            onClick={() => {
+                                const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
+                                document.dispatchEvent(event);
+                            }}
+                            className="flex items-center justify-center w-12 h-12 rounded-2xl text-white/20 hover:text-white/40 transition-all"
                         >
                             <Search className="w-6 h-6" />
                         </button>
 
                         <button
                             onClick={onMenuClick}
-                            className="flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300 text-[rgba(255,255,255,0.5)] hover:bg-white/5"
+                            className="flex items-center justify-center w-12 h-12 rounded-2xl text-white/20 hover:text-white/40 transition-all"
                         >
                             <Menu className="w-6 h-6" />
                         </button>
@@ -158,4 +157,3 @@ export default function MobileDock({ onMenuClick, closeMenu }: MobileDockProps) 
         </>
     );
 }
-

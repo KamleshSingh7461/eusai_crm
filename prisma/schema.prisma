@@ -60,11 +60,27 @@ model User {
   meetingAttendance Meeting[] @relation("MeetingAttendees")
 
   // Activity & Session Tracking
+  // Activity & Session Tracking
   lastLogin DateTime?
   isOnline  Boolean   @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Chat Relations
+  chatChannels ChatChannel[] @relation("ChannelMembers")
+  chatMessages ChatMessage[]
+  pushSubscriptions PushSubscription[]
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
 }
 
 // ... existing models ...
@@ -195,6 +211,10 @@ model Space {
   milestones  Milestone[]
   managerId   String?
   manager     User?       @relation("SpaceManager", fields: [managerId], references: [id])
+  
+  // Chat Integration
+  chat        ChatChannel? @relation("SpaceChat")
+  
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
@@ -466,4 +486,36 @@ model Comment {
   @@index([taskId])
   @@index([milestoneId])
   @@index([userId])
+}
+
+model ChatChannel {
+  id          String        @id @default(uuid())
+  name        String?       // Null for direct messages
+  description String?
+  type        String        @default("PUBLIC") // PUBLIC, PRIVATE, DIRECT
+  
+  // Link to Space/Department if applicable
+  spaceId     String? @unique
+  space       Space?        @relation("SpaceChat", fields: [spaceId], references: [id])
+  
+  members     User[]        @relation("ChannelMembers")
+  messages    ChatMessage[]
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model ChatMessage {
+  id          String      @id @default(uuid())
+  content     String
+  senderId    String
+  sender      User        @relation(fields: [senderId], references: [id])
+  channelId   String
+  channel     ChatChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  
+  attachments Json?       // Array of URLs/metadata
+  reactions   Json?       // Emoji mappings
+  isSystem    Boolean     @default(false)
+  
+  createdAt   DateTime    @default(now())
 }

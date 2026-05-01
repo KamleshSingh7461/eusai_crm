@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 export default withAuth(
     function middleware(req) {
         const token = req.nextauth.token;
-        const canAccessTeam = token?.role === "DIRECTOR" || token?.role === "MANAGER" || token?.role === "TEAM_LEADER";
+        const canAccessTeam = ['DIRECTOR', 'MANAGEMENT', 'MANAGER', 'TEAM_LEADER'].includes(token?.role as string);
         const path = req.nextUrl.pathname;
 
         // Protect Team Management Route

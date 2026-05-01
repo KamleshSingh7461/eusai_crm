@@ -53,7 +53,7 @@ async function main() {
                 startDate: new Date(),
                 endDate: new Date(new Date().setMonth(new Date().getMonth() + 6)),
                 budget: 0,
-                managerId: adminDirector.id
+                managers: { connect: { id: adminDirector.id } }
             }
         });
         console.log(`✅ Seeded Project: ${project.name}`);
