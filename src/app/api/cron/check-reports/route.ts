@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
+import { createNotification } from '@/lib/notifications';
 
 // This endpoint should be secured with a secret in production
 // e.g. check for Authorization: Bearer process.env.CRON_SECRET
@@ -63,6 +64,15 @@ export async function GET(request: NextRequest) {
                 );
                 results.push({ email: user.email, sent });
             }
+
+            // Also create in-app and push notification
+            await createNotification({
+                userId: user.id,
+                title: 'Action Required: Daily Report Missing',
+                message: `You missed your report for ${today.toLocaleDateString()}. Please submit it immediately.`,
+                type: 'ERROR',
+                link: '/reports/submit'
+            });
         }
 
         return NextResponse.json({

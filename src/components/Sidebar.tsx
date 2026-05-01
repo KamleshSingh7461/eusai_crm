@@ -44,6 +44,7 @@ import { cn } from '@/lib/utils';
 import { useSpace } from '@/context/SpaceContext';
 import { useSession, signOut } from 'next-auth/react';
 import ExpandableSection from '@/components/ui/ExpandableSection';
+import PushNotificationManager from './PushNotificationManager';
 
 import { useToast } from '@/context/ToastContext';
 import { useState } from 'react';
@@ -441,6 +442,9 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
 
                 {/* Bottom Section - Fixed at bottom */}
                 <div className="flex-shrink-0 border-t border-[#2f2f2f]">
+                    <div className={cn("pt-2 px-3", isCollapsed ? "hidden" : "block")}>
+                        <PushNotificationManager />
+                    </div>
                     <div className={cn("pt-2 mb-2 space-y-1", isCollapsed ? "px-2" : "px-3")}>
                         {session?.user && (
                             <div className={cn("rounded-sm transition-colors", isCollapsed ? "p-1 flex justify-center hover:bg-[#2c2c2c]" : "px-3 py-2")}>

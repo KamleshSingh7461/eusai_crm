@@ -18,44 +18,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     const lastNotifId = useRef<string | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    // Global Browser Notifications
+    // Browser Notifications are now handled via Service Workers (Push API)
+    // Audio alerts can still be initialized if needed for in-app events
     useEffect(() => {
         if (!session?.user || typeof window === 'undefined') return;
 
-        // Initialize Audio Context for Tactical Alerts
-        audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'); // Subtle tactical ping
+        audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
         audioRef.current.volume = 0.5;
-
-        if ("Notification" in window && Notification.permission === "default") {
-            Notification.requestPermission();
-        }
-
-        const pollNotifications = async () => {
-            try {
-                const res = await fetch('/api/notifications?unread=true');
-                const data = await res.json();
-                if (data.notifications && data.notifications.length > 0) {
-                    const latest = data.notifications[0];
-                    if (latest.id !== lastNotifId.current && document.hidden) {
-                        // Trigger Gmail-style Desktop Toast
-                        new Notification(`EUSAI: ${latest.title}`, {
-                            body: latest.message,
-                            icon: "/EUSAI-LOGO.png",
-                        });
-                        
-                        // Tactical Audio Alert
-                        try {
-                            audioRef.current?.play().catch(() => {});
-                        } catch (e) {}
-
-                        lastNotifId.current = latest.id;
-                    }
-                }
-            } catch (e) {}
-        };
-
-        const interval = setInterval(pollNotifications, 10000); // 10s for global notifs
-        return () => clearInterval(interval);
     }, [session]);
     const pathname = usePathname();
     const isAuthPage = pathname === '/login';

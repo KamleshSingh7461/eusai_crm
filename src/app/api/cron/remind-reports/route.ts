@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
+import { createNotification } from '@/lib/notifications';
 
 export const dynamic = 'force-dynamic'; // Prevent static caching
 
@@ -86,6 +87,15 @@ export async function GET(request: NextRequest) {
             });
 
             results.push({ userId: user.id, email: user.email, sent });
+
+            // Also create in-app and push notification reminder
+            await createNotification({
+                userId: user.id,
+                title: 'Reminder: Daily Report Missing',
+                message: `Your report for today is due. Please submit it within the 6:00 PM - 8:00 PM window.`,
+                type: 'WARNING',
+                link: '/reports/submit'
+            });
         }
 
         return NextResponse.json({

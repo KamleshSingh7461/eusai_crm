@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { sendPushNotification } from './webPush';
 
 export type NotificationType = 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR';
 
@@ -19,7 +20,7 @@ export async function createNotification({
     link?: string;
 }) {
     try {
-        return await prisma.notification.create({
+        const notification = await prisma.notification.create({
             data: {
                 userId,
                 title,
@@ -28,6 +29,15 @@ export async function createNotification({
                 link
             }
         });
+
+        // Trigger Web Push Notification
+        await sendPushNotification(userId, {
+            title: title,
+            body: message,
+            url: link
+        });
+
+        return notification;
     } catch (error) {
         console.error('Failed to create notification:', error);
         return null;
@@ -70,9 +80,20 @@ export async function notifyUpperManagement({
             link
         }));
 
-        return await prisma.notification.createMany({
+        const created = await prisma.notification.createMany({
             data: notifications
         });
+
+        // Trigger Web Push for all management users
+        await Promise.all(managementUsers.map(user => 
+            sendPushNotification(user.id, {
+                title: title,
+                body: message,
+                url: link
+            })
+        ));
+
+        return created;
     } catch (error) {
         console.error('Failed to notify upper management:', error);
         return null;
