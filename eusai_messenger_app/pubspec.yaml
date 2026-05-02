@@ -1,0 +1,34 @@
+name: eusai_messenger_app
+description: A tactical cross-platform messenger for EUSAI CRM.
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.1.0
+  provider: ^6.1.5
+  url_launcher: ^6.2.1
+  shared_preferences: ^2.2.1
+  intl: ^0.18.1
+  lucide_icons: ^0.257.0
+  google_fonts: ^6.1.0
+  flutter_svg: ^2.0.7
+  shimmer: ^3.0.0
+  flutter_animate: ^4.2.0
+  file_picker: ^6.1.1
+  emoji_picker_flutter: ^4.4.0
+  local_notifier: ^0.1.5
+  path_provider: ^2.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/

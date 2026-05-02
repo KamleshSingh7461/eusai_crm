@@ -2,10 +2,17 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { getMobileSession } from '@/lib/auth-mobile';
 
 export async function GET() {
     try {
-        const session = await getServerSession(authOptions);
+        let session = await getServerSession(authOptions);
+        
+        // Fallback for Flutter Mobile App (Bearer Token)
+        if (!session?.user) {
+            session = await getMobileSession() as any;
+        }
+
         if (!session?.user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -97,9 +104,31 @@ export async function GET() {
             return true;
         });
 
-        const uniqueChannels = Array.from(new Map(allChannels.map(c => [c.id, c])).values());
+        // Deduplicate DIRECT channels by participant pair
+        const directMap = new Map();
+        const otherChannels: any[] = [];
 
-        return NextResponse.json({ channels: uniqueChannels });
+        allChannels.forEach(c => {
+            if (c.type === 'DIRECT') {
+                const members = c.members || [];
+                const otherMember = members.find((m: any) => m.id !== userId);
+                if (otherMember) {
+                    const pairKey = [userId, otherMember.id].sort().join('-');
+                    if (!directMap.has(pairKey) || new Date(c.updatedAt) > new Date(directMap.get(pairKey).updatedAt)) {
+                        directMap.set(pairKey, c);
+                    }
+                }
+            } else {
+                otherChannels.push(c);
+            }
+        });
+
+        const uniqueChannels = [...otherChannels, ...Array.from(directMap.values())];
+        
+        // Final Unique filter by ID just in case
+        const finalChannels = Array.from(new Map(uniqueChannels.map(c => [c.id, c])).values());
+
+        return NextResponse.json({ channels: finalChannels });
 
     } catch (error) {
         console.error('CHAT_CHANNELS_GET', error);
@@ -109,16 +138,45 @@ export async function GET() {
 
 export async function POST(req: Request) {
     try {
-        const session = await getServerSession(authOptions);
+        let session = await getServerSession(authOptions);
+        if (!session?.user) {
+            session = await getMobileSession() as any;
+        }
+
         if (!session?.user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const { name, description, type, memberIds } = await req.json();
         const userRole = (session.user as any).role?.toUpperCase();
+        const myId = (session.user as any).id;
+
+        // Deduplicate DIRECT channels
+        if (type === 'DIRECT' && memberIds && memberIds.length === 1) {
+            const otherId = memberIds[0];
+            const existing = await prisma.chatChannel.findFirst({
+                where: {
+                    type: 'DIRECT',
+                    AND: [
+                        { members: { some: { id: myId } } },
+                        { members: { some: { id: otherId } } }
+                    ]
+                },
+                orderBy: { updatedAt: 'desc' },
+                include: {
+                    members: {
+                        select: { id: true, name: true, image: true, role: true }
+                    }
+                }
+            });
+
+            if (existing) {
+                return NextResponse.json(existing);
+            }
+        }
 
         const authorizedRoles = ['ADMIN', 'DIRECTOR', 'MANAGER'];
-        if (!authorizedRoles.includes(userRole)) {
+        if (type !== 'DIRECT' && !authorizedRoles.includes(userRole)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
@@ -128,7 +186,7 @@ export async function POST(req: Request) {
                 description,
                 type: type || 'PUBLIC',
                 members: {
-                    connect: (memberIds || []).map((id: string) => ({ id })).concat([{ id: (session.user as any).id }])
+                    connect: (memberIds || []).map((id: string) => ({ id })).concat([{ id: myId }])
                 }
             },
             include: {

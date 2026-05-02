@@ -137,6 +137,7 @@ export default function InboxPage() {
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const lastMessageIdRef = useRef<string | null>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
     const currentUserId = (session?.user as any)?.id;
     const userRole = (session?.user as any)?.role?.toUpperCase();
@@ -366,11 +367,12 @@ export default function InboxPage() {
 
     const insertMention = (user: User) => {
         if (mentionIndex === -1) return;
-        const mentionString = `@[${user.name}](user:${user.id})`;
+        const mentionString = `@[${user.name}](user:${user.id}) `;
         const before = input.substring(0, mentionIndex);
-        const after = input.substring(mentionIndex + (mentionQuery?.length || 0) + 1);
-        setInput(before + mentionString + " " + after);
+        const after = input.substring(mentionIndex + (mentionQuery?.length || 0) + 1).trimStart();
+        setInput(before + mentionString + after);
         setMentionQuery(null);
+        setTimeout(() => inputRef.current?.focus(), 0);
     };
 
     const filteredMentionUsers = users.filter(u => 
@@ -470,13 +472,18 @@ export default function InboxPage() {
                             <button onClick={() => setIsUserSearchOpen(true)} className="p-1 hover:bg-white/5 rounded-lg text-white/20 hover:text-white/60 transition-all"><UserPlus className="w-4 h-4" /></button>
                         </div>
                         {directMessages.map(dm => {
-                            const otherMember = dm.members?.find(m => m.id !== currentUserId);
+                            const otherMember = dm.members?.find(m => 
+                                m.id !== currentUserId && 
+                                m.email !== session?.user?.email
+                            ) || dm.members?.[0];
                             return (
                                 <button
                                     key={dm.id} onClick={() => { setSelectedChannel(dm); if (window.innerWidth < 1024) setIsSidebarOpen(false); }}
                                     className={cn("w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all group mb-0.5", selectedChannel?.id === dm.id ? "bg-blue-600/10 text-blue-400 font-bold" : "text-white/40 hover:bg-white/5")}
                                 >
-                                    <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-[10px] font-black">{otherMember?.name.charAt(0) || 'U'}</div>
+                                    <div className="w-6 h-6 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-[10px] font-black overflow-hidden">
+                                        {otherMember?.image ? <img src={otherMember.image} className="w-full h-full object-cover" /> : (otherMember?.name?.charAt(0) || 'U')}
+                                    </div>
                                     <span className="truncate flex-1 text-left">{otherMember?.name || 'Private Chat'}</span>
                                 </button>
                             );
@@ -494,12 +501,32 @@ export default function InboxPage() {
                                 {window.innerWidth < 1024 && (
                                     <button onClick={() => setIsSidebarOpen(true)} className="p-2 -ml-2 text-white/40 hover:text-white"><MenuIcon className="w-6 h-6" /></button>
                                 )}
-                                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl bg-blue-600/5 flex items-center justify-center border border-blue-600/10 shrink-0">
-                                    <Hash className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400" />
+                                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl bg-blue-600/5 flex items-center justify-center border border-blue-600/10 shrink-0 overflow-hidden">
+                                    {selectedChannel.type === 'DIRECT' ? (
+                                        (() => {
+                                            const other = selectedChannel.members?.find(m => 
+                                                m.id !== currentUserId && 
+                                                m.email !== session?.user?.email
+                                            ) || selectedChannel.members?.[0];
+                                            return other?.image ? <img src={other.image} className="w-full h-full object-cover" /> : <AtSign className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400" />;
+                                        })()
+                                    ) : (
+                                        <Hash className="w-4 h-4 lg:w-5 lg:h-5 text-blue-400" />
+                                    )}
                                 </div>
                                 <div className="truncate">
-                                    <h2 className="text-sm lg:text-base font-black text-white/90 tracking-tight truncate">{selectedChannel.name}</h2>
-                                    <p className="text-[9px] lg:text-[10px] text-white/30 font-medium truncate hidden sm:block">{selectedChannel.description || 'Secure communication.'}</p>
+                                    <h2 className="text-sm lg:text-base font-black text-white/90 tracking-tight truncate">
+                                        {selectedChannel.type === 'DIRECT' 
+                                            ? (selectedChannel.members?.find(m => 
+                                                m.id !== currentUserId && 
+                                                m.email !== session?.user?.email
+                                              )?.name || 'Private Chat')
+                                            : selectedChannel.name
+                                        }
+                                    </h2>
+                                    <p className="text-[9px] lg:text-[10px] text-white/30 font-medium truncate hidden sm:block">
+                                        {selectedChannel.type === 'DIRECT' ? 'Secure Direct Link' : (selectedChannel.description || 'Public tactical group.')}
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-1 lg:gap-3 shrink-0">
@@ -526,7 +553,8 @@ export default function InboxPage() {
                                 <div className="flex flex-col items-center justify-center h-full opacity-20"><Loader2 className="w-6 h-6 animate-spin mb-4" /><span className="text-[10px] font-black uppercase">Syncing...</span></div>
                             ) : (
                                 messages.map((msg) => {
-                                    const isMe = msg.sender.id === currentUserId;
+                                    const isMe = String(msg.sender.id) === String(currentUserId) || 
+                                                 msg.sender.email === session?.user?.email;
                                     return (
                                         <div key={msg.id} className={cn("flex flex-col", isMe ? "items-end" : "items-start")}>
                                             <div className={cn("flex items-end gap-2 lg:gap-3 max-w-[90%] lg:max-w-[80%]", isMe ? "flex-row-reverse" : "flex-row")}>
@@ -545,7 +573,15 @@ export default function InboxPage() {
                                                                     <div key={fi} className="flex items-center gap-3 p-2 rounded-xl bg-black/20 border border-white/5">
                                                                         {file.type?.startsWith('image/') ? <img src={file.url} className="w-10 h-10 rounded-lg object-cover" /> : <FileText className="w-5 h-5 text-blue-400" />}
                                                                         <div className="flex-1 min-w-0"><p className="text-[10px] font-black truncate">{file.name}</p></div>
-                                                                        <a href={file.url} download className="p-1.5 rounded-lg bg-black/20 text-white"><Download className="w-3 h-3" /></a>
+                                                                        <a 
+                                                                            href={file.url.startsWith('http') ? file.url : `${window.location.origin}${file.url}`} 
+                                                                            download={file.name} 
+                                                                            target="_blank" 
+                                                                            rel="noreferrer" 
+                                                                            className="p-1.5 rounded-lg bg-black/20 text-white"
+                                                                        >
+                                                                            <Download className="w-3 h-3" />
+                                                                        </a>
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -579,6 +615,7 @@ export default function InboxPage() {
                                 </AnimatePresence>
 
                                 <textarea 
+                                    ref={inputRef}
                                     value={input} onChange={handleInputChange}
                                     onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
                                     placeholder="Enter command..."
@@ -621,11 +658,25 @@ export default function InboxPage() {
 
                         <div className="flex-1 overflow-y-auto p-6 space-y-8" style={{ scrollbarWidth: 'none' }}>
                             <div className="text-center">
-                                <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-3xl bg-blue-600/10 border border-blue-600/20 flex items-center justify-center mx-auto mb-4">
-                                    <Hash className="w-8 h-8 lg:w-10 lg:h-10 text-blue-500" />
+                                <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-3xl bg-blue-600/10 border border-blue-600/20 flex items-center justify-center mx-auto mb-4 overflow-hidden">
+                                    {selectedChannel.type === 'DIRECT' ? (
+                                        (() => {
+                                            const other = selectedChannel.members?.find(m => m.id !== currentUserId);
+                                            return other?.image ? <img src={other.image} className="w-full h-full object-cover" /> : <AtSign className="w-8 h-8 lg:w-10 lg:h-10 text-blue-500" />;
+                                        })()
+                                    ) : (
+                                        <Hash className="w-8 h-8 lg:w-10 lg:h-10 text-blue-500" />
+                                    )}
                                 </div>
-                                <h2 className="text-base lg:text-lg font-black text-white">{selectedChannel.name}</h2>
-                                <p className="text-[10px] lg:text-[11px] text-white/40 mt-1">{selectedChannel.description || 'Public tactical group.'}</p>
+                                <h2 className="text-base lg:text-lg font-black text-white">
+                                    {selectedChannel.type === 'DIRECT' 
+                                        ? (selectedChannel.members?.find(m => m.id !== currentUserId)?.name || 'Private Chat')
+                                        : selectedChannel.name
+                                    }
+                                </h2>
+                                <p className="text-[10px] lg:text-[11px] text-white/40 mt-1">
+                                    {selectedChannel.type === 'DIRECT' ? 'Encrypted Direct Message' : (selectedChannel.description || 'Public tactical group.')}
+                                </p>
                             </div>
 
                             <div>
@@ -724,7 +775,7 @@ function ChannelItem({ ch, selected, onClick, icon: Icon = Hash }: { ch: any, se
 
 function RichText({ content, isMe }: { content: string, isMe: boolean }) {
     if (!content) return null;
-    const mentionRegex = /@\[([^\]]+)\]\(user:([^\)]+)\)/g;
+    const mentionRegex = /@\[([^\]]+)\]\(user:([a-zA-Z0-9-]+)\)/g;
     const parts = content.split(mentionRegex);
     const renderFormattedText = (text: string, keyPrefix: string) => {
         const formatRegex = /(\*\*.*?\*\*|\*.*?\*|`.*?`)/g;
@@ -739,7 +790,7 @@ function RichText({ content, isMe }: { content: string, isMe: boolean }) {
     const result = [];
     for (let i = 0; i < parts.length; i++) {
         if (i % 3 === 0) result.push(renderFormattedText(parts[i], `text-${i}`));
-        else if (i % 3 === 1) result.push(<span key={`mention-${i}`} className={cn("font-black px-2 py-0.5 rounded-md border text-[11px] mx-0.5 shadow-sm inline-flex items-center gap-1", isMe ? "bg-white/20" : "bg-blue-600/20 text-blue-400")}>@{parts[i]}</span>);
+        else if (i % 3 === 1) result.push(<span key={`mention-${i}`} className={cn("font-black px-2 py-0.5 rounded-md border text-[11px] ml-0.5 mr-1.5 shadow-sm inline-flex items-center gap-1", isMe ? "bg-white/20" : "bg-blue-600/20 text-blue-400")}>@{parts[i]}</span>);
     }
     return <div className="whitespace-pre-wrap">{result}</div>;
 }

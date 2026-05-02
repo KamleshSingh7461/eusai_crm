@@ -35,6 +35,6 @@ export const config = {
          * - /favicon.ico, /robots.txt, etc. (public files)
          * - Public images (png, jpg, svg)
          */
-        '/((?!login|api|_next/static|_next/image|favicon.ico|robots.txt|.*\\.(?:png|jpg|jpeg|gif|svg|webp)$).*)',
+        '/((?!login|api|_next/static|_next/image|favicon.ico|robots.txt|uploads|.*\\.(?:png|jpg|jpeg|gif|svg|webp|pdf)$).*)',
     ],
 }

@@ -28,6 +28,7 @@ export async function POST(req: Request) {
                     { members: { some: { id: recipientId } } }
                 ]
             },
+            orderBy: { updatedAt: 'desc' },
             include: {
                 members: {
                     select: { id: true, name: true, image: true, role: true }

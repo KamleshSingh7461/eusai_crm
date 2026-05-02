@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
                 email: true,
                 name: true,
                 role: true,
+                image: true,
                 department: true,
                 reportingManagers: {
                     select: { id: true, name: true }
