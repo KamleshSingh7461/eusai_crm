@@ -75,9 +75,19 @@ export async function GET(
                         }
                     },
                     resources: true,
+                    members: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            role: true,
+                            image: true,
+                            isOnline: true
+                        }
+                    },
                     wikiPages: true,
                     _count: {
-                        select: { projects: true, resources: true, issues: true, milestones: true }
+                        select: { projects: true, resources: true, issues: true, milestones: true, members: true }
                     }
                 }
             }),

@@ -45,6 +45,14 @@ interface Space {
     type: string;
     projects: Project[];
     resources: any[];
+    members: {
+        id: string;
+        name: string | null;
+        email: string;
+        role: string;
+        image: string | null;
+        isOnline: boolean;
+    }[];
     wikiPages: any[];
     recentActivities: any[];
     _count: {
@@ -325,23 +333,43 @@ export default function SpaceDashboardPage() {
                                 <Users className="w-3.5 h-3.5" /> Personnel
                             </h3>
                             <div className="space-y-2">
-                                {space.resources.filter(r => r.type === 'PERSONNEL').length === 0 ? (
-                                    <p className="text-xs text-[var(--notion-text-tertiary)]">No personnel assigned.</p>
-                                ) : (
-                                    space.resources.filter(r => r.type === 'PERSONNEL').map((res: any) => (
-                                        <div key={res.id} className="flex items-center gap-3 p-2 hover:bg-[var(--notion-bg-secondary)] rounded-sm transition-colors border border-transparent hover:border-[var(--notion-border-default)]">
-                                            <div className="w-6 h-6 rounded-full bg-[#2383e2]/20 flex items-center justify-center font-bold text-[#2383e2] text-[10px]">
-                                                {res.name.charAt(0)}
+                                {/* Real Team Members */}
+                                {space.members?.map((member) => (
+                                    <div key={member.id} className="flex items-center gap-3 p-2 hover:bg-[var(--notion-bg-secondary)] rounded-sm transition-colors border border-transparent hover:border-[var(--notion-border-default)]">
+                                        <div className="relative">
+                                            <div className="w-7 h-7 rounded-full bg-[#2383e2]/20 flex items-center justify-center font-bold text-[#2383e2] text-xs border border-white/10 overflow-hidden shadow-sm">
+                                                {member.image ? (
+                                                    <img src={member.image} alt={member.name || ''} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    (member.name?.charAt(0) || member.email.charAt(0)).toUpperCase()
+                                                )}
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-bold text-[var(--notion-text-primary)] truncate">{res.name}</p>
-                                                <p className="text-[9px] text-[var(--notion-text-tertiary)] uppercase font-bold">{res.role || 'Member'}</p>
-                                            </div>
-                                            <div className="text-[9px] font-mono text-[var(--notion-text-tertiary)]">
-                                                {res.status}
-                                            </div>
+                                            {member.isOnline && (
+                                                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[var(--notion-bg-primary)] shadow-sm" title="Online" />
+                                            )}
                                         </div>
-                                    ))
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-bold text-[var(--notion-text-primary)] truncate">{member.name || member.email.split('@')[0]}</p>
+                                            <p className="text-[9px] text-[var(--notion-text-tertiary)] uppercase font-bold tracking-wider">{member.role.replace('_', ' ')}</p>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* Legacy Resources (Personnel type) */}
+                                {space.resources.filter(r => r.type === 'PERSONNEL').map((res: any) => (
+                                    <div key={res.id} className="flex items-center gap-3 p-2 hover:bg-[var(--notion-bg-secondary)] rounded-sm transition-colors border border-transparent hover:border-[var(--notion-border-default)] opacity-60">
+                                        <div className="w-7 h-7 rounded-full bg-slate-500/20 flex items-center justify-center font-bold text-slate-500 text-xs border border-white/5">
+                                            {res.name.charAt(0)}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-bold text-[var(--notion-text-primary)] truncate">{res.name}</p>
+                                            <p className="text-[9px] text-[var(--notion-text-tertiary)] uppercase font-bold">{res.role || 'Legacy Resource'}</p>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {(!space.members || space.members.length === 0) && space.resources.filter(r => r.type === 'PERSONNEL').length === 0 && (
+                                    <p className="text-xs text-[var(--notion-text-tertiary)] italic">No personnel assigned to this workspace.</p>
                                 )}
                             </div>
                         </section>
