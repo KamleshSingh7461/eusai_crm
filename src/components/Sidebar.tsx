@@ -425,7 +425,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                         <Monitor className="w-3 h-3" /> Desktop
                                     </div>
                                     <a 
-                                        href="/downloads/EUSAI_Hub_Windows_Setup.exe" 
+                                        href="/downloads/EUSAI_Hub_Setup.exe" 
                                         download
                                         className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
                                     >
