@@ -184,7 +184,7 @@ User message: ${message}`;
     } catch (error: any) {
         console.error("EUSAI AI Error:", error);
         return NextResponse.json({
-            reply: "I encountered an error fetching your CRM data. Please try again."
+            reply: `⚠️ AI Error: ${error.message || "Unknown error occurred"}`
         }, { status: 500 });
     }
 }
