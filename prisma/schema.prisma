@@ -505,6 +505,7 @@ model ChatChannel {
   updatedAt   DateTime      @updatedAt
 }
 
+
 model ChatMessage {
   id          String      @id @default(uuid())
   content     String
@@ -518,14 +519,4 @@ model ChatMessage {
   isSystem    Boolean     @default(false)
   
   createdAt   DateTime    @default(now())
-}
-
-model PushSubscription {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  endpoint  String   @unique
-  p256dh    String
-  auth      String
-  createdAt DateTime @default(now())
 }
