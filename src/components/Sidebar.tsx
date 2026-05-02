@@ -38,7 +38,12 @@ import {
     FileEdit,
     Zap,
     StickyNote,
-    AlertTriangle
+    AlertTriangle,
+    Send,
+    Edit2,
+    Apple,
+    Smartphone,
+    Monitor
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSpace } from '@/context/SpaceContext';
@@ -371,11 +376,31 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                             icon={<Zap className="w-3.5 h-3.5" />}
                             className="mb-3"
                         >
-                            <div className="space-y-0.5">
-                                <div className="sidebar-link-eusai text-xs pl-6 cursor-pointer opacity-50">
-                                    <Layers className="w-3.5 h-3.5 flex-shrink-0 text-[#6B778C]" />
-                                    <span className="whitespace-nowrap">Coming Soon...</span>
-                                </div>
+                            <div className="space-y-1 mt-1">
+                                <a 
+                                    href="https://testflight.apple.com/join/placeholder" // User to update with real link
+                                    target="_blank"
+                                    className="sidebar-link-eusai text-[10px] pl-6 hover:bg-[rgba(255,255,255,0.05)] transition-colors py-1.5"
+                                >
+                                    <Apple className="w-3.5 h-3.5 flex-shrink-0 text-[#A2AAAD]" />
+                                    <span className="whitespace-nowrap font-medium text-[rgba(255,255,255,0.7)]">iOS (TestFlight)</span>
+                                </a>
+                                <a 
+                                    href="/downloads/eusai_hub_android.apk" 
+                                    download
+                                    className="sidebar-link-eusai text-[10px] pl-6 hover:bg-[rgba(255,255,255,0.05)] transition-colors py-1.5"
+                                >
+                                    <Smartphone className="w-3.5 h-3.5 flex-shrink-0 text-[#3DDC84]" />
+                                    <span className="whitespace-nowrap font-medium text-[rgba(255,255,255,0.7)]">Android (v1.0.2)</span>
+                                </a>
+                                <a 
+                                    href="/downloads/EUSAI_Hub_Windows_Setup.exe" 
+                                    download
+                                    className="sidebar-link-eusai text-[10px] pl-6 hover:bg-[rgba(255,255,255,0.05)] transition-colors py-1.5"
+                                >
+                                    <Monitor className="w-3.5 h-3.5 flex-shrink-0 text-[#0078D7]" />
+                                    <span className="whitespace-nowrap font-medium text-[rgba(255,255,255,0.7)]">Windows (Desktop)</span>
+                                </a>
                             </div>
                         </ExpandableSection>
                     )}
