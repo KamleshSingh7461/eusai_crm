@@ -155,7 +155,7 @@ LAST 7 REPORTS: ${myReports.length} submitted.
 `;
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
         const fullSystemPrompt = `You are EUSAI AI, an intelligent assistant built into the EUSAI CRM platform.
 You are speaking with ${userName} (${userRole}).
