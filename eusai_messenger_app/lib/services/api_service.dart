@@ -7,10 +7,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 class ApiService {
   static String get baseUrl {
-    // TACTICAL ROUTING:
-    // 1. Android Emulator: 10.0.2.2
-    // 2. Windows/Web: localhost/127.0.0.1
-    // 3. iOS/Physical: Use your machine's local IP (e.g., 192.168.1.XX)
+    // PRODUCTION ROUTING: Always use live EC2 for release builds
+    if (kReleaseMode) return 'https://crm.eusaiteam.com/api';
     
     if (kIsWeb) return 'http://192.168.0.101:3000/api';
     
@@ -20,9 +18,7 @@ class ApiService {
         // TACTICAL LINK: Your PC's Local IP
         return 'http://192.168.0.101:3000/api'; 
       }
-    } catch (e) {
-      // Fallback for platforms where Platform.isX might throw
-    }
+    } catch (e) {}
     
     return 'http://127.0.0.1:3000/api';
   }
