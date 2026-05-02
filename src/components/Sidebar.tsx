@@ -376,31 +376,62 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                             icon={<Zap className="w-3.5 h-3.5" />}
                             className="mb-3"
                         >
-                            <div className="space-y-1 mt-1">
-                                <a 
-                                    href="https://testflight.apple.com/join/placeholder" // User to update with real link
-                                    target="_blank"
-                                    className="sidebar-link-eusai text-[10px] pl-6 hover:bg-[rgba(255,255,255,0.05)] transition-colors py-1.5"
-                                >
-                                    <Apple className="w-3.5 h-3.5 flex-shrink-0 text-[#A2AAAD]" />
-                                    <span className="whitespace-nowrap font-medium text-[rgba(255,255,255,0.7)]">iOS (TestFlight)</span>
-                                </a>
-                                <a 
-                                    href="/downloads/eusai_hub_android.apk" 
-                                    download
-                                    className="sidebar-link-eusai text-[10px] pl-6 hover:bg-[rgba(255,255,255,0.05)] transition-colors py-1.5"
-                                >
-                                    <Smartphone className="w-3.5 h-3.5 flex-shrink-0 text-[#3DDC84]" />
-                                    <span className="whitespace-nowrap font-medium text-[rgba(255,255,255,0.7)]">Android (v1.0.2)</span>
-                                </a>
-                                <a 
-                                    href="/downloads/EUSAI_Hub_Windows_Setup.exe" 
-                                    download
-                                    className="sidebar-link-eusai text-[10px] pl-6 hover:bg-[rgba(255,255,255,0.05)] transition-colors py-1.5"
-                                >
-                                    <Monitor className="w-3.5 h-3.5 flex-shrink-0 text-[#0078D7]" />
-                                    <span className="whitespace-nowrap font-medium text-[rgba(255,255,255,0.7)]">Windows (Desktop)</span>
-                                </a>
+                            <div className="space-y-1 mt-2">
+                                {/* iOS Suite */}
+                                <div className="px-6 py-1 flex flex-col gap-1">
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-tighter">
+                                        <Apple className="w-3 h-3" /> iOS Ecosystem
+                                    </div>
+                                    <a 
+                                        href="https://apps.apple.com/app/id-placeholder" 
+                                        target="_blank"
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                    >
+                                        <span className="opacity-70">○ App Store (Official)</span>
+                                    </a>
+                                    <a 
+                                        href="https://testflight.apple.com/join/placeholder" 
+                                        target="_blank"
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                    >
+                                        <span className="opacity-70">○ TestFlight (Beta)</span>
+                                    </a>
+                                </div>
+
+                                {/* Android Suite */}
+                                <div className="px-6 py-2 flex flex-col gap-1">
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-tighter">
+                                        <Smartphone className="w-3 h-3" /> Android Hub
+                                    </div>
+                                    <a 
+                                        href="https://play.google.com/store/apps/details?id=com.eusaiteam.hub" 
+                                        target="_blank"
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                    >
+                                        <span className="opacity-70">○ Google Play Store</span>
+                                    </a>
+                                    <a 
+                                        href="/downloads/eusai_hub_android.apk" 
+                                        download
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                    >
+                                        <span className="opacity-70">○ Direct APK (v1.0.2)</span>
+                                    </a>
+                                </div>
+
+                                {/* Desktop Suite */}
+                                <div className="px-6 py-1 flex flex-col gap-1">
+                                    <div className="flex items-center gap-2 text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-tighter">
+                                        <Monitor className="w-3 h-3" /> Desktop
+                                    </div>
+                                    <a 
+                                        href="/downloads/EUSAI_Hub_Windows_Setup.exe" 
+                                        download
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                    >
+                                        <span className="opacity-70">○ Windows Installer</span>
+                                    </a>
+                                </div>
                             </div>
                         </ExpandableSection>
                     )}
