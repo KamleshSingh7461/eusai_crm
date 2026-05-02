@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'chat_screen.dart';
+import 'login_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -67,6 +68,57 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
+
+  Future<void> _handleLogout() async {
+    final api = context.read<ApiService>();
+    await api.logout();
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
+
+  void _showDeleteAccountDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.blackSidebar,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Colors.white.withOpacity(0.05))),
+        title: const Text('DESTRUCTIVE ACTION', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1)),
+        content: const Text(
+          'This will permanently terminate your operative profile and erase all associated tactical data from the EUSAI Hub. This action is irreversible.',
+          style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('ABORT', style: TextStyle(color: Colors.white24, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await context.read<ApiService>().logout();
+              if (mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (route) => false,
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.withOpacity(0.1),
+              foregroundColor: Colors.redAccent,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('TERMINATE PROFILE', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _getChannelName(dynamic channel) {
     if (channel['type'] != 'DIRECT') return channel['name'] ?? 'Unnamed';
     
@@ -113,10 +165,26 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final newChannel = await api.createChannel(user['name'], 'DIRECT', [user['id']]);
     if (newChannel != null) {
       await _loadData();
-      setState(() {
-        _selectedChannel = newChannel;
-        _currentView = 'CHAT';
-      });
+      final bool isWide = MediaQuery.of(context).size.width > 900;
+      
+      if (mounted) {
+        if (isWide) {
+          setState(() {
+            _selectedChannel = newChannel;
+            _currentView = 'CHAT';
+          });
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(
+                channel: newChannel,
+                onNameIdentified: _getChannelName(newChannel),
+              ),
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -239,6 +307,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
           Expanded(child: _buildMainWorkspace()),
           if (_isDetailsOpen && _selectedChannel != null && _currentView == 'CHAT') _buildDetailsPanel(),
+          if (_currentView == 'SETTINGS') _buildSettingsWorkspace(),
         ],
       ),
     );
@@ -273,34 +342,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  Widget _buildMobileBottomNav() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
-      ),
-      child: BottomNavigationBar(
-        currentIndex: _currentView == 'ACTIVITY' ? 0 : _currentView == 'CHAT' ? 1 : 2,
-        onTap: (index) {
-          setState(() {
-            if (index == 0) _currentView = 'ACTIVITY';
-            else if (index == 1) _currentView = 'CHAT';
-            else _currentView = 'PEOPLE';
-          });
-        },
-        backgroundColor: AppTheme.blackMain,
-        selectedItemColor: AppTheme.eusaiNeon,
-        unselectedItemColor: Colors.white24,
-        selectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
-        unselectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(LucideIcons.bell, size: 20), label: 'ACTIVITY'),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.messageSquare, size: 20), label: 'HOME'),
-          BottomNavigationBarItem(icon: Icon(LucideIcons.users, size: 20), label: 'OPERATIVES'),
-        ],
-      ),
-    );
-  }
 
   Widget _buildNotificationBadge() {
     final count = _notifications.where((n) => n['status'] == 'UNREAD').length;
@@ -324,6 +365,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     switch (_currentView) {
       case 'ACTIVITY': return _buildMobileActivityView();
       case 'PEOPLE': return _buildPeopleSidebar();
+      case 'SETTINGS': return _buildMobileSettingsView();
       default: return _buildMobileHomeView();
     }
   }
@@ -568,6 +610,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     switch (_currentView) {
       case 'ACTIVITY': return _buildActivitySidebar();
       case 'PEOPLE': return _buildPeopleSidebar();
+      case 'SETTINGS': return _buildSettingsSidebar();
       default:
         final announcements = _channels.where((c) => (c['type'] == 'ANNOUNCEMENT' || c['name']?.toLowerCase().contains('announcement') == true) && _getChannelName(c).toLowerCase().contains(_searchQuery.toLowerCase())).toList();
         final sectors = _channels.where((c) => c['type'] != 'DIRECT' && !c['name']?.toLowerCase().contains('announcement') == true && _getChannelName(c).toLowerCase().contains(_searchQuery.toLowerCase())).toList();
@@ -856,7 +899,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           _buildRailIcon(LucideIcons.messageSquare, 'Chat', _currentView == 'CHAT', 'CHAT'),
           _buildRailIcon(LucideIcons.users, 'People', _currentView == 'PEOPLE', 'PEOPLE'),
           const Spacer(),
-          _buildRailIcon(LucideIcons.settings, 'Settings', false, 'SETTINGS'),
+          _buildRailIcon(LucideIcons.settings, 'Profile', _currentView == 'SETTINGS', 'SETTINGS'),
           const SizedBox(height: 12),
         ],
       ),
@@ -977,28 +1020,145 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
+  Widget _buildSettingsSidebar() {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const Text('OPERATIVE PROFILE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white12)),
+        const SizedBox(height: 16),
+        _buildSettingsTile(LucideIcons.user, 'Account Credentials', () {}),
+        _buildSettingsTile(LucideIcons.shield, 'Security Protocols', () {}),
+        _buildSettingsTile(LucideIcons.bell, 'Notifications', () {}),
+        const SizedBox(height: 32),
+        _buildSettingsTile(LucideIcons.logOut, 'Terminate Link (Logout)', _handleLogout, color: Colors.orangeAccent),
+        _buildSettingsTile(LucideIcons.trash2, 'Delete Profile', _showDeleteAccountDialog, color: Colors.redAccent),
+      ],
+    );
+  }
+
+  Widget _buildSettingsTile(IconData icon, String title, VoidCallback onTap, {Color? color}) {
+    return ListTile(
+      onTap: onTap,
+      dense: true,
+      leading: Icon(icon, size: 16, color: color ?? Colors.white24),
+      title: Text(title, style: TextStyle(fontSize: 13, color: color ?? Colors.white70, fontWeight: color != null ? FontWeight.bold : FontWeight.normal)),
+    );
+  }
+
+  Widget _buildSettingsWorkspace() {
+    final api = context.read<ApiService>();
+    return Container(
+      color: AppTheme.blackMain,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120, height: 120,
+              decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(40)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(40),
+                child: api.currentUserImage != null 
+                  ? Image.network(api.currentUserImage!, fit: BoxFit.cover) 
+                  : Center(child: Text(api.currentUserName.isNotEmpty ? api.currentUserName[0] : '?', style: const TextStyle(fontSize: 40, color: Colors.white10, fontWeight: FontWeight.bold))),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(api.currentUserName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            Text(api.currentUserEmail, style: const TextStyle(fontSize: 14, color: Colors.white24)),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(color: AppTheme.eusaiBlue.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+              child: Text(api.currentUserRole.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.eusaiBlue, letterSpacing: 1)),
+            ),
+            const SizedBox(height: 64),
+            const Text('EUSAI TACTICAL HUB v1.0.0', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white10, letterSpacing: 2)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileSettingsView() {
+    return ListView(
+      padding: const EdgeInsets.all(24),
+      children: [
+        _buildSettingsWorkspace(),
+        const SizedBox(height: 48),
+        const Text('ACCOUNT ACTIONS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white12)),
+        const SizedBox(height: 16),
+        _buildSettingsTile(LucideIcons.logOut, 'Secure Logout', _handleLogout, color: Colors.orangeAccent),
+        _buildSettingsTile(LucideIcons.trash2, 'Delete Account (Irreversible)', _showDeleteAccountDialog, color: Colors.redAccent),
+        const SizedBox(height: 48),
+        const Center(child: Text('Compliance: Secure Profile Termination mandated by EUSAI Policy.', style: TextStyle(fontSize: 8, color: Colors.white10))),
+      ],
+    );
+  }
+
+  Widget _buildMobileBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.blackMain,
+        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
+      ),
+      child: BottomNavigationBar(
+        currentIndex: _getCurrentNavIndex(),
+        onTap: (index) {
+          final views = ['CHAT', 'PEOPLE', 'ACTIVITY', 'SETTINGS'];
+          _switchView(views[index]);
+        },
+        backgroundColor: AppTheme.blackMain,
+        selectedItemColor: AppTheme.eusaiNeon,
+        unselectedItemColor: Colors.white24,
+        type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
+        unselectedLabelStyle: const TextStyle(fontSize: 10),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(LucideIcons.messageSquare, size: 20), label: 'CHAT'),
+          BottomNavigationBarItem(icon: Icon(LucideIcons.users, size: 20), label: 'PEOPLE'),
+          BottomNavigationBarItem(icon: Icon(LucideIcons.bell, size: 20), label: 'ACTIVITY'),
+          BottomNavigationBarItem(icon: Icon(LucideIcons.settings, size: 20), label: 'PROFILE'),
+        ],
+      ),
+    );
+  }
+
+  int _getCurrentNavIndex() {
+    switch (_currentView) {
+      case 'PEOPLE': return 1;
+      case 'ACTIVITY': return 2;
+      case 'SETTINGS': return 3;
+      default: return 0;
+    }
+  }
+
   Widget _buildCurrentUserTile() {
     final api = context.read<ApiService>();
     final String userName = api.currentUserName;
     final String userRole = api.currentUserRole;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: const Color(0xFF0D0D0D), border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05)))),
-      child: Row(
-        children: [
-          Container(
-            width: 32, height: 32,
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(10)),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: api.currentUserImage != null 
-                ? Image.network(api.currentUserImage!, fit: BoxFit.cover) 
-                : Center(child: Text(userName.isNotEmpty ? userName[0] : '?', style: const TextStyle(color: Colors.white24, fontWeight: FontWeight.bold))),
+    return GestureDetector(
+      onTap: () => _switchView('SETTINGS'),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(color: const Color(0xFF0D0D0D), border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05)))),
+        child: Row(
+          children: [
+            Container(
+              width: 32, height: 32,
+              decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(10)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: api.currentUserImage != null 
+                  ? Image.network(api.currentUserImage!, fit: BoxFit.cover) 
+                  : Center(child: Text(userName.isNotEmpty ? userName[0] : '?', style: const TextStyle(color: Colors.white24, fontWeight: FontWeight.bold))),
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(userName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)), Text(userRole.toUpperCase(), style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: AppTheme.eusaiNeon))])),
-        ],
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(userName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)), Text(userRole.toUpperCase(), style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: AppTheme.eusaiNeon))])),
+            const Icon(LucideIcons.chevronRight, size: 14, color: Colors.white10),
+          ],
+        ),
       ),
     );
   }

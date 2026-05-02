@@ -35,17 +35,44 @@ class ApiService {
 
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString('token');
     final userStr = prefs.getString('user');
     if (userStr != null) {
       _user = jsonDecode(userStr);
     }
   }
 
+  bool get isAuthenticated => _token != null;
+
   String get currentUserEmail => _user?['email'] ?? '';
   String get currentUserId => _user?['id']?.toString() ?? '';
   String get currentUserName => _user?['name'] ?? 'Admin User';
   String get currentUserRole => _user?['role'] ?? 'OPERATIVE';
   String? get currentUserImage => _user?['image'];
+
+  Future<bool> loginWithEmail(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/mobile/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _token = data['token'];
+        _user = data['user'];
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', _token!);
+        await prefs.setString('user', jsonEncode(_user));
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
 
   Future<bool> loginWithGoogle() async {
     HttpServer? server;

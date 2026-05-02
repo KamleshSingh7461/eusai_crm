@@ -41,7 +41,7 @@ class EusaiMessengerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'EUSAI Messenger',
+      title: 'EUSAI HUB',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.teamsTheme,
       home: isLoggedIn ? const ChatListScreen() : const LoginScreen(),

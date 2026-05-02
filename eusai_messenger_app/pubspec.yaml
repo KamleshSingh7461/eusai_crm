@@ -1,4 +1,4 @@
-name: eusai_messenger_app
+name: eusai_hub
 description: A tactical cross-platform messenger for EUSAI CRM.
 version: 1.0.0+1
 
@@ -32,6 +32,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
+  remove_alpha_ios: true
   image_path: "assets/logo/EUSAI-LOGO.png"
   windows:
     generate: true

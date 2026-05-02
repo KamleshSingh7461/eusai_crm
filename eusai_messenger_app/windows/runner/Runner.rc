@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "eusai_messenger_app" "\0"
+            VALUE "CompanyName", "EUSAI TEAM" "\0"
+            VALUE "FileDescription", "EUSAI HUB - Sector Intelligence Gateway" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "eusai_messenger_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "eusai_messenger_app.exe" "\0"
-            VALUE "ProductName", "eusai_messenger_app" "\0"
+            VALUE "InternalName", "EUSAI HUB" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 EUSAI TEAM. All rights reserved." "\0"
+            VALUE "OriginalFilename", "EUSAI_HUB.exe" "\0"
+            VALUE "ProductName", "EUSAI HUB" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
