@@ -307,8 +307,8 @@ export default function DirectorDashboard() {
                                         <div className="w-3 h-3 rounded-full bg-[#36B37E]/20 border border-[#36B37E]/50" />
                                     </div>
                                 </div>
-                                <div className="h-[320px] w-full relative z-10">
-                                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                                <div className="h-[320px] w-full relative z-10 min-h-[320px]">
+                                    <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={charts.monthlyProductivity}>
                                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
                                             <XAxis dataKey="name" stroke="rgba(255,255,255,0.2)" tick={{ fontSize: 11, fontWeight: 'bold' }} tickLine={false} axisLine={false} dy={10} />
@@ -417,8 +417,8 @@ export default function DirectorDashboard() {
                                 <h3 className="text-sm font-bold text-white uppercase tracking-widest mb-4 flex items-center gap-2 relative z-10">
                                     <PieIcon className="w-4 h-4 text-purple-400" /> Strategic Distribution
                                 </h3>
-                                <div className="h-[240px] w-full flex items-center justify-center relative z-10">
-                                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                                <div className="h-[240px] w-full flex items-center justify-center relative z-10 min-h-[240px]">
+                                    <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Pie
                                                 data={charts.projectStatus}

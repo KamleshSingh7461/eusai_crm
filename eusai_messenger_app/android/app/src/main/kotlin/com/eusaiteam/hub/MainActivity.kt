@@ -1,4 +1,4 @@
-package com.example.eusai_messenger_app
+package com.eusaiteam.hub
 
 import io.flutter.embedding.android.FlutterActivity
 
