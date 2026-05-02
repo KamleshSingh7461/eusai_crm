@@ -16,6 +16,7 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
+SetupIconFile=D:\dev\eusai_crm\eusai_messenger_app\windows\runner\resources\app_icon.ico
 ; The output file will be created in your build directory
 OutputDir=D:\dev\eusai_crm\eusai_messenger_app\build\windows\installer
 OutputBaseFilename=EUSAI_Hub_Setup
