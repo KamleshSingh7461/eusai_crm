@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
 import jwt from 'jsonwebtoken';
+import prisma from '@/lib/prisma';
 
 export async function getMobileSession() {
     const headerList = await headers();
@@ -24,11 +25,23 @@ export async function getMobileSession() {
 
     try {
         const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        
+        // CRITICAL: Check DB for suspension status
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.id },
+            select: { id: true, email: true, role: true, isSuspended: true }
+        });
+
+        if (!user || user.isSuspended) {
+            console.log(`🔴 Access denied for suspended/deleted user: ${decoded.email}`);
+            return null;
+        }
+
         return {
             user: {
-                id: decoded.id,
-                email: decoded.email,
-                role: decoded.role
+                id: user.id,
+                email: user.email,
+                role: user.role
             }
         };
     } catch (e) {

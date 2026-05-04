@@ -26,6 +26,9 @@ export const authOptions: NextAuthOptions = {
                 });
 
                 if (user && user.password) {
+                    if (user.isSuspended) {
+                        throw new Error("Your account has been suspended. Please contact the administrator.");
+                    }
                     const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
                     if (isPasswordValid) {
                         return user as any;
@@ -98,6 +101,11 @@ export const authOptions: NextAuthOptions = {
             if (!dbUser) {
                 console.log(`🔴 Rejected login attempt from uninvited user: ${normalizedEmail}`);
                 return "/login?error=NotInvited";
+            }
+
+            if (dbUser.isSuspended) {
+                console.log(`🔴 Rejected login attempt from suspended user: ${normalizedEmail}`);
+                return "/login?error=AccountSuspended";
             }
 
             // 3. Track Last Login

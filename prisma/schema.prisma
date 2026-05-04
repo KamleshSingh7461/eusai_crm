@@ -63,6 +63,7 @@ model User {
   // Activity & Session Tracking
   lastLogin DateTime?
   isOnline  Boolean   @default(false)
+  isSuspended Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

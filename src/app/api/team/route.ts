@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
                 role: true,
                 department: true,
                 image: true,
+                isSuspended: true,
                 memberSpaces: {
                     select: {
                         id: true,
@@ -299,7 +300,7 @@ export async function PUT(request: NextRequest) {
 
     try {
         const body = await request.json();
-        const { id, role, managerId, spaceIds = [] } = body;
+        const { id, role, managerId, spaceIds = [], isSuspended } = body;
 
         const targetUser = await (prisma as any).user.findUnique({
             where: { id },
@@ -339,6 +340,7 @@ export async function PUT(request: NextRequest) {
             where: { id },
             data: {
                 role: isRoleChanging ? role : targetUser.role,
+                isSuspended: typeof isSuspended === 'boolean' ? isSuspended : undefined,
                 reportingManagers: managerId ? { set: [{ id: managerId }] }
                     : body.managerIds ? { set: body.managerIds.map((mid: string) => ({ id: mid })) }
                     : undefined,

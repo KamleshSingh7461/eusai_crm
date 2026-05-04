@@ -39,6 +39,7 @@ interface User {
     performanceTrend?: 'UP' | 'DOWN' | 'NEUTRAL';
     activeTasks?: number;
     rank?: number | null;
+    isSuspended: boolean;
     reportingManagers: { id: string; name: string | null }[];
     reportingSubordinates: { id: string; name: string | null }[];
     _count: {
@@ -168,6 +169,25 @@ export default function TeamPage() {
             }
         } catch (error) {
             showToast('Error resending invitation', 'error');
+        }
+    };
+ 
+    const handleToggleSuspension = async (user: User) => {
+        try {
+            const res = await fetch('/api/team', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: user.id, isSuspended: !user.isSuspended })
+            });
+ 
+            if (res.ok) {
+                showToast(`User ${user.isSuspended ? 'activated' : 'suspended'} successfully`, 'success');
+                fetchTeam();
+            } else {
+                showToast('Failed to update user status', 'error');
+            }
+        } catch (error) {
+            showToast('Error toggling suspension', 'error');
         }
     };
 
@@ -394,6 +414,9 @@ export default function TeamPage() {
                                                     <div className="font-bold text-heading text-sm flex items-center gap-2">
                                                         {user.name || 'No Name'}
                                                         {user.rank && user.rank <= 3 && <Award className={`w-3.5 h-3.5 ${user.rank === 1 ? 'text-[#FFAB00]' : 'text-body'}`} />}
+                                                        {user.isSuspended && (
+                                                            <span className="bg-[#FFEBE6] text-[#BF2600] text-[8px] px-1.5 py-0.5 rounded-sm uppercase font-bold tracking-tighter">Suspended</span>
+                                                        )}
                                                     </div>
                                                     <div className="text-[10px] text-body truncate">{user.email}</div>
                                                 </div>
@@ -478,6 +501,16 @@ export default function TeamPage() {
                                                         title="Resend Invitation"
                                                     >
                                                         <Send className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleToggleSuspension(user)}
+                                                        className={cn(
+                                                            "p-1.5 rounded-sm transition-colors",
+                                                            user.isSuspended ? "hover:bg-[#E3FCEF] text-[#006644]" : "hover:bg-[#FFEBE6] text-[#BF2600]"
+                                                        )}
+                                                        title={user.isSuspended ? "Activate User" : "Suspend User"}
+                                                    >
+                                                        <Shield className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => openEditModal(user)}
