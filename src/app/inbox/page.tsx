@@ -30,7 +30,11 @@ import {
     ShieldAlert,
     Clock,
     File,
-    Menu as MenuIcon
+    Menu as MenuIcon,
+    Edit2,
+    Trash2,
+    Check,
+    X as CloseIcon
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
@@ -49,6 +53,7 @@ interface Message {
     content: string;
     attachments?: any[];
     createdAt: string;
+    updatedAt?: string;
 }
 
 interface Channel {
@@ -83,6 +88,8 @@ export default function InboxPage() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false); // Default false on small screens
     const isFirstLoad = useRef(true);
+    const [editingMessage, setEditingMessage] = useState<Message | null>(null);
+    const [editInput, setEditInput] = useState('');
 
     // Search/Users
     const [users, setUsers] = useState<User[]>([]);
@@ -251,6 +258,41 @@ export default function InboxPage() {
             }
         } catch (e) {} finally {
             setIsSending(false);
+        }
+    };
+
+    const handleEditMessage = async () => {
+        if (!editingMessage || !editInput.trim()) return;
+
+        const originalContent = editingMessage.content;
+        setMessages(prev => prev.map(m => m.id === editingMessage.id ? { ...m, content: editInput } : m));
+        setEditingMessage(null);
+
+        try {
+            const res = await fetch(`/api/chat/messages/${editingMessage.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: editInput })
+            });
+            if (!res.ok) throw new Error();
+        } catch (e) {
+            setMessages(prev => prev.map(m => m.id === editingMessage.id ? { ...m, content: originalContent } : m));
+        }
+    };
+
+    const handleDeleteMessage = async (messageId: string) => {
+        if (!confirm('Delete for everyone?')) return;
+
+        const originalMessages = [...messages];
+        setMessages(prev => prev.filter(m => m.id !== messageId));
+
+        try {
+            const res = await fetch(`/api/chat/messages/${messageId}`, {
+                method: 'DELETE'
+            });
+            if (!res.ok) throw new Error();
+        } catch (e) {
+            setMessages(originalMessages);
         }
     };
 
@@ -565,8 +607,48 @@ export default function InboxPage() {
                                                 )}
                                                 <div className="flex flex-col gap-1">
                                                     {!isMe && selectedChannel.type !== 'DIRECT' && <span className="text-[9px] lg:text-[10px] font-black text-white/20 uppercase tracking-widest ml-1">{msg.sender.name}</span>}
-                                                    <div className={cn("px-4 py-2.5 lg:px-5 lg:py-3 rounded-2xl text-[12px] lg:text-[13px] font-medium leading-relaxed shadow-lg", isMe ? "bg-blue-600 text-white rounded-br-none" : "bg-[#1A1A1A] text-white/80 border border-white/5 rounded-bl-none")}>
-                                                        <RichText content={msg.content} isMe={isMe} />
+                                                    <div className={cn(
+                                                        "group/msg relative px-4 py-2.5 lg:px-5 lg:py-3 rounded-2xl text-[12px] lg:text-[13px] font-medium leading-relaxed shadow-lg", 
+                                                        isMe ? "bg-blue-600 text-white rounded-br-none" : "bg-[#1A1A1A] text-white/80 border border-white/5 rounded-bl-none"
+                                                    )}>
+                                                        {editingMessage?.id === msg.id ? (
+                                                            <div className="flex flex-col gap-2 min-w-[200px]">
+                                                                <textarea 
+                                                                    autoFocus
+                                                                    value={editInput}
+                                                                    onChange={(e) => setEditInput(e.target.value)}
+                                                                    className="bg-black/20 border-none outline-none text-white w-full resize-none min-h-[60px]"
+                                                                />
+                                                                <div className="flex justify-end gap-1">
+                                                                    <button onClick={() => setEditingMessage(null)} className="p-1 hover:bg-white/10 rounded-lg"><CloseIcon className="w-3.5 h-3.5" /></button>
+                                                                    <button onClick={handleEditMessage} className="p-1 bg-white/10 hover:bg-white/20 rounded-lg"><Check className="w-3.5 h-3.5" /></button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <RichText content={msg.content} isMe={isMe} />
+                                                                {/* Hover Actions */}
+                                                                {isMe && (new Date().getTime() - new Date(msg.createdAt).getTime() < 5 * 60 * 1000) && (
+                                                                    <div className={cn(
+                                                                        "absolute top-0 opacity-0 group-hover/msg:opacity-100 transition-all flex items-center gap-1 bg-[#111] border border-white/10 rounded-xl p-1 shadow-2xl z-20",
+                                                                        isMe ? "right-full mr-2" : "left-full ml-2"
+                                                                    )}>
+                                                                        <button 
+                                                                            onClick={() => { setEditingMessage(msg); setEditInput(msg.content); }}
+                                                                            className="p-1.5 hover:bg-white/5 rounded-lg text-white/40 hover:text-blue-400 transition-colors"
+                                                                        >
+                                                                            <Edit2 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => handleDeleteMessage(msg.id)}
+                                                                            className="p-1.5 hover:bg-white/5 rounded-lg text-white/40 hover:text-red-400 transition-colors"
+                                                                        >
+                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                            </>
+                                                        )}
                                                         {msg.attachments && msg.attachments.length > 0 && (
                                                             <div className="mt-3 space-y-2">
                                                                 {msg.attachments.map((file, fi) => (
@@ -587,8 +669,11 @@ export default function InboxPage() {
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <span className={cn("text-[8px] lg:text-[9px] font-black text-white/10 uppercase tracking-widest px-1", isMe ? "text-right" : "text-left")}>
+                                                    <span className={cn("text-[8px] lg:text-[9px] font-black text-white/10 uppercase tracking-widest px-1 flex items-center gap-2", isMe ? "justify-end" : "justify-start")}>
                                                         {new Date(msg.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                                        {msg.updatedAt && new Date(msg.updatedAt).getTime() > new Date(msg.createdAt).getTime() && (
+                                                            <span className="text-blue-500/40">Edited</span>
+                                                        )}
                                                     </span>
                                                 </div>
                                             </div>
