@@ -21,12 +21,23 @@ export async function GET() {
         const userRole = (session.user as any).role?.toUpperCase();
         const isAdmin = userRole === 'ADMIN' || userRole === 'DIRECTOR';
 
-        // 1. Fetch ALL public channels + private channels I am a member of
+        // 1. Fetch channels based on role and membership
         const channels = await prisma.chatChannel.findMany({
-            where: {
+            where: isAdmin ? {} : {
                 OR: [
-                    { type: 'PUBLIC' },
-                    { members: { some: { id: userId } } }
+                    { 
+                        type: 'PUBLIC',
+                        spaceId: null // Global public channels (e.g. Announcements)
+                    },
+                    {
+                        type: 'PUBLIC',
+                        space: {
+                            members: { some: { id: userId } }
+                        }
+                    },
+                    { 
+                        members: { some: { id: userId } } 
+                    }
                 ]
             },
             include: {
