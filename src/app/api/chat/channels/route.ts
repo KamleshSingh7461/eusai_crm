@@ -44,6 +44,13 @@ export async function GET() {
                 members: {
                     select: { id: true, name: true, image: true, role: true }
                 },
+                space: {
+                    include: {
+                        members: {
+                            select: { id: true, name: true, image: true, role: true }
+                        }
+                    }
+                },
                 _count: {
                     select: { messages: true }
                 }
@@ -57,6 +64,7 @@ export async function GET() {
                 members: { some: { id: userId } }
             },
             include: {
+                members: { select: { id: true, name: true, image: true, role: true } },
                 chat: {
                     include: {
                         members: { select: { id: true, name: true, image: true, role: true } }
@@ -85,10 +93,39 @@ export async function GET() {
         }
 
         const existingSpaceChannelIds = channels.filter(c => c.spaceId).map(c => c.spaceId);
+        
+        // Merge space members into existing channels
+        const augmentedChannels = channels.map(c => {
+            if (c.spaceId && (c as any).space?.members) {
+                const spaceMembers = (c as any).space.members || [];
+                const channelMembers = c.members || [];
+                const mergedMembers = [...channelMembers];
+                
+                spaceMembers.forEach((sm: any) => {
+                    if (!mergedMembers.some(cm => cm.id === sm.id)) {
+                        mergedMembers.push(sm);
+                    }
+                });
+                
+                return { ...c, members: mergedMembers };
+            }
+            return c;
+        });
+
         const spaceChannels = spaces
             .filter(s => !existingSpaceChannelIds.includes(s.id))
             .map(space => {
-                if (space.chat) return space.chat;
+                if (space.chat) {
+                    const spaceMembers = space.members || [];
+                    const channelMembers = space.chat.members || [];
+                    const mergedMembers = [...channelMembers];
+                    spaceMembers.forEach((sm: any) => {
+                        if (!mergedMembers.some(cm => cm.id === sm.id)) {
+                            mergedMembers.push(sm);
+                        }
+                    });
+                    return { ...space.chat, members: mergedMembers };
+                }
                 return {
                     id: `space-${space.id}`,
                     name: space.name,
@@ -96,12 +133,12 @@ export async function GET() {
                     description: space.description || 'Automatic Department Group',
                     isSpaceChannel: true,
                     spaceId: space.id,
-                    members: []
+                    members: space.members || []
                 };
             });
 
         // 4. Final Merge & Unique filter (by Name for system channels, then by ID)
-        let allChannels = [...systemChannels, ...channels, ...spaceChannels];
+        let allChannels = [...systemChannels, ...augmentedChannels, ...spaceChannels];
         
         // Remove duplicates by name for announcements to be absolutely sure
         const seenNames = new Set();
