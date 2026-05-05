@@ -387,14 +387,21 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                         target="_blank"
                                         className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
                                     >
+                                    <a 
+                                        href="https://apps.apple.com/app/eusai-hub" 
+                                        target="_blank"
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
+                                    >
                                         <span className="opacity-70">○ App Store (Official)</span>
+                                        <span className="text-[7px] text-white/20 group-hover:text-white/40">Secure</span>
                                     </a>
                                     <a 
                                         href="https://testflight.apple.com/join/placeholder" 
                                         target="_blank"
-                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
                                     >
                                         <span className="opacity-70">○ TestFlight (Beta)</span>
+                                        <span className="text-[7px] text-orange-400/50 group-hover:text-orange-400">Sandbox</span>
                                     </a>
                                 </div>
 
@@ -406,16 +413,18 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                     <a 
                                         href="https://play.google.com/store/apps/details?id=com.eusaiteam.hub" 
                                         target="_blank"
-                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
                                     >
                                         <span className="opacity-70">○ Google Play Store</span>
+                                        <span className="text-[7px] text-white/20 group-hover:text-white/40">Verified</span>
                                     </a>
                                     <a 
                                         href="/downloads/eusai_hub_android.apk" 
                                         download
-                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
                                     >
-                                        <span className="opacity-70">○ Direct APK (v1.0.2)</span>
+                                        <span className="opacity-70">○ Direct APK Link</span>
+                                        <span className="text-[7px] text-blue-400/50 group-hover:text-blue-400">Tactical</span>
                                     </a>
                                 </div>
 
@@ -427,9 +436,29 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                     <a 
                                         href="/downloads/EUSAI_Hub_Setup.exe" 
                                         download
-                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
+                                        title="Standard Windows Installer"
                                     >
-                                        <span className="opacity-70">○ Windows Installer</span>
+                                        <span className="opacity-70">○ Windows Installer (.exe)</span>
+                                        <span className="text-[7px] text-white/20 group-hover:text-white/40">Legacy</span>
+                                    </a>
+                                    <a 
+                                        href="/downloads/EUSAI_Hub_Setup.zip" 
+                                        download
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
+                                        title="Safe Download (Compressed)"
+                                    >
+                                        <span className="opacity-70">○ Secure Archive (.zip)</span>
+                                        <span className="text-[7px] text-green-400/50 group-hover:text-green-400 animate-pulse font-black">RECOMMENDED</span>
+                                    </a>
+                                    <a 
+                                        href="/downloads/EUSAI_Hub_MacOS.dmg" 
+                                        download
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
+                                        title="macOS Disk Image"
+                                    >
+                                        <span className="opacity-70">○ macOS Desktop (.dmg)</span>
+                                        <span className="text-[7px] text-white/20 group-hover:text-white/40">Stable</span>
                                     </a>
                                 </div>
                             </div>

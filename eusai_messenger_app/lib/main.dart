@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'dart:async';
 import 'dart:io';
 import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
@@ -10,6 +12,10 @@ import 'package:local_notifier/local_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // TACTICAL INIT: Establish link with Firebase Command
+  await Firebase.initializeApp();
+  
   final apiService = ApiService();
   await apiService.init();
 

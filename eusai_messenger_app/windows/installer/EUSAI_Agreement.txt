@@ -1,0 +1,17 @@
+EUSAI HUB - INTERNAL USE AND CONFIDENTIALITY AGREEMENT
+
+IMPORTANT — READ CAREFULLY: By installing, copying, or otherwise using the EUSAI Hub application, you agree to be bound by the terms of this agreement. 
+
+1. INTERNAL USE ONLY
+This software (EUSAI Hub) is the proprietary property of EUSAI. It is provided exclusively for internal corporate use by authorized operatives, employees, and designated partners. You may not distribute, share, or broadcast this software to any unauthorized third party.
+
+2. DATA CONFIDENTIALITY
+All data transmitted, stored, or accessed through EUSAI Hub is strictly confidential. You agree to adhere to all corporate data security protocols. 
+
+3. SURVEILLANCE & MONITORING
+EUSAI reserves the right to monitor communications, data transfers, and activity within the Hub to ensure compliance with company policies and safeguard corporate intelligence.
+
+4. TERMINATION
+Your license to use this software terminates immediately upon your separation from EUSAI or at the explicit revocation by system administrators. 
+
+By clicking "I Accept", you acknowledge that you have read, understood, and agree to abide by these terms.

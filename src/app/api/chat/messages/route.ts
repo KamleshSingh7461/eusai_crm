@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { sendPushNotification } from '@/lib/webPush';
+import { sendFcmNotification } from '@/lib/fcm';
 import { getMobileSession } from '@/lib/auth-mobile';
 
 export async function GET(req: Request) {
@@ -170,13 +171,30 @@ export async function POST(req: Request) {
         await Promise.all(
             otherMembers
                 .filter(m => !mentionedUserIds.has(m.id))
-                .map(m =>
-                    sendPushNotification(m.id, {
+                .map(async (m) => {
+                    // 1. Send Web Push
+                    await sendPushNotification(m.id, {
                         title: notifTitle,
                         body: notifBody,
                         url: notifUrl
-                    })
-                )
+                    });
+
+                    // 2. Send Native FCM
+                    const fcmTokens = await prisma.fcmToken.findMany({
+                        where: { userId: m.id },
+                        select: { token: true }
+                    });
+                    if (fcmTokens.length > 0) {
+                        await sendFcmNotification(
+                            fcmTokens.map(t => t.token),
+                            {
+                                title: notifTitle,
+                                body: notifBody,
+                                data: { url: notifUrl }
+                            }
+                        );
+                    }
+                })
         );
 
         return NextResponse.json(message);

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1029352294570",
+    "project_id": "eusai-hub",
+    "storage_bucket": "eusai-hub.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1029352294570:android:b6333ae8031ee1dbafa8d3",
+        "android_client_info": {
+          "package_name": "com.eusaiteam.hub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBV8FvA4WZ_mi5tZRYzt0RFZ5N_Rs51Hrg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
