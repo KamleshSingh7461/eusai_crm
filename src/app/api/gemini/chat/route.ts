@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getServerSession } from "next-auth";
@@ -79,10 +80,10 @@ export async function POST(req: NextRequest) {
 
 TEAM:
 - Total staff: ${allUsers.length} members
-- Breakdown: ${['MANAGER','TEAM_LEADER','EMPLOYEE','INTERN'].map(role => {
-    const count = allUsers.filter((u: any) => u.role === role).length;
-    return count > 0 ? `${role}: ${count}` : null;
-  }).filter(Boolean).join(', ')}
+- Breakdown: ${['MANAGER', 'TEAM_LEADER', 'EMPLOYEE', 'INTERN'].map(role => {
+                const count = allUsers.filter((u: any) => u.role === role).length;
+                return count > 0 ? `${role}: ${count}` : null;
+            }).filter(Boolean).join(', ')}
 
 DAILY REPORTS TODAY:
 - Submitted: ${todayReports.length}/${staffMembers.length}

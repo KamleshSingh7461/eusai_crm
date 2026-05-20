@@ -26,7 +26,6 @@ import {
     MoreHorizontal,
     ExternalLink,
     ChevronLeft,
-    GraduationCap,
     X,
     LogOut,
     Loader2,
@@ -37,7 +36,6 @@ import {
     Library as LibraryIcon,
     FileEdit,
     Zap,
-    StickyNote,
     AlertTriangle,
     Send,
     Edit2,
@@ -231,9 +229,14 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                             storageKey="sidebar-private-expanded"
                             className="mb-3"
                             actions={
-                                <button className="p-1 hover:bg-[#DFE1E6] rounded-sm transition-colors">
-                                    <Plus className="w-3.5 h-3.5 text-[#6B778C]" />
-                                </button>
+                                <a
+                                    href="/notes"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1 hover:bg-[#2c2c2c] rounded-sm transition-colors block"
+                                >
+                                    <Plus className="w-3.5 h-3.5 text-[rgba(255,255,255,0.6)] hover:text-white" />
+                                </a>
                             }
                         >
                             <div className="space-y-0.5">
@@ -248,12 +251,15 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                     <FileEdit className={cn("w-3.5 h-3.5 flex-shrink-0", pathname === '/welcome' ? "text-[#0052CC]" : "text-[#6B778C]")} />
                                     <span className="whitespace-nowrap">Welcome to EUSAI</span>
                                 </Link>
-                                <div
-                                    className="sidebar-link-eusai text-xs pl-6 cursor-pointer text-[#97A0AF] hover:text-[#42526E]"
+                                <a
+                                    href="/notes"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="sidebar-link-eusai text-xs pl-6 cursor-pointer text-[#97A0AF] hover:text-[#42526E] flex items-center gap-3"
                                 >
                                     <Plus className="w-3.5 h-3.5 flex-shrink-0" />
                                     <span className="whitespace-nowrap">Add New</span>
-                                </div>
+                                </a>
                             </div>
                         </ExpandableSection>
                     )}
@@ -312,19 +318,6 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                 </ExpandableSection>
 
 
-                                {/* Notes Maker */}
-                                <Link
-                                    href="/notes"
-                                    onClick={closeMobileMenu}
-                                    className={cn(
-                                        "sidebar-link-eusai text-xs pl-6",
-                                        pathname === '/notes' && "active"
-                                    )}
-                                >
-                                    <StickyNote className={cn("w-3.5 h-3.5 flex-shrink-0", pathname === '/notes' ? "text-[#0052CC]" : "text-[#6B778C]")} />
-                                    <span className="whitespace-nowrap">Notes Maker</span>
-                                </Link>
-
                                 {/* Individual Spaces */}
                                 {((spaces && spaces.length > 0) || canCreateSpace) && (
                                     <ExpandableSection
@@ -382,12 +375,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                     <div className="flex items-center gap-2 text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-tighter">
                                         <Apple className="w-3 h-3" /> iOS Ecosystem
                                     </div>
-                                    <a 
-                                        href="https://apps.apple.com/app/id-placeholder" 
-                                        target="_blank"
-                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
-                                    >
-                                    <a 
+<a 
                                         href="https://apps.apple.com/app/eusai-hub" 
                                         target="_blank"
                                         className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
@@ -484,17 +472,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                     </Link>
                                 </>
                             )}
-                            <Link
-                                href="/universities"
-                                onClick={closeMobileMenu}
-                                className={cn(
-                                    "sidebar-link-eusai",
-                                    pathname === '/universities' && "active"
-                                )}
-                            >
-                                <GraduationCap className={cn("w-4 h-4 flex-shrink-0", pathname === '/universities' ? "text-[#0052CC]" : "text-[#42526E]")} />
-                                <span className="whitespace-nowrap">Universities</span>
-                            </Link>
+
                             {canManageTeam && (
                                 <Link
                                     href="/team"

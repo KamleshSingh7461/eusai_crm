@@ -13,8 +13,11 @@ import 'package:local_notifier/local_notifier.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // TACTICAL INIT: Establish link with Firebase Command
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('TACTICAL ALERT: Firebase initialization skipped or failed: $e');
+  }
   
   final apiService = ApiService();
   await apiService.init();
