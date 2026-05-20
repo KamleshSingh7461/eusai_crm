@@ -82,8 +82,6 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
     const canViewAll = ['DIRECTOR', 'MANAGEMENT'].includes(userRole);
 
 
-    const canViewResources = ['DIRECTOR', 'MANAGEMENT', 'MANAGER'].includes(userRole);
-
     const handleCreateSpace = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
@@ -457,21 +455,6 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                     {!isCollapsed && (
                         <div className="pt-4 border-t border-[#EBECF0] space-y-0.5">
 
-                            {canViewResources && (
-                                <>
-                                    <Link
-                                        href="/resources"
-                                        onClick={closeMobileMenu}
-                                        className={cn(
-                                            "sidebar-link-eusai",
-                                            pathname === '/resources' && "active"
-                                        )}
-                                    >
-                                        <Layers className={cn("w-4 h-4 flex-shrink-0", pathname === '/resources' ? "text-[#0052CC]" : "text-[#42526E]")} />
-                                        <span className="whitespace-nowrap">Resources</span>
-                                    </Link>
-                                </>
-                            )}
 
                             {canManageTeam && (
                                 <Link
