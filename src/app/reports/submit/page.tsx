@@ -17,6 +17,7 @@ export default function SubmitReportPage() {
     const [currentDate, setCurrentDate] = useState('');
     const [tasksCompleted, setTasksCompleted] = useState('');
     const [hoursWorked, setHoursWorked] = useState('');
+    const [utilization, setUtilization] = useState('80');
     const [accomplishments, setAccomplishments] = useState('');
     const [challenges, setChallenges] = useState('');
     const [tomorrowPlan, setTomorrowPlan] = useState('');
@@ -44,6 +45,7 @@ export default function SubmitReportPage() {
                     userId: (session.user as any).id,
                     tasksCompleted: parseInt(tasksCompleted),
                     hoursWorked: parseFloat(hoursWorked),
+                    utilization: parseInt(utilization, 10),
                     accomplishments,
                     challenges,
                     tomorrowPlan
@@ -55,6 +57,7 @@ export default function SubmitReportPage() {
                 // Reset form
                 setTasksCompleted('');
                 setHoursWorked('');
+                setUtilization('80');
                 setAccomplishments('');
                 setChallenges('');
                 setTomorrowPlan('');
@@ -99,7 +102,7 @@ export default function SubmitReportPage() {
             <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
 
                 {/* Stats Banner Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-5 hover:bg-[#32393d] transition-colors group shadow-lg">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em]">Executed Tasks</span>
@@ -109,7 +112,7 @@ export default function SubmitReportPage() {
                         </div>
                         <p className="text-3xl font-black text-white tracking-tight">{tasksCompleted || '0'}</p>
                     </div>
-
+ 
                     <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-5 hover:bg-[#32393d] transition-colors group shadow-lg">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em]">Active Hours</span>
@@ -119,7 +122,17 @@ export default function SubmitReportPage() {
                         </div>
                         <p className="text-3xl font-black text-white tracking-tight">{hoursWorked || '0.0'}</p>
                     </div>
-
+ 
+                    <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-5 hover:bg-[#32393d] transition-colors group shadow-lg">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em]">Daily Utilization</span>
+                            <div className="w-8 h-8 rounded bg-[#a855f7]/10 flex items-center justify-center border border-[#a855f7]/20 text-[#a855f7] group-hover:scale-110 transition-transform">
+                                <Activity className="w-4 h-4" />
+                            </div>
+                        </div>
+                        <p className="text-3xl font-black text-white tracking-tight">{utilization}%</p>
+                    </div>
+ 
                     <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] rounded-lg p-5 hover:bg-[#32393d] transition-colors group shadow-lg">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em]">Log Status</span>
@@ -137,7 +150,7 @@ export default function SubmitReportPage() {
                         <FileText className="w-64 h-64 transform rotate-12" />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-[rgba(255,255,255,0.4)] uppercase tracking-[0.15em]">Tasks Completions</label>
                             <input
@@ -162,6 +175,23 @@ export default function SubmitReportPage() {
                                 min="0"
                                 step="0.5"
                             />
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                                <label className="text-[10px] font-black text-[rgba(255,255,255,0.4)] uppercase tracking-[0.15em]">Capacity Utilization</label>
+                                <span className="text-xs font-mono font-bold text-[#a855f7] bg-[#a855f7]/10 px-2 py-0.5 rounded border border-[#a855f7]/20">{utilization}%</span>
+                            </div>
+                            <div className="pt-2 flex items-center h-[46px]">
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    step="5"
+                                    value={utilization}
+                                    onChange={(e) => setUtilization(e.target.value)}
+                                    className="w-full h-1.5 bg-[#1D2125] rounded-lg appearance-none cursor-pointer accent-[#a855f7] border border-[rgba(255,255,255,0.1)] focus:outline-none"
+                                />
+                            </div>
                         </div>
                     </div>
 

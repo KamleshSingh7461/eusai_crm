@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
         const projectId = searchParams.get('projectId');
         const startDate = searchParams.get('startDate');
         const endDate = searchParams.get('endDate');
+        const type = searchParams.get('type');
 
         const targetDate = dateParam ? new Date(dateParam) : new Date();
         targetDate.setHours(0, 0, 0, 0);
@@ -42,7 +43,9 @@ export async function GET(request: NextRequest) {
         }
 
         let finalTargetIds: string[] | null = null;
-        if (userIdParam) {
+        if (type === 'my') {
+            finalTargetIds = [currentUserId];
+        } else if (userIdParam) {
             if (allowedIds && !allowedIds.includes(userIdParam)) {
                 return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
             }
@@ -93,10 +96,17 @@ export async function GET(request: NextRequest) {
 
             const effortByProject: Record<string, number> = {};
             const risks: any[] = [];
+            let totalUtilization = 0;
+            let utilizationCount = 0;
 
             reports.forEach((r: any) => {
                 const pName = r.project?.name || 'Unassigned';
                 effortByProject[pName] = (effortByProject[pName] || 0) + Number(r.hoursWorked);
+
+                if (r.utilization !== undefined && r.utilization !== null) {
+                    totalUtilization += Number(r.utilization);
+                    utilizationCount++;
+                }
 
                 if (r.challenges && r.challenges.trim().length > 10) {
                     risks.push({
@@ -108,9 +118,14 @@ export async function GET(request: NextRequest) {
                 }
             });
 
+            const avgUtilization = utilizationCount > 0
+                ? Math.round(totalUtilization / utilizationCount)
+                : 0;
+
             meta = {
                 targetDate,
                 submissionRate,
+                avgUtilization,
                 totalExpected: allTeamMembers.length,
                 totalSubmitted: submittedUserIds.size,
                 missingMembers: missingMembers.map(m => ({ id: m.id, name: m.name, role: m.role })),
@@ -134,11 +149,15 @@ export async function POST(request: NextRequest) {
             userId,
             tasksCompleted,
             hoursWorked,
+            utilization,
             accomplishments,
             challenges,
             tomorrowPlan,
             projectId
         } = body;
+
+        const parsedUtilization = utilization !== undefined ? parseInt(utilization, 10) : 80;
+        const validUtilization = isNaN(parsedUtilization) ? 80 : Math.max(0, Math.min(100, parsedUtilization));
 
         // 1. Time Window Validation (5:00 PM - 11:59 PM IST)
         const now = new Date();
@@ -182,6 +201,7 @@ export async function POST(request: NextRequest) {
                 data: {
                     tasksCompleted,
                     hoursWorked,
+                    utilization: validUtilization,
                     accomplishments,
                     challenges,
                     tomorrowPlan,
@@ -197,6 +217,7 @@ export async function POST(request: NextRequest) {
                     date: today,
                     tasksCompleted,
                     hoursWorked,
+                    utilization: validUtilization,
                     accomplishments,
                     challenges,
                     tomorrowPlan,

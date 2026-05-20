@@ -21,6 +21,7 @@ interface DailyReport {
     tomorrowPlan: string | null;
     tasksCompleted: number;
     hoursWorked: number;
+    utilization?: number;
     date: string;
     user: {
         name: string;
@@ -556,7 +557,7 @@ export default function ReportsPage() {
 
                             {/* Executive Dashboard for Team View */}
                             {activeTab === 'TEAM' && meta && (
-                                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 animate-in slide-in-from-top-4 duration-500">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 animate-in slide-in-from-top-4 duration-500">
                                     <div className="p-5 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm relative overflow-hidden group">
                                         <div className="absolute top-0 right-0 w-24 h-24 bg-[#36B37E]/10 -mr-8 -mt-8 rounded-full opacity-50 group-hover:scale-110 transition-transform" />
                                         <div className="relative">
@@ -572,18 +573,31 @@ export default function ReportsPage() {
                                     </div>
 
                                     <div className="p-5 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-[#a855f7]/10 -mr-8 -mt-8 rounded-full opacity-50 group-hover:scale-110 transition-transform" />
+                                        <div className="relative">
+                                            <p className="text-[10px] font-bold text-[#a855f7] uppercase tracking-widest mb-3">Capacity Utilization</p>
+                                            <div className="flex items-end gap-2 mb-1">
+                                                <span className="text-3xl font-bold text-[var(--notion-text-primary)]">{meta.avgUtilization || 0}%</span>
+                                            </div>
+                                            <div className="w-full h-1 bg-[var(--notion-bg-tertiary)] rounded-full mt-2">
+                                                <div className="h-full bg-[#a855f7] transition-all duration-1000" style={{ width: `${meta.avgUtilization || 0}%` }} />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-5 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm relative overflow-hidden group">
                                         <div className="absolute top-0 right-0 w-24 h-24 bg-[#FFAB00]/10 -mr-8 -mt-8 rounded-full opacity-50 group-hover:scale-110 transition-transform" />
                                         <div className="relative">
                                             <p className="text-[10px] font-bold text-[#FFAB00] uppercase tracking-widest mb-3">Risk Detection</p>
                                             <div className="flex items-center gap-2 mb-1">
                                                 <AlertTriangle className={`w-5 h-5 ${meta.risks.length > 0 ? 'text-[#FF5630] animate-pulse' : 'text-[#36B37E]'}`} />
-                                                <span className="text-xl font-bold text-[var(--notion-text-primary)]">{meta.risks.length} Flagged Reports</span>
+                                                <span className="text-xl font-bold text-[var(--notion-text-primary)]">{meta.risks.length} Flagged</span>
                                             </div>
                                             <p className="text-[9px] text-[var(--notion-text-tertiary)] font-bold mt-2 font-mono">Real-time challenge detection active</p>
                                         </div>
                                     </div>
 
-                                    <div className="col-span-2 p-5 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm">
+                                    <div className="col-span-1 md:col-span-2 p-5 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm">
                                         <div className="flex items-center justify-between mb-4">
                                             <p className="text-[10px] font-bold text-[#2383e2] uppercase tracking-widest">Effort Distribution</p>
                                             <BarChart3 className="w-4 h-4 text-[var(--notion-text-tertiary)]" />
@@ -676,6 +690,12 @@ export default function ReportsPage() {
                                                             <Clock className="w-3 h-3" />
                                                             {report.hoursWorked}h
                                                         </div>
+                                                        {report.utilization !== undefined && report.utilization !== null && (
+                                                            <div className="px-3 py-1 bg-[#a855f7]/20 text-[#a855f7] text-[10px] font-bold rounded-sm flex items-center gap-1.5 uppercase">
+                                                                <Activity className="w-3 h-3" />
+                                                                {report.utilization}% Util
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
 
