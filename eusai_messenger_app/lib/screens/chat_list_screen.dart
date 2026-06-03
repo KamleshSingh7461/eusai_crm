@@ -1,8 +1,11 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:flutter/material.dart' as material;
+import 'package:flutter/material.dart' hide RoundedRectangleBorder;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../services/api_service.dart';
+import '../services/push_notification_service.dart';
 import '../theme/app_theme.dart';
 import 'chat_screen.dart';
 import 'login_screen.dart';
@@ -33,6 +36,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
     _currentEmail = context.read<ApiService>().currentUserEmail;
     _loadData();
     _startPolling();
+    
+    // TACTICAL NOTIF: Initialize background push support
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      PushNotificationService.initialize(context.read<ApiService>());
+    });
   }
 
   void _startPolling() {
@@ -56,6 +64,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
     
     if (mounted) {
       print('TACTICAL_PULSE: Syncing ${channels.length} channels at ${DateTime.now()}');
+      
+      // Check for new notifications to show system alert
+      if (_notifications.isNotEmpty && notifications.isNotEmpty) {
+        if (notifications.length > _notifications.length) {
+          final newNotif = notifications.first;
+          _showSystemNotification(newNotif['title'] ?? 'New Alert', newNotif['message'] ?? 'Check EUSAI Hub for updates');
+        }
+      }
+
       setState(() {
         _channels = List.from(channels);
         _notifications = notifications;
@@ -66,6 +83,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
         }
       });
     }
+  }
+
+  void _showSystemNotification(String title, String body) {
+    // if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    //   LocalNotification notification = LocalNotification(
+    //     title: title,
+    //     body: body,
+    //     silent: false,
+    //   );
+    //   notification.show();
+    // }
   }
 
 
@@ -85,7 +113,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppTheme.blackSidebar,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Colors.white.withOpacity(0.05))),
+        shape: material.RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Colors.white.withOpacity(0.05))),
         title: const Text('DESTRUCTIVE ACTION', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w900, fontSize: 14, letterSpacing: 1)),
         content: const Text(
           'This will permanently terminate your operative profile and erase all associated tactical data from the EUSAI Hub. This action is irreversible.',
@@ -106,12 +134,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 );
               }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.withOpacity(0.1),
-              foregroundColor: Colors.redAccent,
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.withOpacity(0.1),
+                foregroundColor: Colors.redAccent,
+                elevation: 0,
+                shape: material.RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             child: const Text('TERMINATE PROFILE', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
           ),
         ],
@@ -198,7 +226,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => AlertDialog(
           backgroundColor: const Color(0xFF0D0D0D),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Colors.white.withOpacity(0.05))),
+          shape: material.RoundedRectangleBorder(borderRadius: BorderRadius.circular(24), side: BorderSide(color: Colors.white.withOpacity(0.05))),
           title: const Text('ESTABLISH TACTICAL GROUP', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -236,7 +264,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   }
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.eusaiBlue, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.eusaiBlue, 
+                shape: material.RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
               child: const Text('INITIALIZE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white)),
             ),
           ],
@@ -264,51 +295,64 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isWide = MediaQuery.of(context).size.width > 900;
-    
-    if (_isLoading) {
-      return Scaffold(
-        backgroundColor: AppTheme.blackMain,
-        body: const Center(child: CircularProgressIndicator(color: AppTheme.eusaiNeon)),
-      );
-    }
-
-    if (!isWide) {
-      return Scaffold(
-        backgroundColor: AppTheme.blackMain,
-        appBar: _buildMobileAppBar(),
-        body: _buildMobileMainView(),
-        bottomNavigationBar: _buildMobileBottomNav(),
-      );
-    }
-
     return Scaffold(
       backgroundColor: AppTheme.blackMain,
-      body: Row(
-        children: [
-          _buildLeftRail(),
-          Container(
-            width: 280,
-            decoration: BoxDecoration(
-              color: AppTheme.blackSidebar,
-              border: Border(right: BorderSide(color: Colors.white.withOpacity(0.05))),
-            ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  _buildSearchHeader(),
-                  Expanded(
-                    child: _buildSidebarContent(),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final bool isWide = constraints.maxWidth > 1100;
+          final bool isMedium = constraints.maxWidth > 700 && constraints.maxWidth <= 1100;
+          final bool isMobile = constraints.maxWidth <= 700;
+
+          if (isMobile) {
+            return Scaffold(
+              backgroundColor: AppTheme.blackMain,
+              appBar: _buildMobileAppBar(),
+              body: _buildMobileMainView(),
+              bottomNavigationBar: _buildMobileBottomNav(),
+            );
+          }
+
+          return Row(
+            children: [
+              _buildLeftRail(),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                width: isWide ? 300 : (isMedium ? 260 : 0),
+                decoration: BoxDecoration(
+                  color: AppTheme.blackSidebar,
+                  border: Border(right: BorderSide(color: Colors.white.withOpacity(0.05))),
+                ),
+                child: isMedium || isWide ? SafeArea(
+                  child: Column(
+                    children: [
+                      _buildSearchHeader(),
+                      Expanded(
+                        child: _buildSidebarContent(),
+                      ),
+                      _buildCurrentUserTile(),
+                    ],
                   ),
-                  _buildCurrentUserTile(),
-                ],
+                ) : const SizedBox.shrink(),
               ),
-            ),
-          ),
-          Expanded(child: _buildMainWorkspace()),
-          if (_isDetailsOpen && _selectedChannel != null && _currentView == 'CHAT') _buildDetailsPanel(),
-          if (_currentView == 'SETTINGS') _buildSettingsWorkspace(),
-        ],
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.blackMain,
+                    border: Border(left: BorderSide(color: Colors.white.withOpacity(0.05))),
+                  ),
+                  child: _buildMainWorkspace(),
+                ),
+              ),
+              if (isWide && _selectedChannel != null && _currentView == 'CHAT' && _isDetailsOpen)
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: 320,
+                  child: _buildDetailsPanel(),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -320,25 +364,32 @@ class _ChatListScreenState extends State<ChatListScreen> {
       centerTitle: false,
       title: Row(
         children: [
-          Container(
-            width: 32, height: 32,
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.03),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
+          Hero(
+            tag: 'logo_mobile',
+            child: Container(
+              width: 36, height: 36,
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppTheme.eusaiBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.eusaiBlue.withOpacity(0.2)),
+              ),
+              child: Image.asset('assets/EUSAI-LOGO.png', fit: BoxFit.contain),
             ),
-            child: Image.asset('assets/EUSAI-LOGO.png', fit: BoxFit.contain),
           ),
-          const SizedBox(width: 12),
-          Text(_currentView == 'PEOPLE' ? 'OPERATIVES' : _currentView == 'ACTIVITY' ? 'ACTIVITY' : 'EUSAI HUB', 
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+          const SizedBox(width: 14),
+          Text(_currentView == 'PEOPLE' ? 'OPERATIVES' : _currentView == 'ACTIVITY' ? 'COMMAND LOG' : 'EUSAI HUB', 
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
         ],
       ),
       actions: [
         _buildNotificationBadge(),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
       ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Container(color: Colors.white.withOpacity(0.05), height: 1),
+      ),
     );
   }
 
@@ -354,7 +405,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-              child: Text(count.toString(), style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold)),
+              child: Center(child: Text(count.toString(), style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.bold))),
             ),
           ),
       ],
@@ -499,7 +550,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       decoration: const BoxDecoration(color: AppTheme.eusaiNeon, shape: BoxShape.circle),
                     ),
                     const SizedBox(width: 6),
-                    Text('SECURE CONNECTION ACTIVE', style: TextStyle(fontSize: 9, color: Colors.white.withOpacity(0.3), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                    Text('SECURE LINK ACTIVE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.eusaiNeon.withOpacity(0.5), letterSpacing: 1)),
                   ],
                 ),
               ],
@@ -532,7 +583,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         onTap: () => _openChannel(channel),
         dense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: material.RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         leading: Container(
           width: 32, height: 32,
           decoration: BoxDecoration(
@@ -891,16 +942,32 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Widget _buildLeftRail() {
     return Container(
       width: 68,
-      color: AppTheme.blackRail,
+      decoration: BoxDecoration(
+        color: AppTheme.blackRail,
+        border: Border(right: BorderSide(color: Colors.white.withOpacity(0.05))),
+      ),
       child: Column(
         children: [
-          const SizedBox(height: 12),
+          const SizedBox(height: 24),
+          Hero(
+            tag: 'logo',
+            child: Container(
+              width: 40, height: 40,
+              padding: const EdgeInsets.all(8),
+              decoration: AppTheme.glassDecoration.copyWith(
+                color: AppTheme.eusaiBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Image.asset('assets/EUSAI-LOGO.png', fit: BoxFit.contain),
+            ),
+          ),
+          const SizedBox(height: 48),
           _buildRailIcon(LucideIcons.bell, 'Activity', _currentView == 'ACTIVITY', 'ACTIVITY'),
           _buildRailIcon(LucideIcons.messageSquare, 'Chat', _currentView == 'CHAT', 'CHAT'),
           _buildRailIcon(LucideIcons.users, 'People', _currentView == 'PEOPLE', 'PEOPLE'),
           const Spacer(),
           _buildRailIcon(LucideIcons.settings, 'Profile', _currentView == 'SETTINGS', 'SETTINGS'),
-          const SizedBox(height: 12),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -909,15 +976,22 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Widget _buildRailIcon(IconData icon, String label, bool active, String view) {
     return GestureDetector(
       onTap: () => _switchView(view),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
         padding: const EdgeInsets.symmetric(vertical: 12),
-        width: double.infinity,
-        decoration: BoxDecoration(border: active ? const Border(left: BorderSide(color: AppTheme.eusaiNeon, width: 2)) : null),
+        decoration: BoxDecoration(
+          color: active ? AppTheme.eusaiBlue.withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: active ? [
+            BoxShadow(color: AppTheme.eusaiBlue.withOpacity(0.2), blurRadius: 15, spreadRadius: -5)
+          ] : [],
+        ),
         child: Column(
           children: [
-            Icon(icon, size: 20, color: active ? AppTheme.eusaiNeon : Colors.white24),
-            const SizedBox(height: 4),
-            Text(label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: active ? AppTheme.eusaiNeon : Colors.white24)),
+            Icon(icon, size: 22, color: active ? AppTheme.eusaiNeon : Colors.white.withOpacity(0.2)),
+            const SizedBox(height: 6),
+            Text(label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: active ? AppTheme.eusaiNeon : Colors.white.withOpacity(0.15), letterSpacing: 0.5)),
           ],
         ),
       ),
@@ -992,18 +1066,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final bool isSelected = _selectedChannel != null && _selectedChannel['id'] == item['id'];
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 2, left: 8, right: 8),
+      margin: const EdgeInsets.only(bottom: 4, left: 12, right: 12),
       child: Material(
-        color: isSelected ? AppTheme.eusaiBlue.withOpacity(0.1) : Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
-        child: ListTile(
-          dense: true,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          leading: Icon(icon, size: 16, color: isSelected ? AppTheme.eusaiBlue : Colors.white10),
-          title: Text(_getChannelName(item), style: TextStyle(fontSize: 13, fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600, color: isSelected ? Colors.white : Colors.white24)),
+        color: Colors.transparent,
+        child: InkWell(
           onTap: () {
             setState(() { _selectedChannel = item; _currentView = 'CHAT'; });
-            if (MediaQuery.of(context).size.width <= 900) {
+            if (MediaQuery.of(context).size.width <= 700) {
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -1015,6 +1084,33 @@ class _ChatListScreenState extends State<ChatListScreen> {
               );
             }
           },
+          borderRadius: BorderRadius.circular(14),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isSelected ? AppTheme.eusaiBlue.withOpacity(0.08) : Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: isSelected ? AppTheme.eusaiBlue.withOpacity(0.2) : Colors.transparent),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, size: 16, color: isSelected ? AppTheme.eusaiNeon : Colors.white.withOpacity(0.1)),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    _getChannelName(item), 
+                    style: TextStyle(
+                      fontSize: 13, 
+                      fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600, 
+                      color: isSelected ? Colors.white : Colors.white.withOpacity(0.3),
+                      letterSpacing: 0.2
+                    )
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -1191,7 +1287,7 @@ class _SyncIndicatorState extends State<_SyncIndicator> with SingleTickerProvide
         height: 6, 
         decoration: const BoxDecoration(
           color: AppTheme.eusaiBlue, 
-          shape: BoxShape.circle, 
+          shape: BoxShape.circle,
           boxShadow: [BoxShadow(color: AppTheme.eusaiBlue, blurRadius: 4)]
         )
       ),

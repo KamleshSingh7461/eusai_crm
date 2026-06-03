@@ -1,0 +1,128 @@
+EUSAI HUB: THE ULTIMATE ZERO-SHORTCUT iOS DEPLOYMENT MANIFESTO
+==============================================================
+Date: 2026-05-03
+Target: Apple App Store (Production/TestFlight)
+
+PHASE 1: THE COMMAND CENTER SETUP (ACCOUNTS)
+---------------------------------------------
+1. MAC SYSTEM LOGIN:
+   - Log into the Mac using the owner's profile.
+   - Ensure you have the Admin password (you will need it for 'sudo' commands).
+2. XCODE ACCOUNT INTEGRATION:
+   - Open Xcode.
+   - Click "Xcode" in the top menu bar -> "Settings" (or "Preferences").
+   - Click the "Accounts" tab.
+   - Click the "+" icon at the bottom left -> Select "Apple ID" -> "Continue".
+   - Log in with the OWNER'S $99 DEVELOPER ACCOUNT.
+3. GITHUB ACCESS:
+   - Open Safari/Chrome on the Mac.
+   - Log in to your personal GitHub (kamlesh7461@gmail.com).
+   - Go to: https://github.com/KamleshSingh7461/eusai_crm
+
+PHASE 2: CORE SOFTWARE INSTALLATION (DO NOT SKIP)
+--------------------------------------------------
+1. XCODE INSTALLATION:
+   - Open Mac App Store -> Search "Xcode" -> Install/Update.
+   - Open Xcode once it finishes. It will ask to "Install additional components". Click "Install".
+2. FLUTTER ENVIRONMENT:
+   - Download the "Flutter macOS" zip from: https://docs.flutter.dev/get-started/install/macos
+   - Create a folder: Open Finder -> Documents -> New Folder named "development".
+   - Drag the downloaded 'flutter' folder into "development".
+   - Open Terminal and run: 
+     export PATH="$PATH:$HOME/Documents/development/flutter/bin"
+   - Verify by running: flutter doctor
+   - If it says "Android toolchain" or "Android Studio" missing, IGNORE IT. We only need iOS.
+3. COCOAPODS (CRITICAL FOR PLUGINS):
+   - In Terminal, run: sudo gem install cocoapods
+   - Enter the Mac Admin password when prompted (you won't see characters as you type).
+4. GIT:
+   - In Terminal, run: git --version. If a popup appears asking to install tools, click "Install".
+
+PHASE 3: REPOSITORY CLONING & SYNC
+----------------------------------
+1. CREATE WORKSPACE:
+   - In Terminal: cd ~/Documents
+   - Run: git clone -b dev-app https://github.com/KamleshSingh7461/eusai_crm
+2. INITIALIZE PROJECT:
+   - Run: cd eusai_crm/eusai_messenger_app
+   - Run: flutter pub get
+3. INSTALL iOS PODS:
+   - Run: cd ios
+   - Run: pod repo update
+   - Run: pod install
+   - Note: If you have an M1/M2/M3 Mac and it fails, run: arch -x86_64 pod install
+   - Run: cd ..
+
+PHASE 4: APPLE DEVELOPER PORTAL (WEB CONFIG)
+--------------------------------------------
+1. IDENTIFIER CREATION:
+   - Open Browser -> https://developer.apple.com/account/
+   - Click "Certificates, Identifiers & Profiles".
+   - Click "Identifiers" (left menu) -> Click the blue "+" circle.
+   - Select "App IDs" -> "Continue".
+   - Select "App" -> "Continue".
+   - Description: "EUSAI HUB"
+   - Bundle ID (Explicit): "com.eusaiteam.hub"
+   - Capabilities: Ensure "Push Notifications" and "Sign In with Apple" are checked if you use them.
+   - Click "Continue" -> "Register".
+2. APP STORE CONNECT RECORD:
+   - Open https://appstoreconnect.apple.com/
+   - Click "My Apps" -> Click the blue "+" -> "New App".
+   - Platforms: Check "iOS".
+   - Name: "EUSAI HUB"
+   - Primary Language: "English (US)".
+   - Bundle ID: Select "com.eusaiteam.hub" from the dropdown.
+   - SKU: "EUSAI-HUB-001" (Internal identifier).
+   - User Access: "Full Access".
+   - Click "Create".
+
+PHASE 5: XCODE ARCHITECTURAL CONFIG
+----------------------------------
+1. OPEN WORKSPACE:
+   - In Terminal: open ios/Runner.xcworkspace (This opens Xcode).
+2. SIGNING SETUP:
+   - In the left sidebar, click the blue "Runner" project icon at the very top.
+   - In the center panel, select "Runner" under TARGETS.
+   - Click the "Signing & Capabilities" tab.
+   - Under "Team", select the Owner's account from the dropdown.
+   - Ensure "Bundle Identifier" says "com.eusaiteam.hub".
+3. VERSIONING:
+   - Click the "General" tab.
+   - Version: 1.0.1
+   - Build: 2 (Must match pubspec.yaml).
+
+PHASE 6: THE PRODUCTION BUILD
+----------------------------
+1. CLEAN BUILD:
+   - In Terminal: flutter clean
+   - In Terminal: flutter pub get
+2. GENERATE IPA:
+   - In Terminal: flutter build ipa --release
+   - WAIT for completion. It will say "Built /Users/.../build/ios/ipa/eusai_hub.ipa".
+3. LOCATE THE FILE:
+   - In Terminal: open build/ios/ipa
+   - This opens a Finder window with your final installer file.
+
+PHASE 7: THE UPLOAD (TRANSPORTER)
+--------------------------------
+1. INSTALL TRANSPORTER:
+   - Open Mac App Store -> Search "Transporter" -> Install.
+2. SIGN IN:
+   - Open Transporter -> Sign in with the OWNER'S Apple ID.
+3. DELIVER:
+   - Drag the "eusai_hub.ipa" file from Finder into Transporter.
+   - Click "Deliver" (The blue button).
+   - WAIT for the green checkmark.
+
+PHASE 8: TESTFLIGHT ACTIVATION
+------------------------------
+1. INVITE YOURSELF:
+   - Go to App Store Connect (Browser) -> My Apps -> EUSAI HUB.
+   - Click the "TestFlight" tab.
+   - In the left menu, click "Internal Testing" -> Click the "+" next to "Testers".
+   - Add your name and email (kamlesh7461@gmail.com).
+2. INSTALL ON IPHONE:
+   - Open the "TestFlight" app on your iPhone.
+   - You will see "EUSAI HUB" -> Click "Accept" -> Click "Install".
+
+DEPLOYMENT TRIUMPH REACHED.

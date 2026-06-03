@@ -154,6 +154,28 @@ class ApiService {
     await prefs.clear();
   }
 
+  Future<void> registerFcmToken(String token) async {
+    if (!isAuthenticated) return;
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/notifications/fcm-subscribe'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+        body: jsonEncode({
+          'token': token,
+          'deviceType': kIsWeb ? 'web' : (Platform.isAndroid ? 'android' : (Platform.isIOS ? 'ios' : (Platform.isWindows ? 'windows' : 'macos'))),
+        }),
+      );
+      if (kDebugMode) {
+        print('FCM_REGISTRATION: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (kDebugMode) print('FCM_REGISTRATION_ERROR: $e');
+    }
+  }
+
   Future<List<dynamic>> fetchChannels() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
@@ -189,6 +211,27 @@ class ApiService {
       Uri.parse('$baseUrl/chat/messages'),
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
       body: jsonEncode({'channelId': channelId, 'content': content}),
+    );
+    return response.statusCode == 200;
+  }
+
+  Future<bool> updateMessage(String messageId, String content) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final response = await http.patch(
+      Uri.parse('$baseUrl/chat/messages/$messageId'),
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      body: jsonEncode({'content': content}),
+    );
+    return response.statusCode == 200;
+  }
+
+  Future<bool> deleteMessage(String messageId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final response = await http.delete(
+      Uri.parse('$baseUrl/chat/messages/$messageId'),
+      headers: {'Authorization': 'Bearer $token'},
     );
     return response.statusCode == 200;
   }

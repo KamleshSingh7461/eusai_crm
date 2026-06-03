@@ -26,7 +26,6 @@ import {
     MoreHorizontal,
     ExternalLink,
     ChevronLeft,
-    GraduationCap,
     X,
     LogOut,
     Loader2,
@@ -37,7 +36,6 @@ import {
     Library as LibraryIcon,
     FileEdit,
     Zap,
-    StickyNote,
     AlertTriangle,
     Send,
     Edit2,
@@ -83,8 +81,6 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
     const canCreateSpace = ['DIRECTOR', 'MANAGER'].includes(userRole);
     const canViewAll = ['DIRECTOR', 'MANAGEMENT'].includes(userRole);
 
-
-    const canViewResources = ['DIRECTOR', 'MANAGEMENT', 'MANAGER'].includes(userRole);
 
     const handleCreateSpace = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -231,9 +227,14 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                             storageKey="sidebar-private-expanded"
                             className="mb-3"
                             actions={
-                                <button className="p-1 hover:bg-[#DFE1E6] rounded-sm transition-colors">
-                                    <Plus className="w-3.5 h-3.5 text-[#6B778C]" />
-                                </button>
+                                <a
+                                    href="/notes"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1 hover:bg-[#2c2c2c] rounded-sm transition-colors block"
+                                >
+                                    <Plus className="w-3.5 h-3.5 text-[rgba(255,255,255,0.6)] hover:text-white" />
+                                </a>
                             }
                         >
                             <div className="space-y-0.5">
@@ -248,12 +249,15 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                     <FileEdit className={cn("w-3.5 h-3.5 flex-shrink-0", pathname === '/welcome' ? "text-[#0052CC]" : "text-[#6B778C]")} />
                                     <span className="whitespace-nowrap">Welcome to EUSAI</span>
                                 </Link>
-                                <div
-                                    className="sidebar-link-eusai text-xs pl-6 cursor-pointer text-[#97A0AF] hover:text-[#42526E]"
+                                <a
+                                    href="/notes"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="sidebar-link-eusai text-xs pl-6 cursor-pointer text-[#97A0AF] hover:text-[#42526E] flex items-center gap-3"
                                 >
                                     <Plus className="w-3.5 h-3.5 flex-shrink-0" />
                                     <span className="whitespace-nowrap">Add New</span>
-                                </div>
+                                </a>
                             </div>
                         </ExpandableSection>
                     )}
@@ -312,19 +316,6 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                 </ExpandableSection>
 
 
-                                {/* Notes Maker */}
-                                <Link
-                                    href="/notes"
-                                    onClick={closeMobileMenu}
-                                    className={cn(
-                                        "sidebar-link-eusai text-xs pl-6",
-                                        pathname === '/notes' && "active"
-                                    )}
-                                >
-                                    <StickyNote className={cn("w-3.5 h-3.5 flex-shrink-0", pathname === '/notes' ? "text-[#0052CC]" : "text-[#6B778C]")} />
-                                    <span className="whitespace-nowrap">Notes Maker</span>
-                                </Link>
-
                                 {/* Individual Spaces */}
                                 {((spaces && spaces.length > 0) || canCreateSpace) && (
                                     <ExpandableSection
@@ -382,19 +373,21 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                     <div className="flex items-center gap-2 text-[10px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-tighter">
                                         <Apple className="w-3 h-3" /> iOS Ecosystem
                                     </div>
-                                    <a 
-                                        href="https://apps.apple.com/app/id-placeholder" 
+<a 
+                                        href="https://apps.apple.com/app/eusai-hub" 
                                         target="_blank"
-                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
                                     >
                                         <span className="opacity-70">○ App Store (Official)</span>
+                                        <span className="text-[7px] text-white/20 group-hover:text-white/40">Secure</span>
                                     </a>
                                     <a 
                                         href="https://testflight.apple.com/join/placeholder" 
                                         target="_blank"
-                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
                                     >
                                         <span className="opacity-70">○ TestFlight (Beta)</span>
+                                        <span className="text-[7px] text-orange-400/50 group-hover:text-orange-400">Sandbox</span>
                                     </a>
                                 </div>
 
@@ -406,16 +399,18 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                     <a 
                                         href="https://play.google.com/store/apps/details?id=com.eusaiteam.hub" 
                                         target="_blank"
-                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
                                     >
                                         <span className="opacity-70">○ Google Play Store</span>
+                                        <span className="text-[7px] text-white/20 group-hover:text-white/40">Verified</span>
                                     </a>
                                     <a 
                                         href="/downloads/eusai_hub_android.apk" 
                                         download
-                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
                                     >
-                                        <span className="opacity-70">○ Direct APK (v1.0.2)</span>
+                                        <span className="opacity-70">○ Direct APK Link</span>
+                                        <span className="text-[7px] text-blue-400/50 group-hover:text-blue-400">Tactical</span>
                                     </a>
                                 </div>
 
@@ -427,9 +422,29 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                                     <a 
                                         href="/downloads/EUSAI_Hub_Setup.exe" 
                                         download
-                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors"
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
+                                        title="Standard Windows Installer"
                                     >
-                                        <span className="opacity-70">○ Windows Installer</span>
+                                        <span className="opacity-70">○ Windows Installer (.exe)</span>
+                                        <span className="text-[7px] text-white/20 group-hover:text-white/40">Legacy</span>
+                                    </a>
+                                    <a 
+                                        href="/downloads/EUSAI_Hub_Setup.zip" 
+                                        download
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
+                                        title="Safe Download (Compressed)"
+                                    >
+                                        <span className="opacity-70">○ Secure Archive (.zip)</span>
+                                        <span className="text-[7px] text-green-400/50 group-hover:text-green-400 animate-pulse font-black">RECOMMENDED</span>
+                                    </a>
+                                    <a 
+                                        href="/downloads/EUSAI_Hub_MacOS.dmg" 
+                                        download
+                                        className="sidebar-link-eusai-app text-[9px] pl-2 hover:text-white transition-colors group flex items-center justify-between pr-2"
+                                        title="macOS Disk Image"
+                                    >
+                                        <span className="opacity-70">○ macOS Desktop (.dmg)</span>
+                                        <span className="text-[7px] text-white/20 group-hover:text-white/40">Stable</span>
                                     </a>
                                 </div>
                             </div>
@@ -440,32 +455,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                     {!isCollapsed && (
                         <div className="pt-4 border-t border-[#EBECF0] space-y-0.5">
 
-                            {canViewResources && (
-                                <>
-                                    <Link
-                                        href="/resources"
-                                        onClick={closeMobileMenu}
-                                        className={cn(
-                                            "sidebar-link-eusai",
-                                            pathname === '/resources' && "active"
-                                        )}
-                                    >
-                                        <Layers className={cn("w-4 h-4 flex-shrink-0", pathname === '/resources' ? "text-[#0052CC]" : "text-[#42526E]")} />
-                                        <span className="whitespace-nowrap">Resources</span>
-                                    </Link>
-                                </>
-                            )}
-                            <Link
-                                href="/universities"
-                                onClick={closeMobileMenu}
-                                className={cn(
-                                    "sidebar-link-eusai",
-                                    pathname === '/universities' && "active"
-                                )}
-                            >
-                                <GraduationCap className={cn("w-4 h-4 flex-shrink-0", pathname === '/universities' ? "text-[#0052CC]" : "text-[#42526E]")} />
-                                <span className="whitespace-nowrap">Universities</span>
-                            </Link>
+
                             {canManageTeam && (
                                 <Link
                                     href="/team"

@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as material;
+import 'package:flutter/material.dart' hide RoundedRectangleBorder;
+
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' hide ContinuousRectangleBorder;
 import 'package:local_notifier/local_notifier.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:path_provider/path_provider.dart';
@@ -79,6 +81,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final FocusNode _focusNode = FocusNode();
   bool _isDownloading = false;
   String _downloadingName = '';
+  String? _editingMessageId;
 
   @override
   void initState() {
@@ -161,11 +164,11 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showDesktopNotification(dynamic msg) {
-    LocalNotification notification = LocalNotification(
-      title: "New from ${msg['sender']['name']}",
-      body: msg['content'] ?? "Sent an attachment",
-    );
-    notification.show();
+    // LocalNotification notification = LocalNotification(
+    //   title: "New from ${msg['sender']['name']}",
+    //   body: msg['content'] ?? "Sent an attachment",
+    // );
+    // notification.show();
   }
 
   Future<void> _pickFiles() async {
@@ -219,11 +222,19 @@ class _ChatScreenState extends State<ChatScreen> {
     
     setState(() => _isSending = true);
     final content = _controller.text;
-    _controller.clear();
-    setState(() => _selectedFiles = []);
-
-    final success = await context.read<ApiService>().sendMessage(widget.channel['id'], content);
+    final String? editingId = _editingMessageId;
+    
+    bool success = false;
+    if (editingId != null) {
+      success = await context.read<ApiService>().updateMessage(editingId, content);
+      if (success) setState(() => _editingMessageId = null);
+    } else {
+      success = await context.read<ApiService>().sendMessage(widget.channel['id'], content);
+      if (success) setState(() => _selectedFiles = []);
+    }
+    
     if (success) {
+      _controller.clear();
       _loadMessages(forceScroll: true);
     }
     
@@ -409,31 +420,34 @@ class _ChatScreenState extends State<ChatScreen> {
     final bool isWide = MediaQuery.of(context).size.width > 900;
     
     return Container(
-      height: isWide ? 72 : 64,
-      padding: EdgeInsets.symmetric(horizontal: isWide ? 24 : 12),
+      height: isWide ? 80 : 64,
+      padding: EdgeInsets.symmetric(horizontal: isWide ? 32 : 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0A0A0A).withOpacity(0.5),
+        color: const Color(0xFF0A0A0A).withOpacity(0.8),
         border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05))),
       ),
       child: Row(
         children: [
           if (!widget.isSplitView)
             IconButton(
-              icon: const Icon(LucideIcons.chevronLeft, size: 20), 
+              icon: const Icon(LucideIcons.chevronLeft, size: 20, color: Colors.white54), 
               onPressed: () => Navigator.pop(context),
               padding: EdgeInsets.zero,
             ),
-          Container(
-            width: isWide ? 36 : 32, 
-            height: isWide ? 36 : 32,
-            decoration: BoxDecoration(
-              color: AppTheme.eusaiBlue.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppTheme.eusaiBlue.withOpacity(0.1)),
+          Hero(
+            tag: 'channel_icon',
+            child: Container(
+              width: isWide ? 42 : 36, 
+              height: isWide ? 42 : 36,
+              decoration: BoxDecoration(
+                color: AppTheme.eusaiBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppTheme.eusaiBlue.withOpacity(0.2)),
+              ),
+              child: Icon(LucideIcons.hash, size: isWide ? 18 : 16, color: AppTheme.eusaiNeon),
             ),
-            child: Icon(LucideIcons.hash, size: isWide ? 16 : 14, color: AppTheme.eusaiBlue),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -441,12 +455,19 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 Text(
                   widget.onNameIdentified ?? widget.channel['name'] ?? 'Transmission', 
-                  style: TextStyle(fontSize: isWide ? 15 : 13, fontWeight: FontWeight.w900), 
+                  style: TextStyle(fontSize: isWide ? 16 : 14, fontWeight: FontWeight.w900, letterSpacing: 0.5), 
                   overflow: TextOverflow.ellipsis
                 ),
-                Text(
-                  'Secure communication.', 
-                  style: TextStyle(fontSize: isWide ? 10 : 9, color: Colors.white24)
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppTheme.eusaiNeon, shape: BoxShape.circle)),
+                    const SizedBox(width: 6),
+                    Text(
+                      'SECURE CHANNEL', 
+                      style: TextStyle(fontSize: isWide ? 10 : 9, color: AppTheme.eusaiNeon.withOpacity(0.5), fontWeight: FontWeight.w900, letterSpacing: 1)
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -454,18 +475,21 @@ class _ChatScreenState extends State<ChatScreen> {
           if (isWide) ...[
             _buildInfoToggle(),
             const SizedBox(width: 24),
-            Row(
-              children: [
-                Container(width: 6, height: 6, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
-                const SizedBox(width: 8),
-                const Text('ENCRYPTED', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.green, letterSpacing: 1)),
-              ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: AppTheme.glassDecoration,
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.shieldCheck, size: 12, color: Colors.greenAccent),
+                  const SizedBox(width: 8),
+                  const Text('AES-256', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.greenAccent, letterSpacing: 1)),
+                ],
+              ),
             ),
           ] else
             IconButton(
               icon: const Icon(LucideIcons.info, size: 18, color: Colors.white24),
               onPressed: () {
-                 // Show details in a modal bottom sheet on mobile
                  _showMobileDetails();
               },
             ),
@@ -490,7 +514,7 @@ class _ChatScreenState extends State<ChatScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF0D0D0D),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      shape: material.RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) => Container(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -529,10 +553,10 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: 28),
       child: Row(
         mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) _buildMessageAvatar(msg),
           const SizedBox(width: 12),
@@ -540,26 +564,57 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Column(
               crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
-                Container(
-                  constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * (isWide ? 0.6 : 0.8)),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isMe ? AppTheme.eusaiBlue : AppTheme.blackBubble,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (msg['content'] != null && msg['content'].toString().isNotEmpty)
-                        _buildRichText(msg['content'] ?? '', isMe),
-                      if (msg['attachments'] != null && (msg['attachments'] as List).isNotEmpty)
-                        _buildAttachments(msg['attachments']),
-                    ],
+                GestureDetector(
+                  onSecondaryTapDown: isMe && _canEditOrDelete(msg) 
+                    ? (details) => _showContextMenu(context, details.globalPosition, msg) 
+                    : null,
+                  onLongPress: isMe && _canEditOrDelete(msg) 
+                    ? () => _showContextMenu(context, null, msg) 
+                    : null,
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * (isWide ? 0.65 : 0.8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                    decoration: BoxDecoration(
+                      gradient: isMe ? AppTheme.primaryGradient : null,
+                      color: isMe ? null : AppTheme.blackBubble,
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(20),
+                        topRight: const Radius.circular(20),
+                        bottomLeft: Radius.circular(isMe ? 20 : 4),
+                        bottomRight: Radius.circular(isMe ? 4 : 20),
+                      ),
+                      boxShadow: isMe ? [
+                        BoxShadow(color: AppTheme.eusaiBlue.withOpacity(0.2), blurRadius: 20, spreadRadius: -5)
+                      ] : [],
+                      border: isMe ? null : Border.all(color: Colors.white.withOpacity(0.05)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (msg['content'] != null && msg['content'].toString().isNotEmpty)
+                          _buildRichText(msg['content'] ?? '', isMe),
+                        if (msg['attachments'] != null && (msg['attachments'] as List).isNotEmpty)
+                          _buildAttachments(msg['attachments']),
+                      ],
+                    ),
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 6, left: 4, right: 4),
-                  child: Text(_formatTime(msg['createdAt']), style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.white10)),
+                  padding: const EdgeInsets.only(top: 8, left: 4, right: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_formatTime(msg['createdAt']), style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900, color: Colors.white10, letterSpacing: 0.5)),
+                      if (msg['updatedAt'] != null && msg['updatedAt'] != msg['createdAt']) ...[
+                        const SizedBox(width: 8),
+                        const Text('EDITED', style: TextStyle(fontSize: 7, fontWeight: FontWeight.w900, color: AppTheme.eusaiNeon, letterSpacing: 1)),
+                      ],
+                      if (isMe) ...[
+                        const SizedBox(width: 4),
+                        const Icon(LucideIcons.checkCheck, size: 10, color: AppTheme.eusaiNeon),
+                      ]
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -569,6 +624,48 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
+  }
+
+  void _showContextMenu(BuildContext context, Offset? position, dynamic msg) async {
+    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    
+    final result = await showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position?.dx ?? (overlay.size.width / 2),
+        position?.dy ?? (overlay.size.height / 2),
+        position?.dx ?? (overlay.size.width / 2),
+        position?.dy ?? (overlay.size.height / 2),
+      ),
+      color: const Color(0xFF1A1A1A),
+      elevation: 8,
+      shape: material.RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.white.withOpacity(0.05))),
+      items: [
+        PopupMenuItem(
+          value: 'edit',
+          child: Row(
+            children: const [
+              Icon(LucideIcons.edit3, size: 14, color: Colors.white54),
+              SizedBox(width: 12),
+              Text('Tactical Edit', style: TextStyle(fontSize: 12)),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'delete',
+          child: Row(
+            children: const [
+              Icon(LucideIcons.trash2, size: 14, color: Colors.redAccent),
+              SizedBox(width: 12),
+              Text('Delete for Everyone', style: TextStyle(fontSize: 12, color: Colors.redAccent)),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    if (result == 'edit') _startEditing(msg);
+    if (result == 'delete') _deleteMessage(msg['id'].toString());
   }
 
   Widget _buildAttachments(dynamic attachments) {
@@ -712,63 +809,143 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildEusaiInput() {
     final bool isWide = MediaQuery.of(context).size.width > 900;
     return Container(
-      padding: EdgeInsets.fromLTRB(isWide ? 24 : 12, 0, isWide ? 24 : 12, isWide ? 32 : 16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF111111), 
-          borderRadius: BorderRadius.circular(24), 
-          border: Border.all(color: Colors.white.withOpacity(0.05))
-        ),
-        child: Column(
-          children: [
-            TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              maxLines: null,
-              keyboardType: TextInputType.multiline,
-              textInputAction: TextInputAction.newline,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-              decoration: const InputDecoration(
-                hintText: 'Enter command...', 
-                hintStyle: TextStyle(color: Colors.white10, fontSize: 13), 
-                border: InputBorder.none,
-                isDense: true,
-              ),
-              onSubmitted: (_) => _sendMessage(),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                IconButton(icon: const Icon(LucideIcons.paperclip, size: 16, color: Colors.white24), onPressed: _pickFiles),
-                IconButton(icon: const Icon(LucideIcons.smile, size: 16, color: Colors.white24), onPressed: () => setState(() => _showEmoji = !_showEmoji)),
-                const Spacer(),
-                GestureDetector(
-                  onTap: _isSending ? null : _sendMessage,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.eusaiBlue.withOpacity(0.2), 
-                      borderRadius: BorderRadius.circular(12), 
-                      border: Border.all(color: AppTheme.eusaiBlue.withOpacity(0.3))
-                    ),
-                    child: Row(
-                      children: [
-                        if (_isSending) 
-                          const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.eusaiBlue)) 
-                        else 
-                          const Icon(LucideIcons.send, size: 12, color: AppTheme.eusaiBlue),
-                        const SizedBox(width: 8),
-                        const Text('TRANSMIT', style: TextStyle(color: AppTheme.eusaiBlue, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)),
-                      ],
-                    ),
+      padding: EdgeInsets.fromLTRB(isWide ? 32 : 16, 0, isWide ? 32 : 16, isWide ? 40 : 16),
+      child: Column(
+        children: [
+          if (_editingMessageId != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8, left: 24, right: 24),
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.edit3, size: 12, color: AppTheme.eusaiNeon),
+                  const SizedBox(width: 8),
+                  const Text('CORRECTING TRANSMISSION', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: AppTheme.eusaiNeon, letterSpacing: 1.5)),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: _cancelEditing,
+                    child: const Icon(LucideIcons.x, size: 14, color: Colors.white24),
                   ),
+                ],
+              ),
+            ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F0F0F), 
+              borderRadius: BorderRadius.circular(28), 
+              border: Border.all(color: _editingMessageId != null ? AppTheme.eusaiNeon.withOpacity(0.3) : Colors.white.withOpacity(0.08)),
+              boxShadow: [
+                BoxShadow(color: _editingMessageId != null ? AppTheme.eusaiNeon.withOpacity(0.1) : Colors.black.withOpacity(0.3), blurRadius: 30, spreadRadius: -10)
+              ]
+            ),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w500),
+                  decoration: InputDecoration(
+                    hintText: _editingMessageId != null ? 'Edit message...' : 'Enter command...', 
+                    hintStyle: const TextStyle(color: Colors.white12, fontSize: 14), 
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                  onSubmitted: (_) => _sendMessage(),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    _buildInputTool(LucideIcons.plus, _pickFiles),
+                    const SizedBox(width: 8),
+                    _buildInputTool(LucideIcons.smile, () => setState(() => _showEmoji = !_showEmoji)),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: _isSending ? null : _sendMessage,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          gradient: _editingMessageId != null ? AppTheme.accentGradient : AppTheme.primaryGradient, 
+                          borderRadius: BorderRadius.circular(16), 
+                          boxShadow: [
+                            BoxShadow(color: (_editingMessageId != null ? Colors.orange : AppTheme.eusaiBlue).withOpacity(0.3), blurRadius: 15, spreadRadius: -5)
+                          ]
+                        ),
+                        child: Row(
+                          children: [
+                            if (_isSending) 
+                              const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
+                            else 
+                              Icon(_editingMessageId != null ? LucideIcons.check : LucideIcons.send, size: 14, color: Colors.white),
+                            const SizedBox(width: 10),
+                            Text(_editingMessageId != null ? 'UPDATE' : 'TRANSMIT', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+  }
+
+  Widget _buildInputTool(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.03),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, size: 18, color: Colors.white38),
+      ),
+    );
+  }
+
+  void _startEditing(dynamic msg) {
+    setState(() {
+      _editingMessageId = msg['id'].toString();
+      _controller.text = msg['content'] ?? '';
+      _focusNode.requestFocus();
+    });
+  }
+
+  void _cancelEditing() {
+    setState(() {
+      _editingMessageId = null;
+      _controller.clear();
+      _focusNode.unfocus();
+    });
+  }
+
+  Future<void> _deleteMessage(String messageId) async {
+    final success = await context.read<ApiService>().deleteMessage(messageId);
+    if (success) {
+      _loadMessages();
+    }
+  }
+
+  bool _canEditOrDelete(dynamic msg) {
+    // Director can delete anything, users can delete/edit their own
+    final api = context.read<ApiService>();
+    final myId = api.currentUserId;
+    final myEmail = api.currentUserEmail;
+    final role = api.currentUserRole;
+    
+    if (role == 'DIRECTOR') return true;
+    
+    final sender = msg['sender'];
+    final String senderId = (sender is String) ? sender : (sender['id']?.toString() ?? '');
+    final String senderEmail = (sender is Map) ? (sender['email']?.toString() ?? '') : '';
+    
+    return (senderId == myId && myId != null) || (senderEmail == myEmail && myEmail.isNotEmpty);
   }
 }

@@ -72,6 +72,7 @@ model User {
   chatChannels ChatChannel[] @relation("ChannelMembers")
   chatMessages ChatMessage[]
   pushSubscriptions PushSubscription[]
+  fcmTokens FcmToken[]
 }
 
 model PushSubscription {
@@ -82,6 +83,16 @@ model PushSubscription {
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+}
+
+model FcmToken {
+  id         String   @id @default(uuid())
+  token      String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceType String?  // android, ios, windows, macos
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 // ... existing models ...
@@ -423,6 +434,7 @@ model DailyReport {
   date            DateTime @default(now())
   tasksCompleted  Int      @default(0)
   hoursWorked     Float    @default(0)
+  utilization     Int      @default(0)
   accomplishments String
   challenges      String?
   tomorrowPlan    String?
@@ -520,5 +532,5 @@ model ChatMessage {
   isSystem    Boolean     @default(false)
   
   createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  updatedAt   DateTime    @default(now()) @updatedAt
 }

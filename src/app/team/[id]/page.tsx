@@ -332,6 +332,9 @@ export default function UserProfilePage() {
                                                 <div className="flex items-center gap-4 text-[10px] font-black text-white/20 uppercase tracking-widest">
                                                     <span className="flex items-center gap-2"><Clock className="w-3.5 h-3.5" /> {report.hoursWorked}h Cycle</span>
                                                     <span className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-green-400" /> {report.tasksCompleted} Completed</span>
+                                                    {report.utilization !== undefined && report.utilization !== null && (
+                                                        <span className="flex items-center gap-2"><Activity className="w-3.5 h-3.5 text-purple-400" /> {report.utilization}% Util</span>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="space-y-4">

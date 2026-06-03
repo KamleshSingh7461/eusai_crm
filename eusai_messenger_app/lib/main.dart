@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'dart:async';
 import 'dart:io';
 import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
@@ -10,6 +12,13 @@ import 'package:local_notifier/local_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('TACTICAL ALERT: Firebase initialization skipped or failed: $e');
+  }
+  
   final apiService = ApiService();
   await apiService.init();
 
