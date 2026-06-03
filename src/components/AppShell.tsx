@@ -28,8 +28,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     }, [session]);
     const pathname = usePathname();
     const isAuthPage = pathname === '/login';
+    const isPublicLegalPage = pathname === '/privacy' || pathname === '/terms';
 
-    if (isAuthPage) {
+    if (isAuthPage || isPublicLegalPage) {
         // Auth pages: no sidebar/navbar
         return (
             <ToastProvider>
