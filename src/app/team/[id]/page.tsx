@@ -325,7 +325,7 @@ export default function UserProfilePage() {
                                                         <FileText className="w-5 h-5" />
                                                     </div>
                                                     <div>
-                                                        <h5 className="text-sm font-black text-white tracking-widest uppercase">Report: Cycle {new Date(report.date).toLocaleDateString()}</h5>
+                                                        <h5 className="text-sm font-black text-white tracking-widest uppercase">Report: Cycle {new Date(report.date).toLocaleDateString('en-GB')}</h5>
                                                         <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">{report.project?.name || 'General Operations'}</p>
                                                     </div>
                                                 </div>
