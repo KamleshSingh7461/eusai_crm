@@ -135,16 +135,14 @@ export default function MeetingsPage() {
         }
     };
 
-    // Helper: Generate randomized Google Meet link format (e.g. meet.google.com/srf-hzui-nir)
+    // Helper: Official Google Meet instant room URL
     const generateMeetLink = () => {
-        const chars = 'abcdefghijklmnopqrstuvwxyz';
-        const r = (n: number) => Array.from({ length: n }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-        return `https://meet.google.com/${r(3)}-${r(4)}-${r(3)}`;
+        return `https://meet.google.com/new`;
     };
 
     // Quick Action 1: Create a meeting for later
     const handleCreateForLater = async () => {
-        const meetLink = generateMeetLink();
+        const meetLink = "https://meet.google.com/new";
         setCreatedInstantLink(meetLink);
         setIsInstantMeetingModalOpen(true);
         setIsNewMenuOpen(false);
@@ -162,7 +160,7 @@ export default function MeetingsPage() {
                     location: 'Google Meet',
                     meetingLink: meetLink,
                     type: 'remote',
-                    description: `Shareable Google Meet Link: ${meetLink}`
+                    description: `Google Meet Session (Launch via ${meetLink})`
                 })
             });
             fetchMeetings();
@@ -173,7 +171,7 @@ export default function MeetingsPage() {
 
     // Quick Action 2: Start an instant meeting
     const handleStartInstantMeeting = async () => {
-        const meetLink = generateMeetLink();
+        const meetLink = "https://meet.google.com/new";
         window.open(meetLink, '_blank', 'noopener,noreferrer');
         setIsNewMenuOpen(false);
 

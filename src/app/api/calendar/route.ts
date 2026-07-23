@@ -7,11 +7,9 @@ import { createNotification } from '@/lib/notifications';
 
 export const dynamic = 'force-dynamic';
 
-// Helper to generate realistic Google Meet format links (e.g. meet.google.com/srf-hzui-nir)
+// Helper to generate official Google Meet instant room link
 function generateGoogleMeetLink() {
-    const chars = 'abcdefghijklmnopqrstuvwxyz';
-    const randStr = (len: number) => Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    return `https://meet.google.com/${randStr(3)}-${randStr(4)}-${randStr(3)}`;
+    return `https://meet.google.com/new`;
 }
 
 export async function GET() {
