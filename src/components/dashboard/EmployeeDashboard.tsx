@@ -219,9 +219,9 @@ export default function EmployeeDashboard() {
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="w-full">
                 {/* Main Content Area */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="w-full space-y-6">
                     {activeSection === 'tasks' ? (
                         <div className="space-y-4 animate-in slide-in-from-bottom-2 duration-300">
                             {(!data?.recentTasks || data.recentTasks.length === 0) ? (
@@ -311,59 +311,6 @@ export default function EmployeeDashboard() {
                             <Link href="/milestones" className="flex items-center justify-center py-2 text-xs font-bold text-subheading hover:text-heading transition-colors gap-2">
                                 Go to Specialized Milestones Ledger <ExternalLink className="w-3 h-3" />
                             </Link>
-                        </div>
-                    )}
-                </div>
-
-                {/* Sidebar Column */}
-                <div className="space-y-6">
-                    {/* Quick Access Grid */}
-                    <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-xl p-6 shadow-sm">
-                        <h3 className="text-xs font-bold text-heading uppercase tracking-widest mb-4 opacity-70">Quick Access</h3>
-                        <div className="grid grid-cols-1 gap-2">
-                            {[
-                                { label: 'University Hunt', href: '/universities', icon: Search },
-                                { label: 'Submit Daily Report', href: '/reports/submit', icon: FileText },
-                                { label: 'My Library', href: '/library', icon: FileText },
-                                { label: 'Space Registry', href: '/spaces', icon: ExternalLink },
-                            ].map((link, i) => (
-                                <Link
-                                    key={i}
-                                    href={link.href}
-                                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-[var(--notion-bg-tertiary)] transition-all group"
-                                >
-                                    <link.icon className="w-4 h-4 text-subheading group-hover:text-[#2383e2] transition-colors" />
-                                    <span className="text-sm font-bold text-subheading group-hover:text-heading">{link.label}</span>
-                                </Link>
-                            ))}
-                            <button
-                                onClick={() => setIsExpenseModalOpen(true)}
-                                className="flex items-center gap-3 p-3 rounded-lg hover:bg-emerald-500/10 group transition-all text-left w-full"
-                            >
-                                <DollarSign className="w-4 h-4 text-subheading group-hover:text-emerald-500" />
-                                <span className="text-sm font-bold text-subheading group-hover:text-heading">Expense Request</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Pending Approvals Widget */}
-                    {data?.pendingExpenses && data.pendingExpenses.length > 0 && (
-                        <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-xl p-6 shadow-sm">
-                            <h3 className="text-xs font-bold text-heading uppercase tracking-widest mb-4 opacity-70">Awaiting Approval</h3>
-                            <div className="space-y-4">
-                                {data.pendingExpenses.map((expense: any) => (
-                                    <div key={expense.id} className="flex flex-col gap-1 border-b border-[var(--notion-border-default)] pb-3 last:border-0 last:pb-0">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-sm font-bold text-subheading truncate">{expense.description || expense.category}</span>
-                                            <span className="text-xs font-bold text-heading">₹{Number(expense.amount).toLocaleString()}</span>
-                                        </div>
-                                        <div className="text-[10px] text-subheading flex items-center justify-between">
-                                            <span>{expense.project?.name}</span>
-                                            <span className="text-orange-500 font-bold">STALLED</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
                         </div>
                     )}
                 </div>
