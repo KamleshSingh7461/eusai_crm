@@ -127,7 +127,7 @@ export default function TaskDetailModal({ isOpen, onClose, onDelete, task }: Tas
                                         'bg-blue-500/10 text-blue-400 border-blue-500/20'
                             )}>
                                 <Activity className="w-3 h-3" />
-                                {task.priority === 3 ? 'Priority: Critical' : task.priority === 2 ? 'Priority: High' : 'Priority: Standard'}
+                                {task.priority === 3 ? 'Priority: High' : task.priority === 2 ? 'Priority: Medium' : 'Priority: Low'}
                             </div>
                         </div>
                         <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter leading-tight">
