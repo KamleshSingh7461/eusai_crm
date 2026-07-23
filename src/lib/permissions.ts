@@ -52,6 +52,9 @@ export const Permissions = {
     canManageUsers: (role: UserRole) => hasPermission(role, UserRole.MANAGER),
     canViewOrgChart: (role: UserRole) => hasPermission(role, UserRole.TEAM_LEADER),
 
+    // Space permissions
+    canCreateSpaces: (role: UserRole) => role === UserRole.DIRECTOR,
+
     // Project permissions
     canCreateProjects: (role: UserRole) => hasPermission(role, UserRole.MANAGER),
     canAssignTasks: (role: UserRole) => hasPermission(role, UserRole.TEAM_LEADER),

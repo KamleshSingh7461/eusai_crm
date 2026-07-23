@@ -32,11 +32,29 @@ export default function NotesPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [isMobileListVisible, setIsMobileListVisible] = useState(true);
 
-    // Load notes from localStorage on mount
+    // Load notes from localStorage on mount & handle URL query id
     useEffect(() => {
         const savedNotes = localStorage.getItem('eusai_crm_notes');
+        let parsedNotes: Note[] = [];
         if (savedNotes) {
-            setNotes(JSON.parse(savedNotes));
+            try {
+                parsedNotes = JSON.parse(savedNotes);
+                setNotes(parsedNotes);
+            } catch (e) {
+                console.error("Failed to parse notes:", e);
+            }
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const noteId = urlParams.get('id');
+        if (noteId && parsedNotes.length > 0) {
+            const targetNote = parsedNotes.find(n => n.id === noteId);
+            if (targetNote) {
+                setActiveNote(targetNote);
+                setIsMobileListVisible(false);
+            }
+        } else if (parsedNotes.length > 0) {
+            setActiveNote(parsedNotes[0]);
         }
     }, []);
 
@@ -44,6 +62,7 @@ export default function NotesPage() {
     useEffect(() => {
         if (notes.length > 0) {
             localStorage.setItem('eusai_crm_notes', JSON.stringify(notes));
+            window.dispatchEvent(new Event('eusai_crm_notes_updated'));
         }
     }, [notes]);
 

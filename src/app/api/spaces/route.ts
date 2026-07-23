@@ -17,7 +17,7 @@ export async function GET() {
             // Directors see all spaces
             whereClause = {};
         } else if (role === 'MANAGER') {
-            // Managers see spaces they created OR spaces containing projects they manage/team works on
+            // Managers see spaces they created, spaces they are appointed to as members, OR spaces containing projects they manage/team works on
             const userWithTeam = await prisma.user.findUnique({
                 where: { id: userId },
                 include: { reportingSubordinates: true }
@@ -28,6 +28,7 @@ export async function GET() {
             whereClause = {
                 OR: [
                     { managerId: userId }, // Created by me
+                    { members: { some: { id: userId } } }, // Appointed as member of this space by Director
                     {
                         projects: {
                             some: {
@@ -91,8 +92,8 @@ export async function POST(request: Request) {
         }
 
         const { role, id: userId } = session.user as any;
-        if (role !== 'DIRECTOR' && role !== 'MANAGER') {
-            return NextResponse.json({ error: 'Forbidden: Only executives can create spaces' }, { status: 403 });
+        if (role !== 'DIRECTOR') {
+            return NextResponse.json({ error: 'Forbidden: Only Directors can create spaces' }, { status: 403 });
         }
 
         const body = await request.json();

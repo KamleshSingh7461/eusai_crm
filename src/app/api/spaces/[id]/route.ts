@@ -71,8 +71,24 @@ export async function GET(
                             _count: {
                                 select: { tasks: true, milestones: true }
                             },
-
-                        }
+                            milestones: {
+                                include: {
+                                    ownerUser: {
+                                        select: { id: true, name: true, email: true, role: true, image: true }
+                                    }
+                                },
+                                orderBy: { targetDate: 'asc' }
+                            },
+                            tasks: {
+                                include: {
+                                    assignedTo: {
+                                        select: { id: true, name: true, email: true, role: true, image: true }
+                                    }
+                                },
+                                orderBy: { deadline: 'asc' }
+                            }
+                        },
+                        orderBy: { createdAt: 'desc' }
                     },
                     resources: true,
                     members: {
@@ -118,6 +134,76 @@ export async function GET(
         return NextResponse.json({ ...space, recentActivities: activities });
     } catch (error: any) {
         console.error('[API/SPACES] Error:', error.message);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+export async function PUT(
+    request: NextRequest,
+    context: any
+) {
+    let params: any = {};
+    try {
+        if (context?.params) {
+            params = context.params instanceof Promise ? await context.params : context.params;
+        } else {
+            params = context instanceof Promise ? await context : context;
+        }
+    } catch (e: any) {
+        console.error("[API/SPACES] Failed to resolve params:", e.message);
+    }
+
+    const spaceId = params?.id;
+
+    try {
+        if (!spaceId) {
+            return NextResponse.json({ error: 'Missing space ID' }, { status: 400 });
+        }
+
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { role, id: userId } = session.user as any;
+        const space = await prisma.space.findUnique({ where: { id: spaceId } });
+
+        if (!space) {
+            return NextResponse.json({ error: 'Space not found' }, { status: 404 });
+        }
+
+        const isDirector = role === 'DIRECTOR';
+        const isSpaceManager = role === 'MANAGER' && (space.managerId === userId);
+
+        if (!isDirector && !isSpaceManager) {
+            return NextResponse.json({ error: 'Forbidden. Only Directors or Space Managers can update space members.' }, { status: 403 });
+        }
+
+        const body = await request.json();
+        const { name, description, color, memberIds } = body;
+
+        const updatedSpace = await prisma.space.update({
+            where: { id: spaceId },
+            data: {
+                ...(name && { name }),
+                ...(description !== undefined && { description }),
+                ...(color && { color }),
+                ...(memberIds && Array.isArray(memberIds) && {
+                    members: {
+                        set: memberIds.map((mid: string) => ({ id: mid }))
+                    }
+                })
+            },
+            include: {
+                members: {
+                    select: { id: true, name: true, email: true, role: true, image: true, isOnline: true }
+                }
+            }
+        });
+
+        return NextResponse.json(updatedSpace);
+    } catch (error: any) {
+        console.error('[API/SPACES] PUT Error:', error.message);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

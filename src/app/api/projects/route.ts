@@ -60,16 +60,11 @@ export async function GET(request: Request) {
     let whereClause: any = {};
 
     try {
-        if (role === 'EMPLOYEE' || role === 'INTERN') {
-            whereClause = {
-                OR: [
-                    { tasks: { some: { userId: userId } } }, // Assigned a task
-                    { milestones: { some: { owner: userId } } }, // Owns a milestone
-                    { dailyReports: { some: { userId: userId } } } // Filed a report
-                ]
-            };
-        } else if (role === 'TEAM_LEADER' || role === 'MANAGER') {
-            // Team Leaders and Managers see projects where they OR their team are involved
+        if (role === 'DIRECTOR' || role === 'MANAGEMENT') {
+            // Directors and Management see all projects across the organization
+            whereClause = {};
+        } else if (role === 'MANAGER') {
+            // Managers see projects they manage, projects in spaces they manage/belong to, or where their team works
             const userWithTeam = await prisma.user.findUnique({
                 where: { id: userId },
                 include: { reportingSubordinates: true }
@@ -80,14 +75,42 @@ export async function GET(request: Request) {
 
             whereClause = {
                 OR: [
-                    { managers: { some: { id: userId } } }, // Managed by me (Explicit project ownership)
+                    { managers: { some: { id: userId } } },           // Explicit project manager
+                    { space: { managerId: userId } },                  // Space manager
+                    { space: { members: { some: { id: userId } } } },   // Space member
                     { tasks: { some: { userId: { in: allTeamIds } } } },
                     { milestones: { some: { owner: { in: allTeamIds } } } },
                     { dailyReports: { some: { userId: { in: allTeamIds } } } }
                 ]
             };
+        } else if (role === 'TEAM_LEADER') {
+            const userWithTeam = await prisma.user.findUnique({
+                where: { id: userId },
+                include: { reportingSubordinates: true }
+            }) as any;
+
+            const teamIds = userWithTeam?.reportingSubordinates?.map((s: any) => s.id) || [];
+            const allTeamIds = [userId, ...teamIds];
+
+            whereClause = {
+                OR: [
+                    { space: { members: { some: { id: userId } } } },
+                    { tasks: { some: { userId: { in: allTeamIds } } } },
+                    { milestones: { some: { owner: { in: allTeamIds } } } },
+                    { dailyReports: { some: { userId: { in: allTeamIds } } } }
+                ]
+            };
+        } else {
+            // EMPLOYEE / INTERN
+            whereClause = {
+                OR: [
+                    { space: { members: { some: { id: userId } } } },
+                    { tasks: { some: { userId: userId } } },
+                    { milestones: { some: { owner: userId } } },
+                    { dailyReports: { some: { userId: userId } } }
+                ]
+            };
         }
-        // Directors see all projects (whereClause stays {})
 
         const projects = await (prisma as any).project.findMany({
             where: whereClause,

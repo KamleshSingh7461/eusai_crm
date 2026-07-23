@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Role-Based Filtering Logic
-    if (userRole === 'DIRECTOR') {
+    if (userRole === 'DIRECTOR' || userRole === 'MANAGEMENT') {
         if (employeeId) whereClause.owner = employeeId;
     }
     else if (userRole === 'MANAGER' || userRole === 'TEAM_LEADER') {
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
 
                 // Hierarchy Validation: Managers/TLs can only assign to their subordinates
                 const actorId = userId;
-                if (targetOwnerIds.length > 0 && userRole !== 'DIRECTOR') {
+                if (targetOwnerIds.length > 0 && userRole !== 'DIRECTOR' && userRole !== 'MANAGEMENT') {
                     const userWithSubordinates = await prisma.user.findUnique({
                         where: { id: actorId },
                         include: { reportingSubordinates: { select: { id: true } } }

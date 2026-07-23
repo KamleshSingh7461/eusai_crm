@@ -96,11 +96,13 @@ export async function POST(request: Request) {
     } catch (error: any) {
         console.error('Gemini API Error details:', error);
 
-        // Fallback to simulation on error
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
             async start(controller) {
-                const msg = "⚠️ **Service Interruption**: Using cached simulation model.\n\nI couldn't reach the live AI service right now. Please try again later.";
+                let msg = "⚠️ **Service Interruption**: Using cached simulation model.\n\nI couldn't reach the live AI service right now. Please try again later.";
+                if (error.message?.includes('API_KEY_INVALID') || error.message?.includes('API key not valid')) {
+                    msg = "⚠️ **Google Gemini API Key Expired or Invalid**\n\nThe `GEMINI_API_KEY` in your `.env` file is invalid or revoked by Google.\n\n**To Fix:** Generate a new key at [Google AI Studio](https://aistudio.google.com/app/apikey), paste it into `.env` under `GEMINI_API_KEY="..."`, and restart your server.";
+                }
                 controller.enqueue(encoder.encode(msg));
                 controller.close();
             }

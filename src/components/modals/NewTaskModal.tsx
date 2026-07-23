@@ -45,9 +45,11 @@ interface NewTaskModalProps {
     isOpen: boolean;
     onClose: () => void;
     onTaskCreated: () => void;
+    defaultProjectId?: string;
+    defaultSpaceId?: string;
 }
 
-export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTaskModalProps) {
+export default function NewTaskModal({ isOpen, onClose, onTaskCreated, defaultProjectId, defaultSpaceId }: NewTaskModalProps) {
     const { data: session } = useSession();
     const { showToast } = useToast();
     const [teamMembers, setTeamMembers] = useState<User[]>([]);
@@ -62,7 +64,8 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
             priority: '1',
             status: 'TODO',
             deadline: new Date().toISOString().split('T')[0],
-            category: 'CUSTOM'
+            category: 'CUSTOM',
+            projectId: defaultProjectId || ''
         }
     });
 
@@ -75,7 +78,16 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
                     // 1. Fetch Projects
                     const projectsRes = await fetch('/api/projects');
                     if (projectsRes.ok) {
-                        setProjects(await projectsRes.json());
+                        const data = await projectsRes.json();
+                        if (defaultSpaceId) {
+                            const filtered = data.filter((p: any) => p.spaceId === defaultSpaceId);
+                            setProjects(filtered);
+                            if (filtered.length > 0 && !defaultProjectId) {
+                                setValue('projectId', filtered[0].id);
+                            }
+                        } else {
+                            setProjects(data);
+                        }
                     }
 
                     // 2. Fetch Team Members (for picking assignee)
@@ -93,8 +105,11 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated }: NewTask
                 }
             };
             fetchData();
+            if (defaultProjectId) {
+                setValue('projectId', defaultProjectId);
+            }
         }
-    }, [isOpen, session]);
+    }, [isOpen, session, defaultSpaceId, defaultProjectId]);
 
     const toggleAssignee = (id: string) => {
         setSelectedAssignees(prev =>

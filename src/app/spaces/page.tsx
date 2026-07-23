@@ -27,7 +27,7 @@ export default function SpacesPage() {
     const [filterType, setFilterType] = useState('ALL');
 
     const userRole = (session?.user as any)?.role || 'EMPLOYEE';
-    const canManageSpaces = ['DIRECTOR', 'MANAGER'].includes(userRole);
+    const canCreateSpaces = userRole === 'DIRECTOR';
 
     const filteredSpaces = spaces.filter(space => {
         const matchesSearch = space.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -52,7 +52,7 @@ export default function SpacesPage() {
                     <h1 className="text-2xl font-bold text-heading mb-1">Spaces Directory</h1>
                     <p className="text-body text-sm md:text-base">Organize EUSAI's departments, regions, and strategic verticals.</p>
                 </div>
-                {canManageSpaces && (
+                {canCreateSpaces && (
                     <button className="flex items-center gap-2 px-4 py-2 bg-[#0052CC] text-white rounded-sm font-bold text-sm hover:bg-[#0747A6] transition-colors shadow-sm">
                         <Plus className="w-4 h-4" />
                         New Space

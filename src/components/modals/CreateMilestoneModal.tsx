@@ -12,6 +12,7 @@ interface CreateMilestoneModalProps {
     onClose: () => void;
     onSuccess: () => void;
     defaultProjectId?: string;
+    defaultSpaceId?: string;
 }
 
 interface User {
@@ -46,7 +47,7 @@ const BUSINESS_ORDER_TYPES = [
     "Merchandise Jersey"
 ];
 
-export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defaultProjectId }: CreateMilestoneModalProps) {
+export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defaultProjectId, defaultSpaceId }: CreateMilestoneModalProps) {
     const { data: session } = useSession();
     const [entries, setEntries] = useState([{
         id: crypto.randomUUID(),
@@ -78,7 +79,7 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
             fetchUsers();
             fetchProjects();
         }
-    }, [isOpen]);
+    }, [isOpen, defaultSpaceId]);
 
     const fetchUsers = async () => {
         setIsLoadingUsers(true);
@@ -106,7 +107,15 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
             const response = await fetch('/api/projects');
             if (response.ok) {
                 const data = await response.json();
-                setProjects(data);
+                if (defaultSpaceId) {
+                    const spaceProjects = data.filter((p: any) => p.spaceId === defaultSpaceId);
+                    setProjects(spaceProjects);
+                    if (spaceProjects.length > 0 && !projectId) {
+                        setProjectId(spaceProjects[0].id);
+                    }
+                } else {
+                    setProjects(data);
+                }
             }
         } catch (error) {
             console.error('Failed to fetch projects:', error);

@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     try {
         let whereClause: any = {};
 
-        if (role === 'DIRECTOR' || role === 'MANAGER') {
+        if (role === 'DIRECTOR' || role === 'MANAGEMENT' || role === 'MANAGER') {
             whereClause = {};
         } else if (role === 'TEAM_LEADER') {
             const user = await (prisma as any).user.findUnique({
@@ -128,7 +128,7 @@ export async function POST(request: Request) {
             : assignedToId ? [assignedToId] : [];
 
         // 1. Hierarchy Validation if assigning to someone else
-        if (targetIds.length > 0 && role !== 'DIRECTOR') {
+        if (targetIds.length > 0 && role !== 'DIRECTOR' && role !== 'MANAGEMENT') {
             const userWithSubordinates = await prisma.user.findUnique({
                 where: { id: actorId },
                 include: {

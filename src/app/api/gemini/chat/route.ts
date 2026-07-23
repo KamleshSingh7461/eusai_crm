@@ -184,8 +184,16 @@ User message: ${message}`;
 
     } catch (error: any) {
         console.error("EUSAI AI Error:", error);
+        
+        // Handle invalid/expired API key gracefully
+        if (error.message?.includes('API_KEY_INVALID') || error.message?.includes('API key not valid')) {
+            return NextResponse.json({
+                reply: `⚠️ **Google Gemini API Key Expired or Invalid**\n\nThe \`GEMINI_API_KEY\` set in your \`.env\` file is no longer valid or has been revoked by Google.\n\n**To Fix This:**\n1. Visit [Google AI Studio](https://aistudio.google.com/app/apikey) to generate a free API key.\n2. Paste your new key in \`.env\` under \`GEMINI_API_KEY="your-new-key"\`.\n3. Restart your dev server (\`npm run dev\`).`
+            });
+        }
+
         return NextResponse.json({
-            reply: `⚠️ AI Error: ${error.message || "Unknown error occurred"}`
-        }, { status: 500 });
+            reply: `⚠️ **AI Assistant Note**: ${error.message || "AI service temporary unavailable."}`
+        }, { status: 200 });
     }
 }

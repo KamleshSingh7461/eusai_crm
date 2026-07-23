@@ -50,7 +50,7 @@ import ExpandableSection from '@/components/ui/ExpandableSection';
 import PushNotificationManager from './PushNotificationManager';
 
 import { useToast } from '@/context/ToastContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface SidebarProps {
     isCollapsed: boolean;
@@ -80,6 +80,37 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
     const canViewTeam = ['DIRECTOR', 'MANAGEMENT', 'MANAGER', 'TEAM_LEADER'].includes(userRole);
     const canCreateSpace = ['DIRECTOR', 'MANAGER'].includes(userRole);
     const canViewAll = ['DIRECTOR', 'MANAGEMENT'].includes(userRole);
+
+    const [recentNotes, setRecentNotes] = useState<{ id: string; title: string; updatedAt: string }[]>([]);
+
+    useEffect(() => {
+        const loadNotes = () => {
+            try {
+                const saved = localStorage.getItem('eusai_crm_notes');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed)) {
+                        const sorted = [...parsed].sort((a, b) =>
+                            new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime()
+                        );
+                        setRecentNotes(sorted.slice(0, 3));
+                    }
+                } else {
+                    setRecentNotes([]);
+                }
+            } catch (e) {
+                console.error("Sidebar notes load error:", e);
+            }
+        };
+
+        loadNotes();
+        window.addEventListener('storage', loadNotes);
+        window.addEventListener('eusai_crm_notes_updated', loadNotes);
+        return () => {
+            window.removeEventListener('storage', loadNotes);
+            window.removeEventListener('eusai_crm_notes_updated', loadNotes);
+        };
+    }, []);
 
 
     const handleCreateSpace = async (e: React.FormEvent) => {
@@ -223,41 +254,57 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                     {!isCollapsed && (
                         <ExpandableSection
                             title="Private"
-                            defaultExpanded={false}
+                            defaultExpanded={true}
                             storageKey="sidebar-private-expanded"
                             className="mb-3"
                             actions={
-                                <a
+                                <Link
                                     href="/notes"
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    onClick={closeMobileMenu}
                                     className="p-1 hover:bg-[#2c2c2c] rounded-sm transition-colors block"
+                                    title="Create New Note"
                                 >
                                     <Plus className="w-3.5 h-3.5 text-[rgba(255,255,255,0.6)] hover:text-white" />
-                                </a>
+                                </Link>
                             }
                         >
                             <div className="space-y-0.5">
+                                {recentNotes.length === 0 ? (
+                                    <div className="px-6 py-1 text-[11px] text-[rgba(255,255,255,0.4)] italic">
+                                        No private notes created
+                                    </div>
+                                ) : (
+                                    recentNotes.map((note) => (
+                                        <Link
+                                            key={note.id}
+                                            href={`/notes?id=${note.id}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={closeMobileMenu}
+                                            className={cn(
+                                                "sidebar-link-eusai text-xs pl-6 flex items-center gap-2 truncate",
+                                                pathname === '/notes' && "active"
+                                            )}
+                                            title={note.title || 'Untitled Note'}
+                                        >
+                                            <FileText className="w-3.5 h-3.5 flex-shrink-0 text-[#0052CC]" />
+                                            <span className="truncate">{note.title?.trim() || 'Untitled Note'}</span>
+                                        </Link>
+                                    ))
+                                )}
+
                                 <Link
-                                    href="/welcome"
-                                    onClick={closeMobileMenu}
-                                    className={cn(
-                                        "sidebar-link-eusai text-xs pl-6",
-                                        pathname === '/welcome' && "active"
-                                    )}
-                                >
-                                    <FileEdit className={cn("w-3.5 h-3.5 flex-shrink-0", pathname === '/welcome' ? "text-[#0052CC]" : "text-[#6B778C]")} />
-                                    <span className="whitespace-nowrap">Welcome to EUSAI</span>
-                                </Link>
-                                <a
                                     href="/notes"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="sidebar-link-eusai text-xs pl-6 cursor-pointer text-[#97A0AF] hover:text-[#42526E] flex items-center gap-3"
+                                    onClick={closeMobileMenu}
+                                    className="sidebar-link-eusai text-xs pl-6 font-bold text-[#0052CC] hover:text-[#2684FF] flex items-center justify-between pt-1"
                                 >
-                                    <Plus className="w-3.5 h-3.5 flex-shrink-0" />
-                                    <span className="whitespace-nowrap">Add New</span>
-                                </a>
+                                    <span>View All Notes</span>
+                                    <ChevronRight className="w-3.5 h-3.5" />
+                                </Link>
                             </div>
                         </ExpandableSection>
                     )}

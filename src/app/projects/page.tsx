@@ -328,7 +328,7 @@ export default function ProjectsPage() {
                         </Button>
                     )}
                 </div>
-            ) : userRole === 'DIRECTOR' && viewMode === 'grid' && searchQuery === '' && statusFilter === 'ALL' ? (
+            ) : ['DIRECTOR', 'MANAGEMENT', 'MANAGER'].includes(userRole) && viewMode === 'grid' && searchQuery === '' && statusFilter === 'ALL' ? (
                 <div className="space-y-12">
                     {Array.from(new Set(filteredProjects.map(p => p.space?.name || 'Unassigned'))).map(spaceName => {
                         const spaceProjects = filteredProjects.filter(p => (p.space?.name || 'Unassigned') === spaceName);
