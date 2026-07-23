@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import TaskDetailModal from '@/components/modals/TaskDetailModal';
 // import ExpenseModal from '../ExpenseModal'; // TODO: Create ExpenseModal component
 
 interface DashboardData {
@@ -43,6 +44,8 @@ export default function EmployeeDashboard() {
     const [data, setData] = useState<DashboardData | null>(null);
     const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
     const [activeSection, setActiveSection] = useState<'tasks' | 'milestones'>('tasks');
+    const [selectedTask, setSelectedTask] = useState<any | null>(null);
+    const [showTaskDetailModal, setShowTaskDetailModal] = useState(false);
 
     useEffect(() => {
         if (session) {
@@ -227,10 +230,17 @@ export default function EmployeeDashboard() {
                                     <p className="text-subheading text-sm">No pending tasks. Great job!</p>
                                 </div>
                             ) : (
-                                data.recentTasks.map((task: any) => (
+                                 data.recentTasks.map((task: any) => (
                                     <div
                                         key={task.id}
-                                        onClick={() => router.push(`/projects/${task.projectId}`)}
+                                        onClick={() => {
+                                            if (task.projectId) {
+                                                router.push(`/projects/${task.projectId}`);
+                                            } else {
+                                                setSelectedTask(task);
+                                                setShowTaskDetailModal(true);
+                                            }
+                                        }}
                                         className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] p-4 rounded-xl hover:border-[var(--notion-border-active)] hover:shadow-md transition-all cursor-pointer flex items-center justify-between group"
                                     >
                                         <div className="flex items-start gap-4">
@@ -358,6 +368,15 @@ export default function EmployeeDashboard() {
                     )}
                 </div>
             </div>
+
+            <TaskDetailModal
+                isOpen={showTaskDetailModal}
+                onClose={() => {
+                    setShowTaskDetailModal(false);
+                    setSelectedTask(null);
+                }}
+                task={selectedTask}
+            />
         </div>
     );
 }
