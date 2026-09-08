@@ -16,7 +16,8 @@ import {
     ExternalLink,
     Briefcase as WorkIcon,
     Trash2,
-    Loader2
+    Loader2,
+    BellRing
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StatusBadge } from '@/components/notion';
@@ -96,6 +97,27 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
             showToast('Network error during deletion', 'error');
         } finally {
             setIsDeleting(false);
+        }
+    };
+
+    const isSenior = ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole);
+    const isOverdue = new Date(milestone.targetDate) < new Date() && milestone.status !== 'COMPLETED';
+
+    const handleSendOverdueReminder = async () => {
+        try {
+            const res = await fetch('/api/notifications/overdue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entityType: 'MILESTONE', entityId: milestone.id })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(data.message || 'Overdue reminder sent successfully', 'success');
+            } else {
+                showToast(data.error || 'Failed to send overdue reminder', 'error');
+            }
+        } catch (error) {
+            showToast('Strategic communication failure', 'error');
         }
     };
 
@@ -319,6 +341,15 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
                 {/* Footer */}
                 <div className="px-8 py-6 border-t border-[rgba(255,255,255,0.08)] bg-gradient-to-b from-transparent to-[rgba(0,0,0,0.2)] shrink-0 flex items-center justify-between">
                     <div className="flex gap-3">
+                        {isSenior && isOverdue && (
+                            <button
+                                onClick={handleSendOverdueReminder}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 rounded-lg text-[10px] font-black uppercase tracking-[0.15em] transition-all border border-orange-500/30 active:scale-95 shadow-md"
+                            >
+                                <BellRing className="w-4 h-4 animate-pulse" />
+                                Send Overdue Reminder (Email & Push)
+                            </button>
+                        )}
                         {canDelete && (
                             <button
                                 onClick={handleDelete}

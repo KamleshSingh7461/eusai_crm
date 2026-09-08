@@ -27,7 +27,8 @@ import {
     User as UserIcon,
     TrendingDown,
     Shield,
-    Trash
+    Trash,
+    BellRing
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import NewTaskModal from '@/components/modals/NewTaskModal';
@@ -243,6 +244,24 @@ export default function TasksPage() {
             } else {
                 const data = await res.json();
                 showToast(data.error || 'Failed to terminate mission record', 'error');
+            }
+        } catch (error) {
+            showToast('Strategic communication failure', 'error');
+        }
+    };
+
+    const handleSendOverdueReminder = async (taskId: string) => {
+        try {
+            const res = await fetch('/api/notifications/overdue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entityType: 'TASK', entityId: taskId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(data.message || 'Overdue reminder sent successfully', 'success');
+            } else {
+                showToast(data.error || 'Failed to send overdue reminder', 'error');
             }
         } catch (error) {
             showToast('Strategic communication failure', 'error');
@@ -597,6 +616,15 @@ export default function TasksPage() {
                                                                     title="Mark as Complete"
                                                                 >
                                                                     <CheckCircle2 className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                            {isManager && t.status !== 'DONE' && new Date(t.deadline) < new Date() && (
+                                                                <button
+                                                                    onClick={() => handleSendOverdueReminder(t.id)}
+                                                                    className="p-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 rounded-md border border-orange-500/30 transition-all active:scale-90"
+                                                                    title="Send Overdue Email & Push Reminder to Assignee"
+                                                                >
+                                                                    <BellRing className="w-4 h-4 animate-bounce" />
                                                                 </button>
                                                             )}
                                                             {isManager && (

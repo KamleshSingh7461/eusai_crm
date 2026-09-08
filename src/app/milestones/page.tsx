@@ -25,7 +25,8 @@ import {
     PieChart,
     ChevronRight,
     SearchX,
-    Activity
+    Activity,
+    BellRing
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import CreateMilestoneModal from '@/components/modals/CreateMilestoneModal';
@@ -238,6 +239,24 @@ export default function MilestonesPage() {
             showToast('Failed to update assessment', 'error');
         } finally {
             setIsRemarking(false);
+        }
+    };
+
+    const handleSendOverdueReminder = async (milestoneId: string) => {
+        try {
+            const res = await fetch('/api/notifications/overdue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entityType: 'MILESTONE', entityId: milestoneId })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(data.message || 'Overdue reminder sent successfully', 'success');
+            } else {
+                showToast(data.error || 'Failed to send overdue reminder', 'error');
+            }
+        } catch (error) {
+            showToast('Strategic communication failure', 'error');
         }
     };
 
@@ -584,6 +603,15 @@ export default function MilestonesPage() {
                                                                 title="Complete Objective"
                                                             >
                                                                 <CheckCircle2 className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                        {isManagement && m.status !== 'COMPLETED' && new Date(m.targetDate) < new Date() && (
+                                                            <button
+                                                                onClick={() => handleSendOverdueReminder(m.id)}
+                                                                className="p-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 rounded-md border border-orange-500/30 transition-all active:scale-90"
+                                                                title="Send Overdue Email & Push Reminder to Owner"
+                                                            >
+                                                                <BellRing className="w-4 h-4 animate-bounce" />
                                                             </button>
                                                         )}
                                                         {isManagement && (

@@ -35,29 +35,27 @@ export async function GET() {
         orderBy: { date: 'desc' }
     });
 
-    // Calculate streak
+    // Calculate streak (Working days aware: Saturdays & Sundays do not break streaks)
     let streak = 0;
-    let checkDate = new Date(today);
-    // If report submitted today, start checking from yesterday. 
-    // If not submitted today, streak might be broken or pending for today, so check from yesterday to see existing streak.
-    // Actually, normally streak includes today if done.
-
-    // Simple logic: Check consecutive days backwards
     const reportDates = new Set(recentReports.map(r => r.date.toISOString().split('T')[0]));
 
-    // Check backwards from today
     for (let i = 0; i < 30; i++) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
         const dateStr = d.toISOString().split('T')[0];
+        const dayOfWeek = d.getDay(); // 0 = Sunday, 6 = Saturday
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
         if (reportDates.has(dateStr)) {
             streak++;
         } else if (i === 0) {
-            // If today is missing, it's fine (pending), continue checking previous days
+            // If today is pending (not yet submitted), continue checking previous days
+            continue;
+        } else if (isWeekend) {
+            // Saturday or Sunday with no report submitted: skip without breaking streak
             continue;
         } else {
-            // Break on first missing day before today
+            // Regular working day (Mon-Fri) missing a report: streak breaks
             break;
         }
     }

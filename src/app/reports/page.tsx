@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import {
     Calendar, CheckCircle2, ChevronLeft, ChevronRight, Download, Filter,
     MoreHorizontal, Plus, Search, User, FileText, AlertTriangle, TrendingUp,
-    Users, Clock, CheckCircle, XCircle, PieChart, Briefcase, Activity, Layers, Loader2, BarChart3, Target, ShieldAlert
+    Users, Clock, CheckCircle, XCircle, PieChart, Briefcase, Activity, Layers, Loader2, BarChart3, Target, ShieldAlert, FileSpreadsheet, X
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -78,10 +78,48 @@ export default function ReportsPage() {
         // Initial load default is already handled in useState
     }, [isDirector, isManager]);
 
+    const todayStr = new Date().toISOString().split('T')[0];
+    const thirtyDaysAgoStr = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const [startDate, setStartDate] = useState<string>(thirtyDaysAgoStr);
+    const [endDate, setEndDate] = useState<string>(todayStr);
+    const [selectedUser, setSelectedUser] = useState<string>('ALL');
+    const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string; role: string }>>([]);
+    const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+    const [selectedReportForView, setSelectedReportForView] = useState<any | null>(null);
+
+    useEffect(() => {
+        fetch('/api/team')
+            .then(res => res.json())
+            .then(data => {
+                const list = Array.isArray(data) ? data : (data?.users || []);
+                if (Array.isArray(list)) {
+                    setTeamMembers(list.map((u: any) => ({ id: u.id, name: u.name, role: u.role })));
+                }
+            })
+            .catch(() => {});
+    }, []);
+
     const [reports, setReports] = useState<DailyReport[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [employeeSearchQuery, setEmployeeSearchQuery] = useState('');
     const [meta, setMeta] = useState<any>(null);
+
+    const userOptions = useMemo(() => {
+        const rawList = teamMembers.length > 0 ? teamMembers : (() => {
+            const userMap = new Map();
+            reports.forEach(r => {
+                if (r.userId && r.user && !userMap.has(r.userId)) {
+                    userMap.set(r.userId, { id: r.userId, name: r.user.name, role: r.user.role });
+                }
+            });
+            return Array.from(userMap.values());
+        })();
+
+        // Exclude Directors and Management roles from employee selection
+        return rawList.filter((u: any) => u.role !== 'DIRECTOR' && u.role !== 'MANAGEMENT');
+    }, [teamMembers, reports]);
 
     const [resourceData, setResourceData] = useState<any>(null);
     const [kpiData, setKpiData] = useState<KPIData | null>(null);
@@ -90,20 +128,20 @@ export default function ReportsPage() {
         if (session) {
             fetchData();
         }
-    }, [session, activeTab]);
+    }, [session, activeTab, startDate, endDate]);
 
     const fetchData = async () => {
         setIsLoading(true);
         try {
             if (activeTab === 'MY') {
-                const res = await fetch('/api/reports/daily?type=my');
+                const res = await fetch(`/api/reports/daily?type=my&startDate=${startDate}&endDate=${endDate}`);
                 if (res.ok) {
                     const data = await res.json();
                     setReports(data.reports);
                     setMeta(data.meta);
                 }
             } else if (activeTab === 'TEAM') {
-                const res = await fetch('/api/reports/daily?type=team');
+                const res = await fetch(`/api/reports/daily?type=team&startDate=${startDate}&endDate=${endDate}`);
                 if (res.ok) {
                     const data = await res.json();
                     setReports(data.reports);
@@ -124,6 +162,25 @@ export default function ReportsPage() {
         }
     };
 
+    const renderTruncatedCell = (text: string | null, limit: number, report: any, textColorClass: string = "text-[var(--notion-text-primary)]") => {
+        if (!text) return <span className="text-[var(--notion-text-tertiary)] italic">-</span>;
+        if (text.length <= limit) return <p className={textColorClass}>{text}</p>;
+        return (
+            <div className="space-y-1">
+                <p className={cn("line-clamp-2", textColorClass)} title={text}>
+                    {text}
+                </p>
+                <button
+                    type="button"
+                    onClick={() => setSelectedReportForView(report)}
+                    className="text-[10px] font-bold text-[#2383e2] hover:underline uppercase tracking-wider inline-flex items-center gap-1"
+                >
+                    Read more →
+                </button>
+            </div>
+        );
+    };
+
     const handleExport = () => {
         showToast("Generating PDF Report...", "info");
         setTimeout(() => {
@@ -131,11 +188,64 @@ export default function ReportsPage() {
         }, 500);
     };
 
-    const filteredReports = reports.filter(r =>
-        r.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.accomplishments.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (r.project?.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false)
-    );
+    const handleExportCsv = () => {
+        if (!filteredReports || filteredReports.length === 0) {
+            showToast("No report logs available to export", "error");
+            return;
+        }
+
+        const headers = [
+            "Date",
+            "User Name",
+            "User Role",
+            "Tasks Completed",
+            "Hours Worked",
+            "Utilization (%)",
+            "Accomplishments",
+            "Challenges / Impediments",
+            "Next Cycle Plan",
+            "Project Scope"
+        ];
+
+        const csvRows = [headers.join(",")];
+
+        filteredReports.forEach(r => {
+            const row = [
+                `"${r.date ? new Date(r.date).toLocaleDateString() : ''}"`,
+                `"${(r.user?.name || '').replace(/"/g, '""')}"`,
+                `"${(r.user?.role || '').replace(/"/g, '""')}"`,
+                r.tasksCompleted || 0,
+                r.hoursWorked || 0,
+                `${r.utilization || 0}%`,
+                `"${(r.accomplishments || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+                `"${(r.challenges || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+                `"${(r.tomorrowPlan || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
+                `"${(r.project?.name || 'General Operations').replace(/"/g, '""')}"`
+            ];
+            csvRows.push(row.join(","));
+        });
+
+        const blob = new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `EuSai_Daily_Reports_Export_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast("Spreadsheet exported successfully", "success");
+    };
+
+    const filteredReports = reports.filter(r => {
+        const matchesUser = selectedUser === 'ALL' || r.userId === selectedUser;
+        const matchesEmployeeSearch = !employeeSearchQuery ||
+            r.user.name.toLowerCase().includes(employeeSearchQuery.toLowerCase());
+        const matchesSearch = !searchQuery ||
+            r.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            r.accomplishments.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (r.project?.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false);
+        return matchesUser && matchesEmployeeSearch && matchesSearch;
+    });
 
     const renderKPIDashboard = () => {
         if (!kpiData) return null;
@@ -470,6 +580,13 @@ export default function ReportsPage() {
                         </Link>
                     )}
                     <button
+                        onClick={handleExportCsv}
+                        className="bg-[#36B37E] hover:bg-[#00875A] text-white px-4 py-2 rounded-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm text-sm w-full xs:w-auto"
+                    >
+                        <FileSpreadsheet className="w-4 h-4" />
+                        Export CSV Sheet
+                    </button>
+                    <button
                         onClick={handleExport}
                         className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] hover:bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-primary)] px-4 py-2 rounded-sm font-bold flex items-center justify-center gap-2 transition-all shadow-sm text-sm w-full xs:w-auto"
                     >
@@ -540,225 +657,368 @@ export default function ReportsPage() {
                     {/* Render specific views based on activeTab */}
                     {activeTab === 'KPI' && renderKPIDashboard()}
 
-                    {activeTab === 'RESOURCES' && renderResourceReport()}
-
+{activeTab === 'RESOURCES' && renderResourceReport()}
                     {['MY', 'TEAM'].includes(activeTab) && (
                         <div className="space-y-6">
-                            {/* Search Bar for Logs */}
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--notion-text-tertiary)]" />
-                                <input
-                                    placeholder="Search mission logs by user, project, or content..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm py-2 pl-10 pr-4 text-sm text-[var(--notion-text-primary)] focus:outline-none focus:ring-1 focus:ring-[#2383e2] w-full md:w-96 transition-all placeholder-[var(--notion-text-disabled)]"
-                                />
-                            </div>
-
-                            {/* Executive Dashboard for Team View */}
-                            {activeTab === 'TEAM' && meta && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 animate-in slide-in-from-top-4 duration-500">
-                                    <div className="p-5 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 w-24 h-24 bg-[#36B37E]/10 -mr-8 -mt-8 rounded-full opacity-50 group-hover:scale-110 transition-transform" />
-                                        <div className="relative">
-                                            <p className="text-[10px] font-bold text-[#36B37E] uppercase tracking-widest mb-3">Submission Health</p>
-                                            <div className="flex items-end gap-2 mb-1">
-                                                <span className="text-3xl font-bold text-[var(--notion-text-primary)]">{meta.submissionRate}%</span>
-                                                <span className="text-xs text-[var(--notion-text-tertiary)] font-bold mb-1">({meta.totalSubmitted}/{meta.totalExpected})</span>
-                                            </div>
-                                            <div className="w-full h-1 bg-[var(--notion-bg-tertiary)] rounded-full mt-2">
-                                                <div className="h-full bg-[#36B37E] transition-all duration-1000" style={{ width: `${meta.submissionRate}%` }} />
-                                            </div>
-                                        </div>
+                            {/* Controls & Date Filter Bar */}
+                            <div className="p-4 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                <div className="flex flex-wrap items-center gap-3">
+                                    {/* General Search Bar */}
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--notion-text-tertiary)]" />
+                                        <input
+                                            placeholder="Search content or project..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm py-1.5 pl-9 pr-3 text-xs text-[var(--notion-text-primary)] focus:outline-none focus:ring-1 focus:ring-[#2383e2] w-48 placeholder-[var(--notion-text-disabled)]"
+                                        />
                                     </div>
 
-                                    <div className="p-5 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 w-24 h-24 bg-[#a855f7]/10 -mr-8 -mt-8 rounded-full opacity-50 group-hover:scale-110 transition-transform" />
-                                        <div className="relative">
-                                            <p className="text-[10px] font-bold text-[#a855f7] uppercase tracking-widest mb-3">Capacity Utilization</p>
-                                            <div className="flex items-end gap-2 mb-1">
-                                                <span className="text-3xl font-bold text-[var(--notion-text-primary)]">{meta.avgUtilization || 0}%</span>
-                                            </div>
-                                            <div className="w-full h-1 bg-[var(--notion-bg-tertiary)] rounded-full mt-2">
-                                                <div className="h-full bg-[#a855f7] transition-all duration-1000" style={{ width: `${meta.avgUtilization || 0}%` }} />
-                                            </div>
-                                        </div>
+                                    {/* Employee Quick Search Box */}
+                                    <div className="relative">
+                                        <User className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#2383e2]" />
+                                        <input
+                                            placeholder="Filter by Employee Name..."
+                                            value={employeeSearchQuery}
+                                            onChange={(e) => setEmployeeSearchQuery(e.target.value)}
+                                            className="bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm py-1.5 pl-8 pr-3 text-xs text-[var(--notion-text-primary)] focus:outline-none focus:ring-1 focus:ring-[#2383e2] w-48 placeholder-[var(--notion-text-disabled)]"
+                                        />
                                     </div>
 
-                                    <div className="p-5 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 w-24 h-24 bg-[#FFAB00]/10 -mr-8 -mt-8 rounded-full opacity-50 group-hover:scale-110 transition-transform" />
-                                        <div className="relative">
-                                            <p className="text-[10px] font-bold text-[#FFAB00] uppercase tracking-widest mb-3">Risk Detection</p>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <AlertTriangle className={`w-5 h-5 ${meta.risks.length > 0 ? 'text-[#FF5630] animate-pulse' : 'text-[#36B37E]'}`} />
-                                                <span className="text-xl font-bold text-[var(--notion-text-primary)]">{meta.risks.length} Flagged</span>
-                                            </div>
-                                            <p className="text-[9px] text-[var(--notion-text-tertiary)] font-bold mt-2 font-mono">Real-time challenge detection active</p>
+                                    {/* Personnel / Employee Filter Dropdown */}
+                                    {userOptions.length > 0 && (
+                                        <div className="flex items-center gap-1.5 text-xs">
+                                            <select
+                                                value={selectedUser}
+                                                onChange={(e) => setSelectedUser(e.target.value)}
+                                                className="bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm px-2 py-1.5 text-xs text-[var(--notion-text-primary)] focus:outline-none font-medium cursor-pointer max-w-[170px] truncate"
+                                            >
+                                                <option value="ALL">All Employees</option>
+                                                {userOptions.map((m: any) => (
+                                                    <option key={m.id} value={m.id}>
+                                                        {m.name} ({m.role})
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
+                                    )}
+
+                                    {/* Date Range Controls */}
+                                    <div className="flex items-center gap-2 text-xs">
+                                        <Calendar className="w-4 h-4 text-[#2383e2]" />
+                                        <span className="font-bold text-[var(--notion-text-tertiary)]">Range:</span>
+                                        <input
+                                            type="date"
+                                            value={startDate}
+                                            onChange={(e) => setStartDate(e.target.value)}
+                                            className="bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm px-2 py-1 text-xs text-[var(--notion-text-primary)] focus:outline-none"
+                                        />
+                                        <span className="text-[var(--notion-text-tertiary)]">to</span>
+                                        <input
+                                            type="date"
+                                            value={endDate}
+                                            onChange={(e) => setEndDate(e.target.value)}
+                                            className="bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm px-2 py-1 text-xs text-[var(--notion-text-primary)] focus:outline-none"
+                                        />
                                     </div>
 
-                                    <div className="col-span-1 md:col-span-2 p-5 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <p className="text-[10px] font-bold text-[#2383e2] uppercase tracking-widest">Effort Distribution</p>
-                                            <BarChart3 className="w-4 h-4 text-[var(--notion-text-tertiary)]" />
-                                        </div>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                            {Object.entries(meta.effortByProject).slice(0, 4).map(([proj, hours]) => (
-                                                <div key={proj as string} className="p-2 bg-[var(--notion-bg-tertiary)] rounded-sm border border-[var(--notion-border-default)]">
-                                                    <p className="text-[8px] font-bold text-[var(--notion-text-tertiary)] uppercase truncate mb-1">{proj as string}</p>
-                                                    <p className="text-sm font-bold text-[var(--notion-text-primary)]">{hours as number}h</p>
-                                                </div>
-                                            ))}
-                                            {Object.keys(meta.effortByProject).length === 0 && (
-                                                <p className="col-span-4 text-center text-[10px] text-[var(--notion-text-tertiary)] italic py-2">No effort data available for current cycle.</p>
-                                            )}
-                                        </div>
+                                    {/* Presets */}
+                                    <div className="flex items-center gap-1 text-[10px] font-bold uppercase">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const now = new Date();
+                                                const start = new Date();
+                                                start.setDate(now.getDate() - 7);
+                                                setStartDate(start.toISOString().split('T')[0]);
+                                                setEndDate(now.toISOString().split('T')[0]);
+                                            }}
+                                            className="px-2 py-1 text-[#2383e2] hover:bg-[#2383e2]/10 rounded-sm transition-colors"
+                                        >
+                                            7D
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const now = new Date();
+                                                const start = new Date();
+                                                start.setDate(now.getDate() - 30);
+                                                setStartDate(start.toISOString().split('T')[0]);
+                                                setEndDate(now.toISOString().split('T')[0]);
+                                            }}
+                                            className="px-2 py-1 text-[#2383e2] hover:bg-[#2383e2]/10 rounded-sm transition-colors"
+                                        >
+                                            30D
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const now = new Date();
+                                                const start = new Date(now.getFullYear(), now.getMonth(), 1);
+                                                setStartDate(start.toISOString().split('T')[0]);
+                                                setEndDate(now.toISOString().split('T')[0]);
+                                            }}
+                                            className="px-2 py-1 text-[#2383e2] hover:bg-[#2383e2]/10 rounded-sm transition-colors"
+                                        >
+                                            This Month
+                                        </button>
                                     </div>
                                 </div>
-                            )}
 
-                            {/* Logs List & Sidebar */}
-                            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                                <div className="lg:col-span-3 space-y-4">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        {(isDirector || isManager) && activeTab === 'TEAM' && (
-                                            <button
-                                                onClick={() => {
-                                                    setActiveTab('KPI');
-                                                    setSearchQuery('');
-                                                }}
-                                                className="p-1.5 -ml-2 hover:bg-[var(--notion-bg-tertiary)] rounded-sm transition-colors group/back"
-                                                title="Back to Performance Directory"
-                                            >
-                                                <ChevronLeft className="w-5 h-5 text-[var(--notion-text-tertiary)] group-hover/back:text-[var(--notion-text-primary)]" />
-                                            </button>
-                                        )}
-                                        <h3 className="font-bold text-[var(--notion-text-primary)] text-lg">
-                                            {activeTab === 'MY' ? 'Mission Logs' : 'Personnel Activity Feed'}
-                                        </h3>
-                                    </div>
+                                {/* View Switcher */}
+                                <div className="flex items-center gap-2 border border-[var(--notion-border-default)] rounded-sm p-0.5 bg-[var(--notion-bg-primary)]">
+                                    <button
+                                        onClick={() => setViewMode('table')}
+                                        className={cn("px-3 py-1 text-[10px] font-bold uppercase rounded-sm transition-all", viewMode === 'table' ? "bg-[#2383e2] text-white" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]")}
+                                    >
+                                        Table View
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('cards')}
+                                        className={cn("px-3 py-1 text-[10px] font-bold uppercase rounded-sm transition-all", viewMode === 'cards' ? "bg-[#2383e2] text-white" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]")}
+                                    >
+                                        Feed View
+                                    </button>
+                                </div>
+                            </div>
 
-                                    {filteredReports.length === 0 ? (
-                                        <div className="p-16 text-center bg-[var(--notion-bg-secondary)] border-2 border-dashed border-[var(--notion-border-default)] rounded-sm text-[var(--notion-text-tertiary)] ml-1">
-                                            <FileText className="w-16 h-16 mx-auto mb-4 opacity-10" />
-                                            <h3 className="text-xl font-bold text-[var(--notion-text-primary)] mb-2">No Intel Found</h3>
-                                            <p className="text-sm max-w-sm mx-auto">Either no reports have been filed for this cycle, or they don't match your current search parameters.</p>
-                                        </div>
-                                    ) : (
-                                        filteredReports.map((report: DailyReport) => (
-                                            <div key={report.id} className="p-5 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm hover:border-[#2383e2] transition-all group relative">
-                                                {report.challenges && report.challenges.trim().length > 10 && (
-                                                    <div className="absolute top-0 left-0 w-1 h-full bg-[#FF5630]" />
-                                                )}
 
-                                                <div className="flex justify-between items-start mb-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="relative">
-                                                            {report.user.image ? (
-                                                                <img src={report.user.image} alt={report.user.name} className="w-12 h-12 rounded-sm object-cover border border-[var(--notion-border-default)]" />
-                                                            ) : (
-                                                                <div className="w-12 h-12 rounded-sm bg-[#2383e2] flex items-center justify-center text-white text-lg font-bold">
-                                                                    {report.user.name[0]}
-                                                                </div>
-                                                            )}
-                                                            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--notion-bg-secondary)] flex items-center justify-center ${report.challenges ? 'bg-[#FFAB00]' : 'bg-[#36B37E]'}`}>
-                                                                {report.challenges ? <AlertTriangle className="w-2 h-2 text-white" /> : <CheckCircle className="w-2 h-2 text-white" />}
+
+                            {/* Reports Tabular or Cards Display */}
+                            {filteredReports.length === 0 ? (
+                                <div className="p-16 text-center bg-[var(--notion-bg-secondary)] border-2 border-dashed border-[var(--notion-border-default)] rounded-sm text-[var(--notion-text-tertiary)]">
+                                    <FileText className="w-16 h-16 mx-auto mb-4 opacity-10" />
+                                    <h3 className="text-xl font-bold text-[var(--notion-text-primary)] mb-2">No Intel Found</h3>
+                                    <p className="text-sm max-w-sm mx-auto">Either no reports have been filed for this window, or they don't match your search parameters.</p>
+                                </div>
+                            ) : viewMode === 'table' ? (
+                                <div className="border border-[var(--notion-border-default)] rounded-sm overflow-x-auto bg-[var(--notion-bg-secondary)] shadow-sm">
+                                    <table className="w-full text-left border-collapse min-w-[850px]">
+                                        <thead>
+                                            <tr className="bg-[var(--notion-bg-tertiary)] border-b border-[var(--notion-border-default)]">
+                                                <th className="px-4 py-3 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider">Date</th>
+                                                <th className="px-4 py-3 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider">Personnel</th>
+                                                <th className="px-4 py-3 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider text-center">Tasks</th>
+                                                <th className="px-4 py-3 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider text-center">Hours</th>
+                                                <th className="px-4 py-3 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider text-center">Utilization</th>
+                                                <th className="px-4 py-3 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider">Accomplishments</th>
+                                                <th className="px-4 py-3 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider">Challenges</th>
+                                                <th className="px-4 py-3 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider">Next Plan</th>
+                                                <th className="px-4 py-3 text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider">Project</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-[var(--notion-border-default)] text-xs">
+                                            {filteredReports.map((report: DailyReport) => (
+                                                <tr key={report.id} className="hover:bg-[var(--notion-bg-tertiary)] transition-colors">
+                                                    <td className="px-4 py-3 font-bold text-[var(--notion-text-primary)] whitespace-nowrap">
+                                                        {new Date(report.date).toLocaleDateString()}
+                                                    </td>
+                                                    <td className="px-4 py-3 font-bold text-[var(--notion-text-primary)] whitespace-nowrap">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="w-6 h-6 rounded-full bg-[#2383e2] text-white flex items-center justify-center font-bold text-[10px] overflow-hidden shrink-0">
+                                                                {report.user.image ? <img src={report.user.image} alt={report.user.name} className="w-full h-full object-cover" /> : report.user.name[0]}
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <Link href={`/team/${report.userId}`} className="hover:text-[#2383e2] transition-colors leading-tight font-bold">
+                                                                    {report.user.name}
+                                                                </Link>
+                                                                <span className="text-[9px] font-bold text-[var(--notion-text-tertiary)] uppercase">{report.user.role}</span>
                                                             </div>
                                                         </div>
-                                                        <div>
-                                                            <Link href={`/team/${report.userId}`} className="font-bold text-[var(--notion-text-primary)] hover:text-[#2383e2] transition-colors">{report.user.name}</Link>
-                                                            <div className="flex items-center gap-2 text-[10px] text-[var(--notion-text-tertiary)] font-bold uppercase tracking-tighter">
-                                                                <span>{report.user.role}</span>
-                                                                <span>•</span>
-                                                                <Calendar className="w-2.5 h-2.5" />
-                                                                <span>{new Date(report.date).toLocaleDateString()}</span>
-                                                                {report.project && (
-                                                                    <>
-                                                                        <span>•</span>
-                                                                        <span className="text-[#2383e2]">{report.project.name}</span>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex gap-2">
-                                                        <div className="px-3 py-1 bg-[#36B37E]/20 text-[#36B37E] text-[10px] font-bold rounded-sm flex items-center gap-1.5 uppercase">
-                                                            <CheckCircle2 className="w-3 h-3" />
-                                                            {report.tasksCompleted} Tasks
-                                                        </div>
-                                                        <div className="px-3 py-1 bg-[#2383e2]/20 text-[#2383e2] text-[10px] font-bold rounded-sm flex items-center gap-1.5 uppercase">
-                                                            <Clock className="w-3 h-3" />
-                                                            {report.hoursWorked}h
-                                                        </div>
-                                                        {report.utilization !== undefined && report.utilization !== null && (
-                                                            <div className="px-3 py-1 bg-[#a855f7]/20 text-[#a855f7] text-[10px] font-bold rounded-sm flex items-center gap-1.5 uppercase">
-                                                                <Activity className="w-3 h-3" />
-                                                                {report.utilization}% Util
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center font-bold text-[#2383e2]">
+                                                        {report.tasksCompleted || 0}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center font-medium text-[var(--notion-text-secondary)]">
+                                                        {report.hoursWorked || 0}h
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        <span className={cn(
+                                                            "px-2 py-0.5 rounded-full text-[10px] font-bold",
+                                                            (report.utilization || 0) >= 80 ? "bg-[#36B37E]/20 text-[#36B37E]" :
+                                                                (report.utilization || 0) >= 50 ? "bg-[#FFAB00]/20 text-[#FFAB00]" : "bg-[#FF5630]/20 text-[#FF5630]"
+                                                        )}>
+                                                            {report.utilization || 0}%
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-[var(--notion-text-primary)] max-w-[220px]">
+                                                        {renderTruncatedCell(report.accomplishments, 75, report, "text-[var(--notion-text-primary)]")}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-[#FF5630] max-w-[180px]">
+                                                        {renderTruncatedCell(report.challenges, 60, report, "text-[#FF5630]")}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-[var(--notion-text-secondary)] max-w-[180px]">
+                                                        {renderTruncatedCell(report.tomorrowPlan, 60, report, "text-[var(--notion-text-secondary)]")}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-[var(--notion-text-tertiary)] font-bold text-[10px] uppercase whitespace-nowrap">
+                                                        {report.project?.name || 'General Operations'}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {filteredReports.map((report: DailyReport) => (
+                                        <div key={report.id} className="p-5 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm hover:border-[#2383e2] transition-all group relative">
+                                            {report.challenges && report.challenges.trim().length > 10 && (
+                                                <div className="absolute top-0 left-0 w-1 h-full bg-[#FF5630]" />
+                                            )}
+
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="relative">
+                                                        {report.user.image ? (
+                                                            <img src={report.user.image} alt={report.user.name} className="w-12 h-12 rounded-sm object-cover border border-[var(--notion-border-default)]" />
+                                                        ) : (
+                                                            <div className="w-12 h-12 rounded-sm bg-[#2383e2] flex items-center justify-center text-white text-lg font-bold">
+                                                                {report.user.name[0]}
                                                             </div>
                                                         )}
+                                                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--notion-bg-secondary)] flex items-center justify-center ${report.challenges ? 'bg-[#FFAB00]' : 'bg-[#36B37E]'}`}>
+                                                            {report.challenges ? <AlertTriangle className="w-2 h-2 text-white" /> : <CheckCircle className="w-2 h-2 text-white" />}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <Link href={`/team/${report.userId}`} className="font-bold text-[var(--notion-text-primary)] hover:text-[#2383e2] transition-colors">{report.user.name}</Link>
+                                                        <div className="flex items-center gap-2 text-[10px] text-[var(--notion-text-tertiary)] font-bold uppercase tracking-tighter">
+                                                            <span>{report.user.role}</span>
+                                                            <span>•</span>
+                                                            <Calendar className="w-2.5 h-2.5" />
+                                                            <span>{new Date(report.date).toLocaleDateString()}</span>
+                                                            {report.project && (
+                                                                <>
+                                                                    <span>•</span>
+                                                                    <span className="text-[#2383e2]">{report.project.name}</span>
+                                                                </>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
-
-                                                <div className="space-y-4 pl-14">
-                                                    <div className="bg-[var(--notion-bg-tertiary)] p-3 border-l-2 border-[#2383e2] rounded-r-sm">
-                                                        <p className="text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase mb-1 flex items-center gap-1.5">
-                                                            <Target className="w-3 h-3" /> Accomplishments
-                                                        </p>
-                                                        <p className="text-sm text-[var(--notion-text-primary)] leading-relaxed whitespace-pre-wrap">{report.accomplishments}</p>
+                                                <div className="flex gap-2">
+                                                    <div className="px-3 py-1 bg-[#36B37E]/20 text-[#36B37E] text-[10px] font-bold rounded-sm flex items-center gap-1.5 uppercase">
+                                                        <CheckCircle2 className="w-3 h-3" />
+                                                        {report.tasksCompleted} Tasks
                                                     </div>
-
-                                                    {(report.challenges || report.tomorrowPlan) && (
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            {report.challenges && (
-                                                                <div className="bg-[#FFAB00]/10 p-3 border-l-2 border-[#FFAB00] rounded-r-sm">
-                                                                    <p className="text-[10px] font-bold text-[#FFAB00] uppercase mb-1 flex items-center gap-1.5">
-                                                                        <AlertTriangle className="w-3 h-3" /> Challenges
-                                                                    </p>
-                                                                    <p className="text-xs text-[var(--notion-text-primary)]">{report.challenges}</p>
-                                                                </div>
-                                                            )}
-                                                            {report.tomorrowPlan && (
-                                                                <div className="bg-[var(--notion-bg-tertiary)] p-3 border-l-2 border-[var(--notion-text-tertiary)] rounded-r-sm">
-                                                                    <p className="text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase mb-1 flex items-center gap-1.5">
-                                                                        <TrendingUp className="w-3 h-3" /> Tactical Plan
-                                                                    </p>
-                                                                    <p className="text-xs text-[var(--notion-text-primary)]">{report.tomorrowPlan}</p>
-                                                                </div>
-                                                            )}
+                                                    <div className="px-3 py-1 bg-[#2383e2]/20 text-[#2383e2] text-[10px] font-bold rounded-sm flex items-center gap-1.5 uppercase">
+                                                        <Clock className="w-3 h-3" />
+                                                        {report.hoursWorked}h
+                                                    </div>
+                                                    {report.utilization !== undefined && report.utilization !== null && (
+                                                        <div className="px-3 py-1 bg-[#a855f7]/20 text-[#a855f7] text-[10px] font-bold rounded-sm flex items-center gap-1.5 uppercase">
+                                                            <Activity className="w-3 h-3" />
+                                                            {report.utilization}% Util
                                                         </div>
                                                     )}
                                                 </div>
                                             </div>
-                                        ))
-                                    )}
-                                </div>
 
-                                <div className="space-y-6">
-                                    {/* Missing Members Tracker */}
-                                    {activeTab === 'TEAM' && meta && meta.missingMembers.length > 0 && (
-                                        <div className="p-5 rounded-sm border border-[#FF5630]/30 bg-[#FF5630]/10">
-                                            <h3 className="font-bold text-[#FF5630] text-sm mb-4 flex items-center gap-2">
-                                                <Users className="w-4 h-4" />
-                                                Missing Reports ({meta.missingMembers.length})
-                                            </h3>
-                                            <div className="space-y-3">
-                                                {meta.missingMembers.map((member: any) => (
-                                                    <div key={member.id} className="flex items-center justify-between text-xs p-2 bg-[var(--notion-bg-secondary)] rounded-sm border border-[var(--notion-border-default)]">
-                                                        <div>
-                                                            <p className="font-bold text-[var(--notion-text-primary)]">{member.name}</p>
-                                                            <p className="text-[9px] text-[var(--notion-text-tertiary)] font-bold uppercase">{member.role}</p>
-                                                        </div>
-                                                        <XCircle className="w-3.5 h-3.5 text-[#FF5630]" />
+                                            <div className="space-y-4 pl-14">
+                                                <div className="bg-[var(--notion-bg-tertiary)] p-3 border-l-2 border-[#2383e2] rounded-r-sm">
+                                                    <p className="text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase mb-1 flex items-center gap-1.5">
+                                                        <Target className="w-3 h-3" /> Accomplishments
+                                                    </p>
+                                                    <p className="text-sm text-[var(--notion-text-primary)] leading-relaxed whitespace-pre-wrap">{report.accomplishments}</p>
+                                                </div>
+
+                                                {(report.challenges || report.tomorrowPlan) && (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {report.challenges && (
+                                                            <div className="bg-[#FFAB00]/10 p-3 border-l-2 border-[#FFAB00] rounded-r-sm">
+                                                                <p className="text-[10px] font-bold text-[#FFAB00] uppercase mb-1 flex items-center gap-1.5">
+                                                                    <AlertTriangle className="w-3 h-3" /> Challenges
+                                                                </p>
+                                                                <p className="text-xs text-[var(--notion-text-primary)]">{report.challenges}</p>
+                                                            </div>
+                                                        )}
+                                                        {report.tomorrowPlan && (
+                                                            <div className="bg-[var(--notion-bg-tertiary)] p-3 border-l-2 border-[var(--notion-text-tertiary)] rounded-r-sm">
+                                                                <p className="text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase mb-1 flex items-center gap-1.5">
+                                                                    <TrendingUp className="w-3 h-3" /> Tactical Plan
+                                                                </p>
+                                                                <p className="text-xs text-[var(--notion-text-primary)]">{report.tomorrowPlan}</p>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                ))}
+                                                )}
                                             </div>
                                         </div>
-                                    )}
+                                    ))}
                                 </div>
-                            </div>
+                            )}
                         </div>
                     )}
                 </>
+            )}
+            {/* Report Full Text Detail Modal */}
+            {selectedReportForView && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedReportForView(null)}>
+                    <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-md max-w-xl w-full p-6 space-y-6 shadow-2xl relative text-[var(--notion-text-primary)] animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between border-b border-[var(--notion-border-default)] pb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-sm bg-[#2383e2]/20 text-[#2383e2] flex items-center justify-center font-bold">
+                                    <FileText className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-bold text-[var(--notion-text-primary)] uppercase tracking-wider">
+                                        Daily Report ({new Date(selectedReportForView.date).toLocaleDateString()})
+                                    </h3>
+                                    <span className="text-[10px] font-bold text-[var(--notion-text-tertiary)] uppercase tracking-widest">
+                                        {selectedReportForView.user?.name} ({selectedReportForView.user?.role})
+                                    </span>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setSelectedReportForView(null)}
+                                className="p-1.5 rounded-full hover:bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)] transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                            <div>
+                                <h4 className="text-[10px] font-bold text-[#2383e2] uppercase tracking-widest mb-1.5">Accomplishments</h4>
+                                <div className="bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] p-4 rounded-sm text-xs text-[var(--notion-text-primary)] whitespace-pre-wrap leading-relaxed font-medium">
+                                    {selectedReportForView.accomplishments || "No details provided."}
+                                </div>
+                            </div>
+
+                            {selectedReportForView.challenges && (
+                                <div>
+                                    <h4 className="text-[10px] font-bold text-[#FF5630] uppercase tracking-widest mb-1.5">Challenges & Impediments</h4>
+                                    <div className="bg-[#FF5630]/10 border border-[#FF5630]/30 p-4 rounded-sm text-xs text-[#FF5630] whitespace-pre-wrap leading-relaxed font-medium">
+                                        {selectedReportForView.challenges}
+                                    </div>
+                                </div>
+                            )}
+
+                            {selectedReportForView.tomorrowPlan && (
+                                <div>
+                                    <h4 className="text-[10px] font-bold text-[#36B37E] uppercase tracking-widest mb-1.5">Next Cycle Plan</h4>
+                                    <div className="bg-[#36B37E]/10 border border-[#36B37E]/30 p-4 rounded-sm text-xs text-[#36B37E] whitespace-pre-wrap leading-relaxed font-medium">
+                                        {selectedReportForView.tomorrowPlan}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center justify-between border-t border-[var(--notion-border-default)] pt-4 text-xs font-bold text-[var(--notion-text-tertiary)]">
+                            <div className="flex items-center gap-4">
+                                <span>Tasks: <strong className="text-[#2383e2]">{selectedReportForView.tasksCompleted}</strong></span>
+                                <span>Hours: <strong className="text-[var(--notion-text-primary)]">{selectedReportForView.hoursWorked}h</strong></span>
+                                <span>Utilization: <strong className="text-[#36B37E]">{selectedReportForView.utilization}%</strong></span>
+                            </div>
+                            <button
+                                onClick={() => setSelectedReportForView(null)}
+                                className="px-4 py-2 bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] hover:bg-[var(--notion-bg-primary)] text-[var(--notion-text-primary)] rounded-sm text-xs font-bold uppercase transition-all shadow-sm"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

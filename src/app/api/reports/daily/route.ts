@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
                 }
             },
             orderBy: { date: 'desc' },
-            take: 100
+            take: 500
         });
 
         // Analytical Metadata for Executives
@@ -100,8 +100,9 @@ export async function GET(request: NextRequest) {
             let utilizationCount = 0;
 
             reports.forEach((r: any) => {
-                const pName = r.project?.name || 'Unassigned';
-                effortByProject[pName] = (effortByProject[pName] || 0) + Number(r.hoursWorked);
+                const pName = r.project?.name || 'General Operations';
+                const currentEffort = effortByProject[pName] || 0;
+                effortByProject[pName] = Math.round((currentEffort + Number(r.hoursWorked)) * 10) / 10;
 
                 if (r.utilization !== undefined && r.utilization !== null) {
                     totalUtilization += Number(r.utilization);
