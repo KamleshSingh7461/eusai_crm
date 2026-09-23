@@ -22,7 +22,8 @@ export async function GET(request: Request) {
             where: {
                 role: {
                     in: ['DIRECTOR', 'MANAGER']
-                }
+                },
+                isSuspended: false
             },
             select: {
                 id: true,

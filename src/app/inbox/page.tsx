@@ -47,6 +47,7 @@ interface Message {
     sender: {
         id: string;
         name: string;
+        email?: string;
         image?: string;
         role: string;
     };
@@ -63,13 +64,14 @@ interface Channel {
     type: 'PUBLIC' | 'PRIVATE' | 'DIRECT';
     isSpaceChannel?: boolean;
     isSystem?: boolean;
-    members?: { id: string, name: string, image?: string, role: string }[];
+    members?: { id: string, name: string, email?: string, image?: string, role: string }[];
     spaceId?: string;
 }
 
 interface User {
     id: string;
     name: string;
+    email?: string;
     image?: string;
     role: string;
 }
@@ -628,7 +630,7 @@ export default function InboxPage() {
                                                             <>
                                                                 <RichText content={msg.content} isMe={isMe} />
                                                                 {/* Hover Actions */}
-                                                                {isMe && (new Date().getTime() - new Date(msg.createdAt).getTime() < 5 * 60 * 1000) && (
+                                                                {isMe && (new Date().getTime() - new Date(msg.createdAt).getTime() < 1 * 60 * 1000) && (
                                                                     <div className={cn(
                                                                         "absolute top-0 opacity-0 group-hover/msg:opacity-100 transition-all flex items-center gap-1 bg-[#111] border border-white/10 rounded-xl p-1 shadow-2xl z-20",
                                                                         isMe ? "right-full mr-2" : "left-full ml-2"

@@ -139,6 +139,17 @@ export async function POST(request: NextRequest) {
                     ? ownerIds
                     : ownerId ? [ownerId] : [userId];
 
+                // Check if any target owner is suspended
+                if (targetOwnerIds.length > 0) {
+                    const suspendedOwners = await tx.user.findMany({
+                        where: { id: { in: targetOwnerIds }, isSuspended: true },
+                        select: { name: true }
+                    });
+                    if (suspendedOwners.length > 0) {
+                        throw new Error(`Cannot assign milestone to suspended user: ${suspendedOwners.map((u: any) => u.name).join(', ')}`);
+                    }
+                }
+
                 // Hierarchy Validation: Managers/TLs can only assign to their subordinates
                 const actorId = userId;
                 if (targetOwnerIds.length > 0 && userRole !== 'DIRECTOR' && userRole !== 'MANAGEMENT') {

@@ -50,7 +50,7 @@ export default function CreateProjectModal({
             const res = await fetch('/api/team');
             if (res.ok) {
                 const data = await res.json();
-                setUsers(data.users || []);
+                setUsers((data.users || []).filter((u: any) => !u.isSuspended));
             }
         } catch (error) {
             console.error('Failed to load users:', error);

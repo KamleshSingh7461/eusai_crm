@@ -3,12 +3,14 @@ export interface Message {
     sender: {
         id: string;
         name: string;
+        email?: string;
         image?: string;
         role: string;
     };
     content: string;
     attachments?: any[];
     createdAt: string;
+    updatedAt?: string;
 }
 
 export interface Channel {
@@ -18,13 +20,14 @@ export interface Channel {
     type: 'PUBLIC' | 'PRIVATE' | 'DIRECT';
     isSpaceChannel?: boolean;
     isSystem?: boolean;
-    members?: { id: string, name: string, image?: string, role: string }[];
+    members?: { id: string, name: string, email?: string, image?: string, role: string }[];
     spaceId?: string;
 }
 
 export interface User {
     id: string;
     name: string;
+    email?: string;
     image?: string;
     role: string;
 }

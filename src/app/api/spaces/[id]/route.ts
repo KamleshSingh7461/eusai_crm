@@ -92,6 +92,7 @@ export async function GET(
                     },
                     resources: true,
                     members: {
+                        where: { isSuspended: false },
                         select: {
                             id: true,
                             name: true,

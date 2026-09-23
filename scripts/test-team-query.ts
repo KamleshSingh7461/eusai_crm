@@ -8,14 +8,13 @@ async function main() {
 
     try {
         // 1. Fetch Users requesting managerId selection
-        const users = await prisma.user.findMany({
+        const users = await (prisma as any).user.findMany({
             select: {
                 id: true,
                 name: true,
                 email: true,
                 role: true,
-                managerId: true, // Explicitly selecting managerId
-                manager: {
+                reportingManagers: {
                     select: {
                         id: true,
                         name: true,
@@ -37,11 +36,10 @@ async function main() {
             console.log(`Testing Update for user ${user.email}...`);
 
             // We just update name to the same value to test the typings/runtime
-            const updated = await prisma.user.update({
+            const updated = await (prisma as any).user.update({
                 where: { id: user.id },
                 data: {
-                    name: user.name,
-                    managerId: user.managerId // Updating managerId
+                    name: user.name
                 }
             });
             console.log('✅ Update Success:', updated);

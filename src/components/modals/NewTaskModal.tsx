@@ -95,7 +95,7 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated, defaultPr
                     const res = await fetch('/api/team');
                     if (res.ok) {
                         const data = await res.json();
-                        setTeamMembers(data.users || []);
+                        setTeamMembers((data.users || []).filter((u: any) => !u.isSuspended));
                     }
 
                 } catch (error) {

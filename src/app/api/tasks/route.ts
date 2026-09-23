@@ -127,6 +127,20 @@ export async function POST(request: Request) {
             ? assignedToIds
             : assignedToId ? [assignedToId] : [];
 
+        // Check if any target user is suspended
+        if (targetIds.length > 0) {
+            const suspendedUsers = await prisma.user.findMany({
+                where: { id: { in: targetIds }, isSuspended: true },
+                select: { name: true }
+            });
+            if (suspendedUsers.length > 0) {
+                return NextResponse.json({
+                    error: 'Bad Request',
+                    message: `Cannot assign task to suspended user: ${suspendedUsers.map(u => u.name).join(', ')}`
+                }, { status: 400 });
+            }
+        }
+
         // 1. Hierarchy Validation if assigning to someone else
         if (targetIds.length > 0 && role !== 'DIRECTOR' && role !== 'MANAGEMENT') {
             const userWithSubordinates = await prisma.user.findUnique({

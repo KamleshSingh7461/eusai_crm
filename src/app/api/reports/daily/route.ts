@@ -29,15 +29,15 @@ export async function GET(request: NextRequest) {
         const allowedIds = await getSubordinateIds(currentUserId, userRole);
         let allTeamMembers: any[] = [];
 
-        // Handling team context for metadata
+        // Handling team context for metadata (active members only)
         if (allowedIds) {
             allTeamMembers = await prisma.user.findMany({
-                where: { id: { in: allowedIds } },
+                where: { id: { in: allowedIds }, isSuspended: false },
                 select: { id: true, name: true, role: true }
             });
         } else {
             allTeamMembers = await prisma.user.findMany({
-                where: { role: { in: ['MANAGER', 'TEAM_LEADER', 'EMPLOYEE', 'INTERN'] } },
+                where: { role: { in: ['MANAGER', 'TEAM_LEADER', 'EMPLOYEE', 'INTERN'] }, isSuspended: false },
                 select: { id: true, name: true, role: true }
             });
         }

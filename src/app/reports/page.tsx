@@ -94,7 +94,7 @@ export default function ReportsPage() {
             .then(data => {
                 const list = Array.isArray(data) ? data : (data?.users || []);
                 if (Array.isArray(list)) {
-                    setTeamMembers(list.map((u: any) => ({ id: u.id, name: u.name, role: u.role })));
+                    setTeamMembers(list.filter((u: any) => !u.isSuspended).map((u: any) => ({ id: u.id, name: u.name, role: u.role })));
                 }
             })
             .catch(() => {});

@@ -12,13 +12,13 @@ async function main() {
 
         const currentUser = await prisma.user.findFirst({
             where: { role: 'DIRECTOR' }, // Find someone who might have subordinates or just any user
-            include: { subordinates: true }
+            include: { reportingSubordinates: true }
         });
 
         if (!currentUser) {
             console.log('No user found to test subordinates logic.');
         } else {
-            const subordinateIds = currentUser.subordinates?.map(u => u.id) || [];
+            const subordinateIds = (currentUser as any).reportingSubordinates?.map((u: any) => u.id) || [];
             console.log('Found subordinates count:', subordinateIds.length);
 
             const milestones = await prisma.milestone.findMany({

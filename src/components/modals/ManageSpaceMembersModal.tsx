@@ -49,7 +49,8 @@ export default function ManageSpaceMembersModal({
             const res = await fetch('/api/team');
             if (res.ok) {
                 const data = await res.json();
-                setAllUsers(data.users || []);
+                const usersList = (data.users || []).filter((u: any) => !u.isSuspended);
+                setAllUsers(usersList);
             }
         } catch (error) {
             console.error('Failed to load users:', error);

@@ -30,11 +30,11 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        // 3. Fetch Target Users
+        // 3. Fetch Target Users (active only)
         const employees = await prisma.user.findMany({
             where: {
                 role: { in: ['EMPLOYEE', 'INTERN'] },
-                // optional: active status check if exists
+                isSuspended: false
             },
             select: { id: true, name: true, email: true }
         });

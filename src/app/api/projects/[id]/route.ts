@@ -39,6 +39,7 @@ export async function GET(
                     orderBy: { date: 'desc' }
                 },
                 managers: {
+                    where: { isSuspended: false },
                     select: { id: true, name: true, image: true, email: true }
                 },
                 _count: {
@@ -51,21 +52,23 @@ export async function GET(
             return NextResponse.json({ error: 'Project not found' }, { status: 404 });
         }
 
-        // Fetch potential assignees based on hierarchy
-        let attendeeWhereClause: any = {};
+        // Fetch potential assignees based on hierarchy (active only)
+        let attendeeWhereClause: any = { isSuspended: false };
 
         if (role === 'DIRECTOR') {
             attendeeWhereClause = {
-                role: { in: ['MANAGER', 'TEAM_LEADER', 'EMPLOYEE', 'INTERN'] }
+                role: { in: ['MANAGER', 'TEAM_LEADER', 'EMPLOYEE', 'INTERN'] },
+                isSuspended: false
             };
         } else if (role === 'MANAGER' || role === 'TEAM_LEADER') {
             const userWithSubordinates = await (prisma as any).user.findUnique({
                 where: { id: currentUserId },
-                include: { reportingSubordinates: true }
+                include: { reportingSubordinates: { where: { isSuspended: false } } }
             }) as any;
             const subordinateIds = userWithSubordinates?.reportingSubordinates?.map((s: any) => s.id) || [];
             attendeeWhereClause = {
-                id: { in: subordinateIds }
+                id: { in: subordinateIds },
+                isSuspended: false
             };
         } else {
             // Employees/Interns can't assign to others (only self in modal)

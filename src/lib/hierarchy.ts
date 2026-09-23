@@ -14,25 +14,31 @@ export async function getSubordinateIds(userId: string, role: string): Promise<s
     }
 
     if (role === 'MANAGER') {
-        // Get all spaces this manager manages and the members in those spaces
+        // Get all spaces this manager manages and the members in those spaces (excluding suspended users)
         const managedSpaces = await prisma.space.findMany({
             where: { managerId: userId },
             include: {
-                members: { select: { id: true } }
+                members: {
+                    where: { isSuspended: false },
+                    select: { id: true }
+                }
             }
         });
 
-        const spaceMemberIds = managedSpaces.flatMap(s => s.members.map(m => m.id));
+        const spaceMemberIds = managedSpaces.flatMap((s: any) => s.members.map((m: any) => m.id));
 
-        // Also get direct reporting subordinates
+        // Also get direct reporting subordinates (excluding suspended users)
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
-                reportingSubordinates: { select: { id: true } }
+                reportingSubordinates: {
+                    where: { isSuspended: false },
+                    select: { id: true }
+                }
             }
         });
 
-        const directSubIds = user?.reportingSubordinates.map(u => u.id) || [];
+        const directSubIds = (user as any)?.reportingSubordinates?.map((u: any) => u.id) || [];
 
         // Union of both sets (deduplicated), excluding the manager themselves
         const allIds = [...new Set([...spaceMemberIds, ...directSubIds])];
@@ -43,10 +49,13 @@ export async function getSubordinateIds(userId: string, role: string): Promise<s
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
-                reportingSubordinates: { select: { id: true } }
+                reportingSubordinates: {
+                    where: { isSuspended: false },
+                    select: { id: true }
+                }
             }
         });
-        const subIds = user?.reportingSubordinates.map(u => u.id) || [];
+        const subIds = (user as any)?.reportingSubordinates?.map((u: any) => u.id) || [];
         return [userId, ...subIds];
     }
 

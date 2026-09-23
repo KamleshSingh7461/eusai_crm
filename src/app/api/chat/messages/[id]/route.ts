@@ -6,7 +6,7 @@ import { getMobileSession } from '@/lib/auth-mobile';
 
 export async function PATCH(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         let session = await getServerSession(authOptions);
@@ -20,7 +20,7 @@ export async function PATCH(
 
         const userId = (session.user as any).id;
         const { content } = await req.json();
-        const { id } = params;
+        const { id } = await params;
 
         const message = await prisma.chatMessage.findUnique({
             where: { id }
@@ -34,10 +34,10 @@ export async function PATCH(
             return NextResponse.json({ error: 'Forbidden: You can only edit your own messages' }, { status: 403 });
         }
 
-        // 5-minute check (300,000 ms)
+        // 1-minute check (60,000 ms)
         const diff = Date.now() - new Date(message.createdAt).getTime();
-        if (diff > 5 * 60 * 1000) {
-            return NextResponse.json({ error: 'Edit window expired (5-minute limit)' }, { status: 400 });
+        if (diff > 1 * 60 * 1000) {
+            return NextResponse.json({ error: 'Edit window expired (1-minute limit)' }, { status: 400 });
         }
 
         const updated = await prisma.chatMessage.update({
@@ -62,7 +62,7 @@ export async function PATCH(
 
 export async function DELETE(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         let session = await getServerSession(authOptions);
@@ -75,7 +75,7 @@ export async function DELETE(
         }
 
         const userId = (session.user as any).id;
-        const { id } = params;
+        const { id } = await params;
 
         const message = await prisma.chatMessage.findUnique({
             where: { id }
@@ -89,10 +89,10 @@ export async function DELETE(
             return NextResponse.json({ error: 'Forbidden: You can only delete your own messages' }, { status: 403 });
         }
 
-        // 5-minute check
+        // 1-minute check
         const diff = Date.now() - new Date(message.createdAt).getTime();
-        if (diff > 5 * 60 * 1000) {
-            return NextResponse.json({ error: 'Delete window expired (5-minute limit)' }, { status: 400 });
+        if (diff > 1 * 60 * 1000) {
+            return NextResponse.json({ error: 'Delete window expired (1-minute limit)' }, { status: 400 });
         }
 
         await prisma.chatMessage.delete({

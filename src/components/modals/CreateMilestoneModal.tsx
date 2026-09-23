@@ -87,10 +87,11 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
             const response = await fetch('/api/users');
             if (response.ok) {
                 const data = await response.json();
+                const activeUsers = (data || []).filter((u: any) => !u.isSuspended);
                 if (currentUser?.role === 'DIRECTOR') {
-                    setUsers(data);
+                    setUsers(activeUsers);
                 } else {
-                    const juniors = data.filter((u: any) => u.reportingManagers?.some((m: any) => m.id === currentUser?.id));
+                    const juniors = activeUsers.filter((u: any) => u.reportingManagers?.some((m: any) => m.id === currentUser?.id));
                     setUsers(juniors);
                 }
             }

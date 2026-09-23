@@ -20,10 +20,11 @@ export async function GET(request: NextRequest) {
     try {
         const targetUserIds = await getSubordinateIds(currentUserId, userRole);
 
-        // Fetch Users with Task counts
+        // Fetch Users with Task counts (active users only)
         const users = await prisma.user.findMany({
             where: {
                 role: { in: ['MANAGER', 'TEAM_LEADER', 'EMPLOYEE', 'INTERN'] }, // Exclude Directors from workload
+                isSuspended: false,
                 ...(targetUserIds ? { id: { in: targetUserIds } } : {})
             },
             include: {
@@ -46,8 +47,8 @@ export async function GET(request: NextRequest) {
 
         const workload = users.map(u => {
             const activeTasks = u._count.tasks;
-            const highPriority = u.tasks.filter(t => t.priority === 3).length;
-            const overdue = u.tasks.filter(t => new Date(t.deadline) < new Date()).length;
+            const highPriority = u.tasks.filter((t: any) => t.priority === 3).length;
+            const overdue = u.tasks.filter((t: any) => new Date(t.deadline) < new Date()).length;
 
             // Simple capacity metric (arbitrary max of 10 tasks)
             const utilization = Math.min((activeTasks / 10) * 100, 100);

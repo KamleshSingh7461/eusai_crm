@@ -85,7 +85,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
     const fetchUserDetails = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch('/api/team');
+            const res = await fetch('/api/team?includeSuspended=true');
             if (res.ok) {
                 const data = await res.json();
                 const foundUser = data.users.find((u: any) => u.id === userId);

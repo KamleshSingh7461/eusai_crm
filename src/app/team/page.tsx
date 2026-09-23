@@ -22,7 +22,9 @@ import {
     PieChart,
     Briefcase,
     Send,
-    Edit2
+    Edit2,
+    Trash2,
+    AlertTriangle
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
@@ -60,6 +62,8 @@ export default function TeamPage() {
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [userToDelete, setUserToDelete] = useState<User | null>(null);
+    const [isDeletingUser, setIsDeletingUser] = useState(false);
     const [spaces, setSpaces] = useState<{ id: string; name: string; color: string; managerId?: string }[]>([]);
 
     // Form States
@@ -95,7 +99,7 @@ export default function TeamPage() {
     const fetchTeam = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch('/api/team');
+            const res = await fetch('/api/team?includeSuspended=true');
             if (res.ok) {
                 const data = await res.json();
                 setUsers(data.users);
@@ -107,6 +111,28 @@ export default function TeamPage() {
             showToast('Network error', 'error');
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleConfirmDeleteUser = async () => {
+        if (!userToDelete) return;
+        setIsDeletingUser(true);
+        try {
+            const res = await fetch(`/api/team?id=${userToDelete.id}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast(`User ${userToDelete.name || userToDelete.email} permanently deleted`, 'success');
+                setUserToDelete(null);
+                fetchTeam();
+            } else {
+                showToast(data.message || data.error || 'Failed to delete user', 'error');
+            }
+        } catch (error) {
+            showToast('Network error while deleting user', 'error');
+        } finally {
+            setIsDeletingUser(false);
         }
     };
 
@@ -519,6 +545,15 @@ export default function TeamPage() {
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </button>
+                                                    {userRole === 'DIRECTOR' && user.id !== userId && (
+                                                        <button
+                                                            onClick={() => setUserToDelete(user)}
+                                                            className="p-1.5 hover:bg-[#FFEBE6] text-[#BF2600] rounded-sm transition-colors"
+                                                            title="Permanently Delete User"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </td>
                                         )}
@@ -794,6 +829,68 @@ export default function TeamPage() {
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal (Director Only) */}
+            {userToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="card-eusai w-full max-w-md bg-[var(--notion-bg-primary)] rounded-lg shadow-2xl overflow-hidden border border-[#FFBDAD] animate-in zoom-in-95 duration-200">
+                        <div className="p-6 bg-[#FFEBE6] border-b border-[#FFBDAD] flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#BF2600] flex items-center justify-center text-white shrink-0 shadow-sm">
+                                <AlertTriangle className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-[#BF2600] text-base leading-tight">Permanently Delete User</h3>
+                                <p className="text-xs text-[#DE350B] mt-0.5 font-medium">This action cannot be undone</p>
+                            </div>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <p className="text-sm text-[var(--notion-text-primary)] leading-relaxed">
+                                Are you sure you want to permanently delete <strong className="font-semibold text-heading">{userToDelete.name || userToDelete.email}</strong>?
+                            </p>
+                            <div className="p-3 bg-[var(--notion-bg-secondary)] rounded-md border border-[var(--notion-border-default)] text-xs text-[var(--notion-text-secondary)] space-y-1.5">
+                                <p className="font-semibold text-heading flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#BF2600]"></span>
+                                    The following will happen:
+                                </p>
+                                <ul className="list-disc pl-4 space-y-1 text-[var(--notion-text-tertiary)]">
+                                    <li>User credentials, sessions, and mobile access will be erased.</li>
+                                    <li>Unfinished tasks assigned to them will be unassigned.</li>
+                                    <li>All department, project, and channel memberships will be removed.</li>
+                                    <li>Historical milestones will be safely transferred to your director account.</li>
+                                </ul>
+                            </div>
+                            <div className="flex items-center justify-end gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setUserToDelete(null)}
+                                    disabled={isDeletingUser}
+                                    className="px-4 py-2 text-xs font-semibold rounded-md border border-[var(--notion-border-default)] hover:bg-[var(--notion-bg-tertiary)] text-subheading transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleConfirmDeleteUser}
+                                    disabled={isDeletingUser}
+                                    className="px-4 py-2 text-xs font-semibold rounded-md bg-[#BF2600] hover:bg-[#DE350B] text-white transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                                >
+                                    {isDeletingUser ? (
+                                        <>
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            Deleting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                            Permanently Delete
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </div>
                     </div>

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(
     request: NextRequest,
@@ -109,5 +111,89 @@ export async function GET(
             { error: 'Failed to fetch user' },
             { status: 500 }
         );
+    }
+}
+
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const currentUserId = (session.user as any).id;
+    const userRole = (session.user as any).role;
+
+    if (userRole !== 'DIRECTOR') {
+        return NextResponse.json({ error: 'Forbidden', message: 'Only Directors can delete users.' }, { status: 403 });
+    }
+
+    try {
+        const { id } = await params;
+
+        if (!id) {
+            return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+        }
+
+        if (id === currentUserId) {
+            return NextResponse.json({ error: 'Bad Request', message: 'You cannot delete your own account.' }, { status: 400 });
+        }
+
+        const targetUser = await prisma.user.findUnique({ where: { id } });
+        if (!targetUser) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
+        await prisma.$transaction(async (tx) => {
+            // Nullify references in Task, Issue, Space
+            await tx.task.updateMany({ where: { userId: id }, data: { userId: null } });
+            await tx.issue.updateMany({ where: { reporterId: id }, data: { reporterId: null } });
+            await tx.issue.updateMany({ where: { assignedToId: id }, data: { assignedToId: null } });
+            await tx.issue.updateMany({ where: { resolvedById: id }, data: { resolvedById: null } });
+            await tx.space.updateMany({ where: { managerId: id }, data: { managerId: null } });
+            
+            // Delete user meetings
+            await tx.meeting.deleteMany({ where: { organizerId: id } });
+            
+            // Reassign milestones owned by user to the Director
+            await tx.milestone.updateMany({ where: { owner: id }, data: { owner: currentUserId } });
+
+            // Delete direct user records
+            await tx.dailyReport.deleteMany({ where: { userId: id } });
+            await tx.weeklyReport.deleteMany({ where: { userId: id } });
+            await tx.expense.deleteMany({ where: { userId: id } });
+            await tx.comment.deleteMany({ where: { userId: id } });
+            await tx.activity.deleteMany({ where: { userId: id } });
+            await tx.chatMessage.deleteMany({ where: { senderId: id } });
+            await tx.notification.deleteMany({ where: { userId: id } });
+            await tx.pushSubscription.deleteMany({ where: { userId: id } });
+            await tx.fcmToken.deleteMany({ where: { userId: id } });
+            await tx.session.deleteMany({ where: { userId: id } });
+            await tx.account.deleteMany({ where: { userId: id } });
+
+            // Disconnect many-to-many relations
+            await tx.user.update({
+                where: { id },
+                data: {
+                    reportingManagers: { set: [] },
+                    reportingSubordinates: { set: [] },
+                    managedProjects: { set: [] },
+                    managedSpaces: { set: [] },
+                    memberSpaces: { set: [] },
+                    chatChannels: { set: [] },
+                    meetingAttendance: { set: [] }
+                }
+            });
+
+            // Delete user
+            await tx.user.delete({ where: { id } });
+        });
+
+        return NextResponse.json({ success: true, message: 'User permanently deleted' });
+    } catch (error: any) {
+        console.error('Failed to delete user:', error);
+        return NextResponse.json({ error: error.message || 'Failed to delete user' }, { status: 500 });
     }
 }

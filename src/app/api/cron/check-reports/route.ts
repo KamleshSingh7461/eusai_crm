@@ -11,11 +11,11 @@ export async function GET(request: NextRequest) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // 1. Get all Employees/Interns
+        // 1. Get all active Employees/Interns
         const employees = await prisma.user.findMany({
             where: {
                 role: { in: ['EMPLOYEE', 'INTERN'] },
-                // Active users only (status check could be added here)
+                isSuspended: false
             },
             select: { id: true, email: true, name: true, flagCount: true }
         });
@@ -54,14 +54,14 @@ export async function GET(request: NextRequest) {
             // Send Email
             if (user.email) {
                 // In real app, use a nice HTML template
-                const sent = await sendEmail(
-                    user.email,
-                    'URGENT: Daily Report Not Submitted',
-                    `<p>Hi ${user.name},</p>
+                const sent = await sendEmail({
+                    to: user.email,
+                    subject: 'URGENT: Daily Report Not Submitted',
+                    html: `<p>Hi ${user.name},</p>
                      <p>You have not submitted your daily report for <strong>${today.toLocaleDateString()}</strong>.</p>
                      <p>Please submit it immediately. Your account has been flagged for non-compliance.</p>
                      <p>Regards,<br/>EUSAI Team</p>`
-                );
+                });
                 results.push({ email: user.email, sent });
             }
 

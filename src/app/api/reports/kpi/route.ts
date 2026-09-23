@@ -22,10 +22,11 @@ export async function GET(request: NextRequest) {
         const targetUserIds = await getSubordinateIds(currentUserId, userRole === 'MANAGEMENT' ? 'DIRECTOR' : userRole);
         const targetProjectIds = await getAccessibleProjectIds(currentUserId, userRole === 'MANAGEMENT' ? 'DIRECTOR' : userRole, targetUserIds);
 
-        // 1. Employee KPIs & Department Pulse
+        // 1. Employee KPIs & Department Pulse (active employees only)
         const employees = await prisma.user.findMany({
             where: {
                 role: { notIn: ['DIRECTOR', 'MANAGEMENT'] },
+                isSuspended: false,
                 ...(targetUserIds ? { id: { in: targetUserIds } } : {})
             },
             include: {

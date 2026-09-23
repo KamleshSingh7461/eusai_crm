@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     Bell,
     Search,
@@ -39,6 +39,25 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
     const [showAssistant, setShowAssistant] = useState(false);
     const [showCreateMenu, setShowCreateMenu] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+    const createMenuRef = useRef<HTMLDivElement>(null);
+    const profileMenuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (createMenuRef.current && !createMenuRef.current.contains(event.target as Node)) {
+                setShowCreateMenu(false);
+            }
+            if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+                setShowProfileMenu(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     // Modals
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -107,7 +126,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                     </button>
 
                     {/* Role-tailored "+ Create" Action Button */}
-                    <div className="relative hidden sm:block">
+                    <div ref={createMenuRef} className="relative hidden sm:block">
                         <button
                             onClick={() => setShowCreateMenu(!showCreateMenu)}
                             className="flex items-center justify-center gap-2 h-8 px-3.5 bg-[#0052CC] hover:bg-[#0747A6] text-white rounded-lg transition-all font-bold text-xs shadow-md active:scale-95"
@@ -123,9 +142,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                         </button>
 
                         {showCreateMenu && (
-                            <>
-                                <div className="fixed inset-0 z-40" onClick={() => setShowCreateMenu(false)} />
-                                <div className="absolute top-full right-0 mt-2 w-60 bg-[#2f3437] border border-[rgba(255,255,255,0.12)] rounded-xl shadow-2xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                            <div className="absolute top-full right-0 mt-2 w-60 bg-[#2f3437] border border-[rgba(255,255,255,0.12)] rounded-xl shadow-2xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-150">
 
                                     {/* Director Only Options */}
                                     {userRole === 'DIRECTOR' && (
@@ -183,7 +200,6 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                                         <LayoutDashboard className="w-4 h-4 text-purple-400" /> Submit Daily Report
                                     </button>
                                 </div>
-                            </>
                         )}
                     </div>
 
@@ -206,7 +222,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                     </button>
 
                     {/* Profile Dropdown */}
-                    <div className="relative">
+                    <div ref={profileMenuRef} className="relative">
                         <button
                             onClick={() => setShowProfileMenu(!showProfileMenu)}
                             className="flex items-center gap-2.5 pl-1.5 pr-3 h-9 rounded-full bg-[#191919] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.3)] hover:bg-[rgba(255,255,255,0.05)] transition-all focus:outline-none"
@@ -230,47 +246,44 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                         </button>
 
                         {showProfileMenu && (
-                            <>
-                                <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
-                                <div className="absolute top-full right-0 mt-2 w-64 bg-[#2f3437] border border-[rgba(255,255,255,0.12)] rounded-xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in-95 duration-150">
-                                    <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.1)] mb-1">
-                                        <div className="flex items-center justify-between gap-2 mb-1">
-                                            <p className="text-sm font-bold text-white truncate">{session?.user?.name || 'User'}</p>
-                                            <span className={cn("text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider border", getRoleBadgeStyle(userRole))}>
-                                                {userRole}
-                                            </span>
-                                        </div>
-                                        <p className="text-xs text-[rgba(255,255,255,0.5)] truncate">{session?.user?.email}</p>
+                            <div className="absolute top-full right-0 mt-2 w-64 bg-[#2f3437] border border-[rgba(255,255,255,0.12)] rounded-xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in-95 duration-150">
+                                <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.1)] mb-1">
+                                    <div className="flex items-center justify-between gap-2 mb-1">
+                                        <p className="text-sm font-bold text-white truncate">{session?.user?.name || 'User'}</p>
+                                        <span className={cn("text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider border", getRoleBadgeStyle(userRole))}>
+                                            {userRole}
+                                        </span>
                                     </div>
-
-                                    {/* Role-tailored Quick Nav */}
-                                    <button onClick={() => { router.push('/profile'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
-                                        <User className="w-4 h-4 text-blue-400" /> My Profile
-                                    </button>
-
-                                    {isTeamLeader && (
-                                        <button onClick={() => { router.push('/team'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
-                                            <Users className="w-4 h-4 text-emerald-400" /> Team & Personnel
-                                        </button>
-                                    )}
-
-                                    {isManager && (
-                                        <button onClick={() => { router.push('/spaces'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
-                                            <Compass className="w-4 h-4 text-purple-400" /> Spaces & Departments
-                                        </button>
-                                    )}
-
-                                    <button onClick={() => { router.push('/settings'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
-                                        <Settings className="w-4 h-4 text-gray-400" /> Settings
-                                    </button>
-
-                                    <div className="h-px bg-[rgba(255,255,255,0.1)] my-1" />
-
-                                    <button onClick={() => { signOut({ callbackUrl: '/login' }); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-red-400 hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
-                                        <LogOut className="w-4 h-4" /> Log Out
-                                    </button>
+                                    <p className="text-xs text-[rgba(255,255,255,0.5)] truncate">{session?.user?.email}</p>
                                 </div>
-                            </>
+
+                                {/* Role-tailored Quick Nav */}
+                                <button onClick={() => { router.push('/profile'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
+                                    <User className="w-4 h-4 text-blue-400" /> My Profile
+                                </button>
+
+                                {isTeamLeader && (
+                                    <button onClick={() => { router.push('/team'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
+                                        <Users className="w-4 h-4 text-emerald-400" /> Team & Personnel
+                                    </button>
+                                )}
+
+                                {isManager && (
+                                    <button onClick={() => { router.push('/spaces'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
+                                        <Compass className="w-4 h-4 text-purple-400" /> Spaces & Departments
+                                    </button>
+                                )}
+
+                                <button onClick={() => { router.push('/settings'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
+                                    <Settings className="w-4 h-4 text-gray-400" /> Settings
+                                </button>
+
+                                <div className="h-px bg-[rgba(255,255,255,0.1)] my-1" />
+
+                                <button onClick={() => { signOut({ callbackUrl: '/login' }); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-red-400 hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
+                                    <LogOut className="w-4 h-4" /> Log Out
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -289,7 +302,7 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
                 <CreateMilestoneModal
                     isOpen={isMilestoneModalOpen}
                     onClose={() => setIsMilestoneModalOpen(false)}
-                    onCreated={() => router.push('/milestones')}
+                    onSuccess={() => router.push('/milestones')}
                 />
             )}
 

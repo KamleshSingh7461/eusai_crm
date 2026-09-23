@@ -19,10 +19,19 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        const { searchParams } = new URL(request.url);
+        const includeSuspended = searchParams.get('includeSuspended') === 'true';
+
         let whereClause: any = {};
+        if (!includeSuspended) {
+            whereClause.isSuspended = false;
+        }
 
         if (startRole === 'TEAM_LEADER') {
-            whereClause = { reportingManagers: { some: { id: userId } } };
+            whereClause.reportingManagers = { some: { id: userId } };
+            if (!includeSuspended) {
+                whereClause.isSuspended = false;
+            }
         } else if (startRole === 'MANAGER') {
             // Manager sees users who are members of their managed spaces OR their direct reports
             const managedSpaces = await prisma.space.findMany({
@@ -30,15 +39,26 @@ export async function GET(request: NextRequest) {
                 include: { members: { select: { id: true } } }
             });
             const spaceMemberIds = managedSpaces.flatMap((s: any) => s.members.map((m: any) => m.id));
-            whereClause = {
+            const roleFilter = {
                 OR: [
                     { reportingManagers: { some: { id: userId } } },
                     { memberSpaces: { some: { managerId: userId } } },
                     ...(spaceMemberIds.length > 0 ? [{ id: { in: spaceMemberIds } }] : [])
                 ]
             };
+
+            if (!includeSuspended) {
+                whereClause = {
+                    AND: [
+                        { isSuspended: false },
+                        roleFilter
+                    ]
+                };
+            } else {
+                whereClause = roleFilter;
+            }
         }
-        // DIRECTOR / MANAGEMENT: See all (empty whereClause)
+        // DIRECTOR / MANAGEMENT: See all (or only active if includeSuspended is not true)
 
         const users = await (prisma as any).user.findMany({
             where: whereClause,
@@ -319,6 +339,49 @@ export async function PUT(request: NextRequest) {
             }, { status: 403 });
         }
 
+        // If user is being suspended, completely remove them from departments, projects, reporting lines, and unassign incomplete tasks
+        if (isSuspended === true) {
+            if (id === currentUserId) {
+                return NextResponse.json({ error: 'You cannot suspend your own account' }, { status: 400 });
+            }
+
+            const updatedUser = await prisma.$transaction(async (tx) => {
+                // 1. Remove from all managed spaces
+                await tx.space.updateMany({
+                    where: { managerId: id },
+                    data: { managerId: null }
+                });
+
+                // 2. Unassign from all incomplete tasks
+                await tx.task.updateMany({
+                    where: { userId: id, status: { not: 'DONE' } },
+                    data: { userId: null }
+                });
+
+                // 3. Terminate sessions, push tokens, and online status
+                await tx.session.deleteMany({ where: { userId: id } });
+                await tx.pushSubscription.deleteMany({ where: { userId: id } });
+                await tx.fcmToken.deleteMany({ where: { userId: id } });
+
+                // 4. Update user record: set suspended, strip spaces, managers, subordinates, managedProjects, and chat channels
+                return await tx.user.update({
+                    where: { id },
+                    data: {
+                        isSuspended: true,
+                        isOnline: false,
+                        department: null,
+                        memberSpaces: { set: [] },
+                        managedProjects: { set: [] },
+                        reportingManagers: { set: [] },
+                        reportingSubordinates: { set: [] },
+                        chatChannels: { set: [] }
+                    }
+                });
+            });
+
+            return NextResponse.json(updatedUser);
+        }
+
         // Managers can only assign their own managed spaces
         let validatedSpaceIds = spaceIds;
         if (userRole === 'MANAGER' && spaceIds.length > 0) {
@@ -353,5 +416,88 @@ export async function PUT(request: NextRequest) {
     } catch (error) {
         console.error('Failed to update user:', error);
         return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+    }
+}
+
+// DELETE /api/team - Permanently Delete User (Director only)
+export async function DELETE(request: NextRequest) {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const currentUserId = (session.user as any).id;
+    const userRole = (session.user as any).role;
+
+    if (userRole !== 'DIRECTOR') {
+        return NextResponse.json({ error: 'Forbidden', message: 'Only Directors can delete users.' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+        return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    }
+
+    if (id === currentUserId) {
+        return NextResponse.json({ error: 'Bad Request', message: 'You cannot delete your own account.' }, { status: 400 });
+    }
+
+    try {
+        const targetUser = await prisma.user.findUnique({ where: { id } });
+        if (!targetUser) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
+        await prisma.$transaction(async (tx) => {
+            // Nullify references in Task, Issue, Space
+            await tx.task.updateMany({ where: { userId: id }, data: { userId: null } });
+            await tx.issue.updateMany({ where: { reporterId: id }, data: { reporterId: null } });
+            await tx.issue.updateMany({ where: { assignedToId: id }, data: { assignedToId: null } });
+            await tx.issue.updateMany({ where: { resolvedById: id }, data: { resolvedById: null } });
+            await tx.space.updateMany({ where: { managerId: id }, data: { managerId: null } });
+            
+            // Delete user meetings
+            await tx.meeting.deleteMany({ where: { organizerId: id } });
+            
+            // Reassign milestones owned by user to the Director
+            await tx.milestone.updateMany({ where: { owner: id }, data: { owner: currentUserId } });
+
+            // Delete direct user records
+            await tx.dailyReport.deleteMany({ where: { userId: id } });
+            await tx.weeklyReport.deleteMany({ where: { userId: id } });
+            await tx.expense.deleteMany({ where: { userId: id } });
+            await tx.comment.deleteMany({ where: { userId: id } });
+            await tx.activity.deleteMany({ where: { userId: id } });
+            await tx.chatMessage.deleteMany({ where: { senderId: id } });
+            await tx.notification.deleteMany({ where: { userId: id } });
+            await tx.pushSubscription.deleteMany({ where: { userId: id } });
+            await tx.fcmToken.deleteMany({ where: { userId: id } });
+            await tx.session.deleteMany({ where: { userId: id } });
+            await tx.account.deleteMany({ where: { userId: id } });
+
+            // Disconnect many-to-many relations
+            await tx.user.update({
+                where: { id },
+                data: {
+                    reportingManagers: { set: [] },
+                    reportingSubordinates: { set: [] },
+                    managedProjects: { set: [] },
+                    managedSpaces: { set: [] },
+                    memberSpaces: { set: [] },
+                    chatChannels: { set: [] },
+                    meetingAttendance: { set: [] }
+                }
+            });
+
+            // Delete user
+            await tx.user.delete({ where: { id } });
+        });
+
+        return NextResponse.json({ success: true, message: 'User permanently deleted' });
+    } catch (error: any) {
+        console.error('Failed to delete user:', error);
+        return NextResponse.json({ error: error.message || 'Failed to delete user' }, { status: 500 });
     }
 }

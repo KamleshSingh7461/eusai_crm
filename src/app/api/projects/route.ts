@@ -125,6 +125,7 @@ export async function GET(request: Request) {
                     select: { id: true, name: true, color: true }
                 },
                 managers: {
+                    where: { isSuspended: false },
                     select: { id: true, name: true, image: true }
                 },
                 expenses: {
