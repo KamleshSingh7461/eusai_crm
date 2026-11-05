@@ -199,6 +199,13 @@ export default function ChatWorkspace() {
         setReadState(readMap());
     }, [activeId, messages, active?.lastMessage?.createdAt]);
 
+    // On phones an open conversation takes the whole screen: the bottom tab bar steps aside.
+    useEffect(() => {
+        const root = document.documentElement;
+        root.toggleAttribute('data-chat-thread', mobileThread && !!activeId);
+        return () => root.removeAttribute('data-chat-thread');
+    }, [mobileThread, activeId]);
+
     // unread count in the tab title
     useEffect(() => {
         const unread = channels.filter(c => isUnread(c, meId, readState)).length;
@@ -326,7 +333,7 @@ export default function ChatWorkspace() {
 
     // ── render ──────────────────────────────────────────────────────────────
     return (
-        <div className="relative flex h-[calc(100dvh-64px-6.5rem)] overflow-hidden border-white/[0.06] lg:h-[calc(100dvh-64px)] lg:border-t">
+        <div className="relative flex h-[calc(100dvh-64px-var(--tabbar-h))] overflow-hidden border-white/[0.06] lg:border-t">
             {/* conversations */}
             <aside className={cn('w-full shrink-0 border-r border-white/[0.06] bg-[#0A0D13]/60 lg:block lg:w-[320px] xl:w-[340px]', mobileThread ? 'hidden' : 'block')}>
                 {loadingChannels ? (

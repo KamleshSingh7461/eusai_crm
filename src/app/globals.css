@@ -251,3 +251,13 @@
     break-inside: avoid;
   }
 }
+
+/* Height of the phone bottom tab bar; pages pad by it. Zero on tablets/desktop and inside an open chat thread. */
+:root {
+  --tabbar-h: calc(60px + env(safe-area-inset-bottom));
+}
+@media (min-width: 768px) {
+  :root { --tabbar-h: 0px; }
+}
+:root[data-chat-thread] { --tabbar-h: 0px; }
+:root[data-chat-thread] .app-tabbar { display: none; }

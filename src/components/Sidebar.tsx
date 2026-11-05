@@ -146,14 +146,16 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
                             <p className="text-xs text-slate-500">Enterprise workspace</p>
                         </div>
                     )}
-                    <button onClick={closeMobileMenu} className="rounded-lg p-2 text-slate-400 hover:bg-white/[0.06] hover:text-white lg:hidden" aria-label="Close menu">
-                        <X className="h-5 w-5" />
-                    </button>
+                    {!isCollapsed && (
+                        <button onClick={closeMobileMenu} className="rounded-lg p-2 text-slate-400 hover:bg-white/[0.06] hover:text-white lg:hidden" aria-label="Close menu">
+                            <X className="h-5 w-5" />
+                        </button>
+                    )}
                 </div>
 
                 <button
                     onClick={toggleSidebar}
-                    className="absolute -right-3 top-[52px] z-10 hidden h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-[#11141B] text-slate-400 shadow-lg transition hover:text-white lg:flex"
+                    className="absolute -right-3 top-[52px] z-10 hidden h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-[#11141B] text-slate-400 shadow-lg transition hover:text-white md:flex"
                     aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                 >
                     <ChevronLeft className={cn('h-3.5 w-3.5 transition-transform', isCollapsed && 'rotate-180')} />

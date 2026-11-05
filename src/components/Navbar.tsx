@@ -99,13 +99,13 @@ export default function Navbar(_props: NavbarProps) {
         <>
             <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-white/[0.06] bg-[#07090D]/70 px-4 backdrop-blur-2xl sm:px-6 lg:px-8">
                 {/* mobile brand */}
-                <Link href="/" className="flex items-center gap-2 lg:hidden">
+                <Link href="/" className="flex items-center gap-2 md:hidden">
                     <span className="h-8 w-8 rounded-lg bg-white p-0.5"><img src="/EUSAI-LOGO.png" alt="EUSAI" className="h-full w-full object-contain" /></span>
                     <span className="font-display text-base font-bold text-white">EUSAI</span>
                 </Link>
 
                 {/* breadcrumbs */}
-                <nav aria-label="Breadcrumb" className="hidden min-w-0 items-center gap-2 text-sm lg:flex">
+                <nav aria-label="Breadcrumb" className="hidden min-w-0 items-center gap-2 text-sm md:flex">
                     <span className="text-slate-500">Workspace</span>
                     {crumbs.map((crumb, i) => (
                         <React.Fragment key={crumb.href}>
@@ -138,12 +138,13 @@ export default function Navbar(_props: NavbarProps) {
                 </button>
 
                 {!isReadOnly && (
-                    <div className="relative hidden lg:block">
+                    <div className="relative">
                         <button
                             onClick={() => setShowCreateMenu(!showCreateMenu)}
-                            className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 px-4 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(59,130,246,0.8),inset_0_1px_0_rgba(255,255,255,0.25)] transition hover:from-blue-400 hover:to-blue-500"
+                            aria-label="Create"
+                            className="flex h-10 w-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 text-sm sm:w-auto sm:px-4 font-semibold text-white shadow-[0_8px_24px_-8px_rgba(59,130,246,0.8),inset_0_1px_0_rgba(255,255,255,0.25)] transition hover:from-blue-400 hover:to-blue-500"
                         >
-                            <Plus className="h-4 w-4" /> Create <ChevronDown className={cn('h-4 w-4 opacity-70 transition', showCreateMenu && 'rotate-180')} />
+                            <Plus className="h-[18px] w-[18px] sm:h-4 sm:w-4" /> <span className="hidden sm:inline">Create</span> <ChevronDown className={cn('hidden h-4 w-4 opacity-70 transition sm:block', showCreateMenu && 'rotate-180')} />
                         </button>
                         <Dropdown open={showCreateMenu} onClose={() => setShowCreateMenu(false)} className="w-72">
                             {createItems.map(item => (
