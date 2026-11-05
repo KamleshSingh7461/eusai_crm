@@ -16,7 +16,7 @@ export async function GET() {
         const role = (session.user as any).role;
 
         // Ensure only Directors can access full organization activity
-        if (role !== 'DIRECTOR') {
+        if (role !== 'DIRECTOR' && role !== 'MANAGEMENT') { // MANAGEMENT is read-only director visibility
             return NextResponse.json({ error: 'Forbidden. Director access required.' }, { status: 403 });
         }
 

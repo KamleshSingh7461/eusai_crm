@@ -47,7 +47,15 @@ export default function NotesPage() {
 
         const urlParams = new URLSearchParams(window.location.search);
         const noteId = urlParams.get('id');
-        if (noteId && parsedNotes.length > 0) {
+        if (urlParams.get('new') === '1') {
+            // /notes?new=1 (sidebar "+") starts a blank note
+            const now = new Date().toISOString();
+            const blank: Note = { id: Date.now().toString(), title: '', content: '', updatedAt: now, createdAt: now, color: '#07090D' };
+            setNotes([blank, ...parsedNotes]);
+            setActiveNote(blank);
+            setIsMobileListVisible(false);
+            window.history.replaceState(null, '', '/notes');
+        } else if (noteId && parsedNotes.length > 0) {
             const targetNote = parsedNotes.find(n => n.id === noteId);
             if (targetNote) {
                 setActiveNote(targetNote);
@@ -74,7 +82,7 @@ export default function NotesPage() {
             content: '',
             updatedAt: new Date().toISOString(),
             createdAt: new Date().toISOString(),
-            color: '#191919'
+            color: '#07090D'
         };
         setNotes([newNote, ...notes]);
         setActiveNote(newNote);
@@ -126,11 +134,11 @@ export default function NotesPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between px-1">
                     <h1 className="text-2xl font-bold text-[rgba(255,255,255,0.9)] tracking-tight flex items-center gap-2">
-                        <Layout className="w-6 h-6 text-[#0052CC]" /> Notes
+                        <Layout className="w-6 h-6 text-[#3B82F6]" /> Notes
                     </h1>
                     <button
                         onClick={createNote}
-                        className="p-2 bg-[#0052CC] hover:bg-[#0747A6] rounded-lg text-white transition-all shadow-lg hover:shadow-[#0052CC]/25"
+                        className="p-2 bg-[#3B82F6] hover:bg-[#2563EB] rounded-lg text-white transition-all shadow-lg hover:shadow-[#3B82F6]/25"
                     >
                         <Plus className="w-5 h-5" />
                     </button>
@@ -144,14 +152,14 @@ export default function NotesPage() {
                         placeholder="Search notes..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-[#191919]/60 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-xl py-3 pl-10 pr-4 text-sm text-[rgba(255,255,255,0.9)] placeholder-[rgba(255,255,255,0.4)] focus:outline-none focus:ring-2 focus:ring-[#0052CC]/50 transition-all shadow-inner"
+                        className="w-full bg-[#07090D]/60 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-xl py-3 pl-10 pr-4 text-sm text-[rgba(255,255,255,0.9)] placeholder-[rgba(255,255,255,0.4)] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all shadow-inner"
                     />
                 </div>
 
                 {/* Notes List */}
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                     {filteredNotes.length === 0 ? (
-                        <div className="text-center py-10 opacity-50">
+                        <div className="text-center py-6 sm:py-10 opacity-50">
                             <FileText className="w-12 h-12 mx-auto mb-2 text-[rgba(255,255,255,0.2)]" />
                             <p className="text-sm text-[rgba(255,255,255,0.4)]">No notes found</p>
                         </div>
@@ -166,8 +174,8 @@ export default function NotesPage() {
                                 className={cn(
                                     "p-4 rounded-xl border border-transparent cursor-pointer transition-all group relative overflow-hidden",
                                     activeNote?.id === note.id
-                                        ? "bg-[#0052CC]/10 border-[#0052CC]/30 shadow-md"
-                                        : "bg-[#191919]/40 hover:bg-[#191919]/60 border-[rgba(255,255,255,0.05)]"
+                                        ? "bg-[#3B82F6]/10 border-[#3B82F6]/30 shadow-md"
+                                        : "bg-[#07090D]/40 hover:bg-[#07090D]/60 border-[rgba(255,255,255,0.05)]"
                                 )}
                             >
                                 <h3 className={cn(
@@ -180,7 +188,7 @@ export default function NotesPage() {
                                     {note.content || 'No content...'}
                                 </p>
                                 <div className="flex items-center justify-between mt-3">
-                                    <span className="text-[10px] text-[rgba(255,255,255,0.3)] flex items-center gap-1">
+                                    <span className="text-[11px] text-[rgba(255,255,255,0.3)] flex items-center gap-1">
                                         <Clock className="w-3 h-3" />
                                         {new Date(note.updatedAt).toLocaleDateString()}
                                     </span>
@@ -192,7 +200,7 @@ export default function NotesPage() {
                                     </button>
                                 </div>
                                 {activeNote?.id === note.id && (
-                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#0052CC]" />
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#3B82F6]" />
                                 )}
                             </div>
                         ))
@@ -202,13 +210,13 @@ export default function NotesPage() {
 
             {/* Editor Area */}
             <div className={cn(
-                "flex-1 bg-[#191919]/80 backdrop-blur-3xl rounded-2xl border border-[rgba(255,255,255,0.08)] shadow-2xl overflow-hidden flex flex-col transition-all duration-300",
+                "flex-1 bg-[#07090D]/80 backdrop-blur-3xl rounded-2xl border border-[rgba(255,255,255,0.08)] shadow-2xl overflow-hidden flex flex-col transition-all duration-300",
                 !activeNote && isMobileListVisible ? "hidden md:flex opacity-50 pointer-events-none" : "flex"
             )}>
                 {activeNote ? (
                     <>
                         {/* Editor Header */}
-                        <div className="p-4 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between bg-[#191919]/50">
+                        <div className="p-4 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between bg-[#07090D]/50">
                             <button
                                 onClick={() => setIsMobileListVisible(true)}
                                 className="md:hidden p-2 text-[rgba(255,255,255,0.6)] hover:text-white"
@@ -247,8 +255,8 @@ export default function NotesPage() {
                         </div>
                     </>
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-                        <div className="w-20 h-20 rounded-2xl bg-[#191919] border border-[rgba(255,255,255,0.05)] flex items-center justify-center mb-6 shadow-inner">
+                    <div className="flex-1 flex flex-col items-center justify-center p-5 sm:p-8 text-center">
+                        <div className="w-20 h-20 rounded-2xl bg-[#07090D] border border-[rgba(255,255,255,0.05)] flex items-center justify-center mb-6 shadow-inner">
                             <Edit3 className="w-8 h-8 text-[rgba(255,255,255,0.2)]" />
                         </div>
                         <h2 className="text-xl font-bold text-[rgba(255,255,255,0.8)] mb-2">Select a note to view</h2>

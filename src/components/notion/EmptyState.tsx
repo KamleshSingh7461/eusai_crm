@@ -15,7 +15,7 @@ interface EmptyStateProps {
 
 export default function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
     return (
-        <div className="flex flex-col items-center justify-center py-16 px-4">
+        <div className="flex flex-col items-center justify-center py-10 sm:py-16 px-4">
             <Icon
                 className="w-12 h-12 mb-4"
                 style={{ color: 'var(--notion-text-disabled)' }}

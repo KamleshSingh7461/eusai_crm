@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { isLocal } from '@/lib/env';
 
 interface EmailPayload {
     to: string | string[];
@@ -17,6 +18,8 @@ const smtpConfig = {
 
 // Check if credentials exist
 const hasCredentials = !!(smtpConfig.host && smtpConfig.user && smtpConfig.pass);
+// Locally an unauthenticated SMTP catcher (Mailpit from docker-compose) is enough.
+const useLocalCatcher = isLocal && !!smtpConfig.host && !hasCredentials;
 
 const transporter = hasCredentials
     ? nodemailer.createTransport({
@@ -28,14 +31,16 @@ const transporter = hasCredentials
             pass: smtpConfig.pass,
         },
     })
-    : null;
+    : useLocalCatcher
+        ? nodemailer.createTransport({ host: smtpConfig.host, port: smtpConfig.port, secure: false })
+        : null;
 
 export async function sendEmail({ to, cc, subject, html }: EmailPayload): Promise<boolean> {
     const from = process.env.SMTP_USER
         ? `"EuSai Alert System" <${process.env.SMTP_USER}>`
         : '"EuSai Alert System" <alert@eusaiteam.com>';
 
-    if (!hasCredentials || !transporter) {
+    if (!transporter) {
         console.log(`
       [MOCK EMAIL SERVICE]
       ---------------------------------------------------

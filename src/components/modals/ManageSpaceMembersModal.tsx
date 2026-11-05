@@ -97,18 +97,18 @@ export default function ManageSpaceMembersModal({
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-md shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[85vh]">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] w-full max-w-xl flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
                 
                 {/* Header */}
                 <div className="p-5 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-primary)]">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-sm bg-[#0052CC]/15 flex items-center justify-center text-[#0052CC]">
+                        <div className="w-9 h-9 rounded-sm bg-[#3B82F6]/15 flex items-center justify-center text-[#3B82F6]">
                             <UserPlus className="w-5 h-5" />
                         </div>
                         <div>
                             <h2 className="text-base font-bold text-[var(--notion-text-primary)]">Manage Personnel</h2>
-                            <p className="text-xs text-[var(--notion-text-tertiary)]">Assign or remove CRM employees from <span className="font-semibold text-[#0052CC]">{spaceName}</span></p>
+                            <p className="text-xs text-[var(--notion-text-tertiary)]">Assign or remove CRM employees from <span className="font-semibold text-[#3B82F6]">{spaceName}</span></p>
                         </div>
                     </div>
                     <button
@@ -128,7 +128,7 @@ export default function ManageSpaceMembersModal({
                             placeholder="Search employees by name, email, or role..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] placeholder-[var(--notion-text-tertiary)] focus:outline-none focus:border-[#0052CC]"
+                            className="w-full pl-9 pr-4 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] placeholder-[var(--notion-text-tertiary)] focus:outline-none focus:border-[#3B82F6]"
                         />
                     </div>
                 </div>
@@ -136,12 +136,12 @@ export default function ManageSpaceMembersModal({
                 {/* User List */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-2">
                     {isLoading ? (
-                        <div className="flex items-center justify-center py-12 text-[var(--notion-text-tertiary)] gap-2">
-                            <Loader2 className="w-5 h-5 animate-spin text-[#0052CC]" />
+                        <div className="flex items-center justify-center py-8 sm:py-12 text-[var(--notion-text-tertiary)] gap-2">
+                            <Loader2 className="w-5 h-5 animate-spin text-[#3B82F6]" />
                             <span className="text-xs">Loading employee directory...</span>
                         </div>
                     ) : filteredUsers.length === 0 ? (
-                        <div className="text-center py-8 text-xs text-[var(--notion-text-tertiary)]">
+                        <div className="text-center py-6 sm:py-8 text-xs text-[var(--notion-text-tertiary)]">
                             No employees found matching "{searchQuery}".
                         </div>
                     ) : (
@@ -153,20 +153,20 @@ export default function ManageSpaceMembersModal({
                                     onClick={() => toggleMember(user.id)}
                                     className={`flex items-center justify-between p-3 rounded-sm border cursor-pointer transition-all ${
                                         isSelected
-                                            ? 'bg-[#0052CC]/10 border-[#0052CC]/40 text-[var(--notion-text-primary)]'
+                                            ? 'bg-[#3B82F6]/10 border-[#3B82F6]/40 text-[var(--notion-text-primary)]'
                                             : 'bg-[var(--notion-bg-primary)] border-[var(--notion-border-default)] hover:border-[var(--notion-text-tertiary)] text-[var(--notion-text-secondary)]'
                                     }`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
-                                            isSelected ? 'bg-[#0052CC] text-white' : 'bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-secondary)]'
+                                            isSelected ? 'bg-[#3B82F6] text-white' : 'bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-secondary)]'
                                         }`}>
                                             {user.name?.charAt(0) || user.email.charAt(0).toUpperCase()}
                                         </div>
                                         <div>
                                             <p className="text-xs font-bold text-[var(--notion-text-primary)]">{user.name || user.email}</p>
-                                            <p className="text-[10px] text-[var(--notion-text-tertiary)] flex items-center gap-1.5 mt-0.5">
-                                                <span className="font-semibold uppercase tracking-wider text-[#0052CC]">{user.role}</span>
+                                            <p className="text-[11px] text-[var(--notion-text-tertiary)] flex items-center gap-1.5 mt-0.5">
+                                                <span className="font-semibold uppercase tracking-wider text-[#3B82F6]">{user.role}</span>
                                                 <span>•</span>
                                                 <span>{user.email}</span>
                                             </p>
@@ -174,7 +174,7 @@ export default function ManageSpaceMembersModal({
                                     </div>
 
                                     <div className={`w-5 h-5 rounded-sm border flex items-center justify-center transition-colors ${
-                                        isSelected ? 'bg-[#0052CC] border-[#0052CC] text-white' : 'border-[var(--notion-border-default)]'
+                                        isSelected ? 'bg-[#3B82F6] border-[#3B82F6] text-white' : 'border-[var(--notion-border-default)]'
                                     }`}>
                                         {isSelected && <Check className="w-3.5 h-3.5" />}
                                     </div>
@@ -200,7 +200,7 @@ export default function ManageSpaceMembersModal({
                         <Button
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="bg-[#0052CC] hover:bg-[#0047B3] text-white"
+                            className="bg-[#3B82F6] hover:bg-[#0047B3] text-white"
                         >
                             {isSaving ? (
                                 <span className="flex items-center gap-2">

@@ -33,6 +33,8 @@ This document outlines the standard operating procedure for deploying alteration
 ## 2. Database Synchronization (Prisma)
 **Run these steps ONLY when you modify `prisma/schema.prisma`.**
 
+> **Changed:** schema changes now ship as committed migrations (`prisma/migrations/`) and are applied with `npm run db:deploy:production`. Stop using `prisma db push` on production; it skips history and can drop columns. Before the first `migrate deploy`, do the one-time baseline in [05_ENVIRONMENTS_AND_RELEASES.md](_DEPLOYMENT_DOCS/05_ENVIRONMENTS_AND_RELEASES.md#2-one-time-baseline-existing-databases-migration-history-reset). The steps below are the old process, kept for reference.
+
 ### EC2 Production Environment
 1. **Generate Client**:
    ```bash

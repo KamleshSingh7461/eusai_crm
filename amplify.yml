@@ -1,4 +1,6 @@
 version: 1
+# APP_ENV, DATABASE_URL and the other keys from .env.example are set per branch
+# in the Amplify console (dev-app -> production, staging -> staging).
 frontend:
   phases:
     preBuild:
@@ -7,8 +9,9 @@ frontend:
     build:
       commands:
         - npx prisma generate
-        - npx prisma db push --accept-data-loss
-        - npm run build
+        # Apply committed migrations only. Never `db push --accept-data-loss` on a real database.
+        - npx prisma migrate deploy
+        - NEXT_PUBLIC_APP_ENV=$APP_ENV npm run build
   artifacts:
     baseDirectory: .next
     files:

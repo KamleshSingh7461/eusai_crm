@@ -54,8 +54,8 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
     const [endDate, setEndDate] = useState<string>(todayStr);
     const [selectedReportForView, setSelectedReportForView] = useState<any | null>(null);
 
-    const renderTruncatedCell = (text: string | null, limit: number, report: any, textColorClass: string = "text-[#172B4D]") => {
-        if (!text) return <span className="text-[#97A0AF] italic">-</span>;
+    const renderTruncatedCell = (text: string | null, limit: number, report: any, textColorClass: string = "text-[#E6EAF0]") => {
+        if (!text) return <span className="text-[#6B7385] italic">-</span>;
         if (text.length <= limit) return <p className={textColorClass}>{text}</p>;
         return (
             <div className="space-y-1">
@@ -65,7 +65,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                 <button
                     type="button"
                     onClick={() => setSelectedReportForView(report)}
-                    className="text-[10px] font-bold text-[#0052CC] hover:underline uppercase tracking-wider inline-flex items-center gap-1"
+                    className="text-[11px] font-bold text-[#3B82F6] hover:underline uppercase tracking-wider inline-flex items-center gap-1"
                 >
                     Read more →
                 </button>
@@ -195,43 +195,43 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
 
     const getRoleColor = (role: string) => {
         switch (role) {
-            case 'DIRECTOR': return 'bg-[#EAE6FF] text-[#403294]';
-            case 'MANAGER': return 'bg-[#DEEBFF] text-[#0052CC]';
-            case 'TEAM_LEADER': return 'bg-[#E3FCEF] text-[#006644]';
-            case 'EMPLOYEE': return 'bg-[#DFE1E6] text-[#172B4D]';
-            default: return 'bg-[#EBECF0] text-[#172B4D]';
+            case 'DIRECTOR': return 'bg-[#A78BFA1F] text-[#8B5CF6]';
+            case 'MANAGER': return 'bg-[#3B82F61F] text-[#3B82F6]';
+            case 'TEAM_LEADER': return 'bg-[#34D3991F] text-[#059669]';
+            case 'EMPLOYEE': return 'bg-[#FFFFFF14] text-[#E6EAF0]';
+            default: return 'bg-[#FFFFFF0F] text-[#E6EAF0]';
         }
     };
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-white w-full max-w-4xl rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-[#DFE1E6] flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] w-full max-w-4xl animate-in zoom-in-95 duration-300 flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
                 {/* Header */}
-                <div className="p-6 border-b border-[#DFE1E6] flex items-center justify-between bg-[#FAFBFC]">
+                <div className="p-6 border-b border-[#FFFFFF14] flex items-center justify-between bg-[#FFFFFF08]">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-[#0052CC] flex items-center justify-center text-white shadow-md">
+                        <div className="w-10 h-10 rounded-lg bg-[#3B82F6] flex items-center justify-center text-white shadow-md">
                             <UserIcon className="w-6 h-6" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-[#172B4D]">{user?.name || 'Team Member Profile'}</h3>
-                            <p className="text-xs text-[#6B778C]">Strategic performance and daily mission logs</p>
+                            <h3 className="text-lg font-bold text-[#E6EAF0]">{user?.name || 'Team Member Profile'}</h3>
+                            <p className="text-xs text-[#8B94A5]">Strategic performance and daily mission logs</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-1.5 hover:bg-[#EBECF0] rounded-md text-[#6B778C] transition-colors">
+                    <button onClick={onClose} className="p-1.5 hover:bg-[#FFFFFF0F] rounded-md text-[#8B94A5] transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Sub-Header Navigation Tabs */}
                 {isSenior && user && (
-                    <div className="flex border-b border-[#DFE1E6] bg-[#FAFBFC] px-6 gap-4">
+                    <div className="flex border-b border-[#FFFFFF14] bg-[#FFFFFF08] px-6 gap-4">
                         <button
                             onClick={() => setActiveTab('overview')}
                             className={cn(
                                 "py-3 px-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-all",
                                 activeTab === 'overview'
-                                    ? "border-[#0052CC] text-[#0052CC]"
-                                    : "border-transparent text-[#6B778C] hover:text-[#172B4D]"
+                                    ? "border-[#3B82F6] text-[#3B82F6]"
+                                    : "border-transparent text-[#8B94A5] hover:text-[#E6EAF0]"
                             )}
                         >
                             <Activity className="w-4 h-4" /> Profile & Overview
@@ -241,8 +241,8 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                             className={cn(
                                 "py-3 px-2 text-xs font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-all",
                                 activeTab === 'reports'
-                                    ? "border-[#0052CC] text-[#0052CC]"
-                                    : "border-transparent text-[#6B778C] hover:text-[#172B4D]"
+                                    ? "border-[#3B82F6] text-[#3B82F6]"
+                                    : "border-transparent text-[#8B94A5] hover:text-[#E6EAF0]"
                             )}
                         >
                             <FileSpreadsheet className="w-4 h-4" /> Reports Ledger ({reports.length})
@@ -251,34 +251,34 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                 )}
 
                 {/* Main Body */}
-                <div className="p-0 overflow-y-auto flex-1 bg-white">
+                <div className="p-0 overflow-y-auto flex-1 bg-white/[0.03]">
                     {isLoading ? (
                         <div className="p-20 flex flex-col items-center justify-center gap-4">
-                            <Loader2 className="w-10 h-10 animate-spin text-[#0052CC]" />
-                            <p className="text-sm font-medium text-[#6B778C]">Synchronizing profile data...</p>
+                            <Loader2 className="w-10 h-10 animate-spin text-[#3B82F6]" />
+                            <p className="text-sm font-medium text-[#8B94A5]">Synchronizing profile data...</p>
                         </div>
                     ) : !user ? (
                         <div className="p-20 text-center">
-                            <p className="text-[#6B778C]">User intelligence not found. They may have been unassigned.</p>
+                            <p className="text-[#8B94A5]">User intelligence not found. They may have been unassigned.</p>
                         </div>
                     ) : activeTab === 'overview' ? (
-                        <div className="divide-y divide-[#DFE1E6]">
+                        <div className="divide-y divide-[#FFFFFF14]">
                             {/* Identity Section */}
-                            <div className="p-8 bg-white flex flex-col md:flex-row gap-8">
+                            <div className="p-5 sm:p-8 bg-white/[0.03] flex flex-col md:flex-row gap-8">
                                 <div className="flex-shrink-0">
-                                    <div className="w-24 h-24 rounded-full bg-[#DEEBFF] border-4 border-white shadow-md flex items-center justify-center text-[#0052CC] text-3xl font-bold overflow-hidden">
+                                    <div className="w-24 h-24 rounded-full bg-[#3B82F61F] border-4 border-white shadow-md flex items-center justify-center text-[#3B82F6] text-3xl font-bold overflow-hidden">
                                         <Avatar src={user.image} alt={user.name} fallback={user.name?.charAt(0) || 'U'} className="w-full h-full object-cover" />
                                     </div>
                                 </div>
                                 <div className="flex-1 space-y-4">
                                     <div>
                                         <div className="flex items-center gap-3 mb-1">
-                                            <h2 className="text-2xl font-bold text-[#172B4D]">{user.name}</h2>
-                                            <span className={cn("px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase", getRoleColor(user.role))}>
+                                            <h2 className="text-2xl font-bold text-[#E6EAF0]">{user.name}</h2>
+                                            <span className={cn("px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase", getRoleColor(user.role))}>
                                                 {user.role}
                                             </span>
                                         </div>
-                                        <div className="flex flex-wrap gap-4 text-sm text-[#6B778C] font-medium">
+                                        <div className="flex flex-wrap gap-4 text-sm text-[#8B94A5] font-medium">
                                             <div className="flex items-center gap-1.5">
                                                 <Mail className="w-4 h-4" />
                                                 {user.email}
@@ -290,23 +290,23 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="p-4 rounded-sm border border-[#DFE1E6] bg-[#FAFBFC]">
-                                            <div className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider mb-2 flex items-center justify-between">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="p-4 rounded-sm border border-[#FFFFFF14] bg-[#FFFFFF08]">
+                                            <div className="text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider mb-2 flex items-center justify-between">
                                                 Performance
-                                                {user.performanceTrend === 'UP' && <TrendingUp className="w-3 h-3 text-[#36B37E]" />}
-                                                {user.performanceTrend === 'DOWN' && <TrendingDown className="w-3 h-3 text-[#FF5630]" />}
+                                                {user.performanceTrend === 'UP' && <TrendingUp className="w-3 h-3 text-[#34D399]" />}
+                                                {user.performanceTrend === 'DOWN' && <TrendingDown className="w-3 h-3 text-[#FB7185]" />}
                                             </div>
                                             <div className="flex items-baseline gap-2">
-                                                <span className="text-2xl font-bold text-[#172B4D]">{user.performanceScore}%</span>
-                                                <span className="text-xs font-bold text-[#36B37E]">Active Score</span>
+                                                <span className="text-2xl font-bold text-[#E6EAF0]">{user.performanceScore}%</span>
+                                                <span className="text-xs font-bold text-[#34D399]">Active Score</span>
                                             </div>
                                         </div>
-                                        <div className="p-4 rounded-sm border border-[#DFE1E6] bg-[#FAFBFC]">
-                                            <div className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider mb-2">Rank</div>
+                                        <div className="p-4 rounded-sm border border-[#FFFFFF14] bg-[#FFFFFF08]">
+                                            <div className="text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider mb-2">Rank</div>
                                             <div className="flex items-baseline gap-2">
-                                                <span className="text-2xl font-bold text-[#0052CC]">#{user.rank || 'N/A'}</span>
-                                                <span className="text-xs font-bold text-[#6B778C]">Company Wide</span>
+                                                <span className="text-2xl font-bold text-[#3B82F6]">#{user.rank || 'N/A'}</span>
+                                                <span className="text-xs font-bold text-[#8B94A5]">Company Wide</span>
                                             </div>
                                         </div>
                                     </div>
@@ -314,44 +314,44 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                             </div>
 
                             {/* Hierarchy Section */}
-                            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 bg-[#FAFBFC]/50">
+                            <div className="p-5 sm:p-8 grid grid-cols-1 md:grid-cols-2 gap-8 bg-[#FFFFFF08]/50">
                                 <div>
-                                    <h4 className="text-[11px] font-bold text-[#6B778C] uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <h4 className="text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider mb-4 flex items-center gap-2">
                                         <GitMerge className="w-3.5 h-3.5" />
                                         Reporting Line
                                     </h4>
                                     {user.manager ? (
-                                        <div className="flex items-center gap-3 p-3 bg-white border border-[#DFE1E6] rounded-sm group hover:border-[#0052CC] transition-colors cursor-default">
-                                            <div className="w-8 h-8 rounded-full bg-[#EBECF0] flex items-center justify-center text-[10px] font-bold">
+                                        <div className="flex items-center gap-3 p-3 bg-white/[0.03] border border-[#FFFFFF14] rounded-sm group hover:border-[#3B82F6] transition-colors cursor-default">
+                                            <div className="w-8 h-8 rounded-full bg-[#FFFFFF0F] flex items-center justify-center text-[11px] font-bold">
                                                 {user.manager.name?.charAt(0)}
                                             </div>
                                             <div>
-                                                <div className="text-sm font-bold text-[#172B4D]">{user.manager.name}</div>
-                                                <div className="text-[10px] text-[#6B778C]">Direct Supervisor</div>
+                                                <div className="text-sm font-bold text-[#E6EAF0]">{user.manager.name}</div>
+                                                <div className="text-[11px] text-[#8B94A5]">Direct Supervisor</div>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="text-sm text-[#6B778C] italic p-3 border border-dashed border-[#DFE1E6] rounded-sm text-center">
+                                        <div className="text-sm text-[#8B94A5] italic p-3 border border-dashed border-[#FFFFFF14] rounded-sm text-center">
                                             Reports directly to Board
                                         </div>
                                     )}
                                 </div>
 
                                 <div>
-                                    <h4 className="text-[11px] font-bold text-[#6B778C] uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <h4 className="text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider mb-4 flex items-center gap-2">
                                         <Shield className="w-3.5 h-3.5" />
                                         Direct Reports ({user.subordinates?.length || 0})
                                     </h4>
                                     <div className="space-y-2">
                                         {user.subordinates?.length > 0 ? (
                                             user.subordinates.slice(0, 3).map((sub: any) => (
-                                                <div key={sub.id} className="flex items-center justify-between p-2 bg-white border border-[#DFE1E6] rounded-sm">
-                                                    <span className="text-xs font-bold text-[#42526E]">{sub.name}</span>
-                                                    <span className="text-[9px] font-bold text-[#0052CC] uppercase">{sub.role}</span>
+                                                <div key={sub.id} className="flex flex-wrap items-center justify-between gap-3 p-2 bg-white/[0.03] border border-[#FFFFFF14] rounded-sm">
+                                                    <span className="text-xs font-bold text-[#A0A9B8]">{sub.name}</span>
+                                                    <span className="text-[11px] font-bold text-[#3B82F6] uppercase">{sub.role}</span>
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="text-sm text-[#6B778C] italic p-3 border border-dashed border-[#DFE1E6] rounded-sm text-center">
+                                            <div className="text-sm text-[#8B94A5] italic p-3 border border-dashed border-[#FFFFFF14] rounded-sm text-center">
                                                 No direct reports assigned
                                             </div>
                                         )}
@@ -363,23 +363,23 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                         /* TAB 2: REPORTS LEDGER & SHEET EXPORT */
                         <div className="p-6 space-y-6">
                             {/* Date Filter & Export Bar */}
-                            <div className="bg-[#FAFBFC] border border-[#DFE1E6] p-4 rounded-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="bg-[#FFFFFF08] border border-[#FFFFFF14] p-4 rounded-md flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <form onSubmit={handleApplyDateFilter} className="flex flex-wrap items-center gap-3">
                                     <div className="flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-[#0052CC]" />
-                                        <span className="text-xs font-bold text-[#172B4D]">Range:</span>
+                                        <Calendar className="w-4 h-4 text-[#3B82F6]" />
+                                        <span className="text-xs font-bold text-[#E6EAF0]">Range:</span>
                                         <input
                                             type="date"
                                             value={startDate}
                                             onChange={(e) => setStartDate(e.target.value)}
-                                            className="bg-white border border-[#DFE1E6] rounded px-2 py-1 text-xs text-[#172B4D] focus:ring-1 focus:ring-[#0052CC] outline-none"
+                                            className="bg-white/[0.03] border border-[#FFFFFF14] rounded px-2 py-1 text-xs text-[#E6EAF0] focus:ring-1 focus:ring-[#3B82F6] outline-none"
                                         />
-                                        <span className="text-xs text-[#6B778C]">to</span>
+                                        <span className="text-xs text-[#8B94A5]">to</span>
                                         <input
                                             type="date"
                                             value={endDate}
                                             onChange={(e) => setEndDate(e.target.value)}
-                                            className="bg-white border border-[#DFE1E6] rounded px-2 py-1 text-xs text-[#172B4D] focus:ring-1 focus:ring-[#0052CC] outline-none"
+                                            className="bg-white/[0.03] border border-[#FFFFFF14] rounded px-2 py-1 text-xs text-[#E6EAF0] focus:ring-1 focus:ring-[#3B82F6] outline-none"
                                         />
                                     </div>
 
@@ -387,35 +387,35 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                                         Apply
                                     </Button>
 
-                                    <div className="h-4 w-px bg-[#DFE1E6] hidden sm:block" />
+                                    <div className="h-4 w-px bg-[#FFFFFF14] hidden sm:block" />
 
                                     {/* Presets */}
                                     <div className="flex items-center gap-1">
                                         <button
                                             type="button"
                                             onClick={() => handleQuickPreset('7days')}
-                                            className="px-2 py-1 text-[10px] font-bold text-[#0052CC] hover:bg-[#DEEBFF] rounded transition-colors"
+                                            className="px-2 py-1 text-[11px] font-bold text-[#3B82F6] hover:bg-[#3B82F61F] rounded transition-colors"
                                         >
                                             7D
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => handleQuickPreset('30days')}
-                                            className="px-2 py-1 text-[10px] font-bold text-[#0052CC] hover:bg-[#DEEBFF] rounded transition-colors"
+                                            className="px-2 py-1 text-[11px] font-bold text-[#3B82F6] hover:bg-[#3B82F61F] rounded transition-colors"
                                         >
                                             30D
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => handleQuickPreset('thisMonth')}
-                                            className="px-2 py-1 text-[10px] font-bold text-[#0052CC] hover:bg-[#DEEBFF] rounded transition-colors"
+                                            className="px-2 py-1 text-[11px] font-bold text-[#3B82F6] hover:bg-[#3B82F61F] rounded transition-colors"
                                         >
                                             This Month
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => handleQuickPreset('allTime')}
-                                            className="px-2 py-1 text-[10px] font-bold text-[#0052CC] hover:bg-[#DEEBFF] rounded transition-colors"
+                                            className="px-2 py-1 text-[11px] font-bold text-[#3B82F6] hover:bg-[#3B82F61F] rounded transition-colors"
                                         >
                                             All Time
                                         </button>
@@ -429,7 +429,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                                     variant="primary"
                                     size="sm"
                                     leftIcon={<Download className="w-4 h-4" />}
-                                    className="bg-[#36B37E] hover:bg-[#00875A] text-white shadow-sm font-bold text-xs shrink-0"
+                                    className="bg-[#34D399] hover:bg-[#10B981] text-white shadow-sm font-bold text-xs shrink-0"
                                 >
                                     Export to Sheet (CSV)
                                 </Button>
@@ -437,59 +437,59 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
 
                             {/* Reports Table View */}
                             {isLoadingReports ? (
-                                <div className="p-16 flex flex-col items-center justify-center gap-3">
-                                    <Loader2 className="w-8 h-8 animate-spin text-[#0052CC]" />
-                                    <p className="text-xs font-bold text-[#6B778C]">Retrieving report records...</p>
+                                <div className="p-6 sm:p-16 flex flex-col items-center justify-center gap-3">
+                                    <Loader2 className="w-8 h-8 animate-spin text-[#3B82F6]" />
+                                    <p className="text-xs font-bold text-[#8B94A5]">Retrieving report records...</p>
                                 </div>
                             ) : reports.length === 0 ? (
-                                <div className="p-16 border-2 border-dashed border-[#DFE1E6] rounded-md text-center bg-[#FAFBFC]">
-                                    <FileText className="w-12 h-12 text-[#97A0AF] mx-auto mb-3 opacity-40" />
-                                    <h4 className="text-sm font-bold text-[#172B4D]">No Daily Reports Found</h4>
-                                    <p className="text-xs text-[#6B778C] mt-1">No mission logs filed by {user.name} for the selected date window.</p>
+                                <div className="p-6 sm:p-16 border-2 border-dashed border-[#FFFFFF14] rounded-md text-center bg-[#FFFFFF08]">
+                                    <FileText className="w-12 h-12 text-[#6B7385] mx-auto mb-3 opacity-40" />
+                                    <h4 className="text-sm font-bold text-[#E6EAF0]">No Daily Reports Found</h4>
+                                    <p className="text-xs text-[#8B94A5] mt-1">No mission logs filed by {user.name} for the selected date window.</p>
                                 </div>
                             ) : (
-                                <div className="border border-[#DFE1E6] rounded-md overflow-x-auto shadow-sm">
+                                <div className="border border-[#FFFFFF14] rounded-md overflow-x-auto shadow-sm">
                                     <table className="w-full text-left border-collapse min-w-[700px]">
                                         <thead>
-                                            <tr className="bg-[#FAFBFC] border-b border-[#DFE1E6]">
-                                                <th className="px-4 py-3 text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">Date</th>
-                                                <th className="px-4 py-3 text-[10px] font-bold text-[#6B778C] uppercase tracking-wider text-center">Tasks</th>
-                                                <th className="px-4 py-3 text-[10px] font-bold text-[#6B778C] uppercase tracking-wider text-center">Hours</th>
-                                                <th className="px-4 py-3 text-[10px] font-bold text-[#6B778C] uppercase tracking-wider text-center">Utilization</th>
-                                                <th className="px-4 py-3 text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">Accomplishments</th>
-                                                <th className="px-4 py-3 text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">Challenges</th>
-                                                <th className="px-4 py-3 text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">Next Plan</th>
+                                            <tr className="bg-[#FFFFFF08] border-b border-[#FFFFFF14]">
+                                                <th className="px-4 py-3 text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider">Date</th>
+                                                <th className="px-4 py-3 text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider text-center">Tasks</th>
+                                                <th className="px-4 py-3 text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider text-center">Hours</th>
+                                                <th className="px-4 py-3 text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider text-center">Utilization</th>
+                                                <th className="px-4 py-3 text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider">Accomplishments</th>
+                                                <th className="px-4 py-3 text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider">Challenges</th>
+                                                <th className="px-4 py-3 text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider">Next Plan</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-[#DFE1E6]">
+                                        <tbody className="divide-y divide-[#FFFFFF14]">
                                             {reports.map((r: any) => (
-                                                <tr key={r.id} className="hover:bg-[#F4F5F7] transition-colors text-xs">
-                                                    <td className="px-4 py-3 font-bold text-[#172B4D] whitespace-nowrap">
+                                                <tr key={r.id} className="hover:bg-[#FFFFFF0A] transition-colors text-xs">
+                                                    <td className="px-4 py-3 font-bold text-[#E6EAF0] whitespace-nowrap">
                                                         {new Date(r.date).toLocaleDateString()}
                                                     </td>
-                                                    <td className="px-4 py-3 text-center font-bold text-[#0052CC]">
+                                                    <td className="px-4 py-3 text-center font-bold text-[#3B82F6]">
                                                         {r.tasksCompleted || 0}
                                                     </td>
-                                                    <td className="px-4 py-3 text-center font-medium text-[#42526E]">
+                                                    <td className="px-4 py-3 text-center font-medium text-[#A0A9B8]">
                                                         {r.hoursWorked || 0}h
                                                     </td>
                                                     <td className="px-4 py-3 text-center">
                                                         <span className={cn(
-                                                            "px-2 py-0.5 rounded-full text-[10px] font-bold",
-                                                            (r.utilization || 0) >= 80 ? "bg-[#E3FCEF] text-[#006644]" :
-                                                                (r.utilization || 0) >= 50 ? "bg-[#FFF0B3] text-[#172B4D]" : "bg-[#FFEBE6] text-[#DE350B]"
+                                                            "px-2 py-0.5 rounded-full text-[11px] font-bold",
+                                                            (r.utilization || 0) >= 80 ? "bg-[#34D3991F] text-[#059669]" :
+                                                                (r.utilization || 0) >= 50 ? "bg-[#FBBF2433] text-[#E6EAF0]" : "bg-[#FB71851F] text-[#F43F5E]"
                                                         )}>
                                                             {r.utilization || 0}%
                                                         </span>
                                                     </td>
-                                                    <td className="px-4 py-3 text-[#172B4D] max-w-[220px]">
-                                                        {renderTruncatedCell(r.accomplishments, 75, r, "text-[#172B4D]")}
+                                                    <td className="px-4 py-3 text-[#E6EAF0] max-w-[220px]">
+                                                        {renderTruncatedCell(r.accomplishments, 75, r, "text-[#E6EAF0]")}
                                                     </td>
-                                                    <td className="px-4 py-3 text-[#DE350B] max-w-[180px]">
-                                                        {renderTruncatedCell(r.challenges, 60, r, "text-[#DE350B]")}
+                                                    <td className="px-4 py-3 text-[#F43F5E] max-w-[180px]">
+                                                        {renderTruncatedCell(r.challenges, 60, r, "text-[#F43F5E]")}
                                                     </td>
-                                                    <td className="px-4 py-3 text-[#42526E] max-w-[180px]">
-                                                        {renderTruncatedCell(r.tomorrowPlan, 60, r, "text-[#42526E]")}
+                                                    <td className="px-4 py-3 text-[#A0A9B8] max-w-[180px]">
+                                                        {renderTruncatedCell(r.tomorrowPlan, 60, r, "text-[#A0A9B8]")}
                                                     </td>
                                                 </tr>
                                             ))}
@@ -502,32 +502,32 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-[#DFE1E6] bg-[#FAFBFC] flex justify-end gap-3">
+                <div className="p-4 border-t border-[#FFFFFF14] bg-[#FFFFFF08] flex justify-end gap-3">
                     <Button variant="secondary" onClick={onClose}>Close Profile</Button>
                 </div>
             </div>
 
             {/* Nested Full Report Detail Modal */}
             {selectedReportForView && (
-                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedReportForView(null)}>
-                    <div className="bg-white border border-[#DFE1E6] rounded-lg max-w-xl w-full p-6 space-y-6 shadow-2xl relative text-[#172B4D] animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between border-b border-[#DFE1E6] pb-4">
+                <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedReportForView(null)}>
+                    <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] max-w-xl w-full p-6 space-y-6 relative text-[#E6EAF0] animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#FFFFFF14] pb-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-md bg-[#DEEBFF] text-[#0052CC] flex items-center justify-center font-bold">
+                                <div className="w-8 h-8 rounded-md bg-[#3B82F61F] text-[#3B82F6] flex items-center justify-center font-bold">
                                     <FileText className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-bold text-[#172B4D] uppercase tracking-wider">
+                                    <h3 className="text-sm font-bold text-[#E6EAF0] uppercase tracking-wider">
                                         Daily Report ({new Date(selectedReportForView.date).toLocaleDateString()})
                                     </h3>
-                                    <span className="text-[10px] font-bold text-[#6B778C] uppercase tracking-widest">
+                                    <span className="text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider">
                                         {selectedReportForView.user?.name || user?.name}
                                     </span>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setSelectedReportForView(null)}
-                                className="p-1.5 rounded-full hover:bg-[#EBECF0] text-[#6B778C] hover:text-[#172B4D] transition-colors"
+                                className="p-1.5 rounded-full hover:bg-[#FFFFFF0F] text-[#8B94A5] hover:text-[#E6EAF0] transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -535,16 +535,16 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
 
                         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                             <div>
-                                <h4 className="text-[10px] font-bold text-[#0052CC] uppercase tracking-widest mb-1.5">Accomplishments</h4>
-                                <div className="bg-[#FAFBFC] border border-[#DFE1E6] p-4 rounded-md text-xs text-[#172B4D] whitespace-pre-wrap leading-relaxed font-medium">
+                                <h4 className="text-[11px] font-bold text-[#3B82F6] uppercase tracking-wider mb-1.5">Accomplishments</h4>
+                                <div className="bg-[#FFFFFF08] border border-[#FFFFFF14] p-4 rounded-md text-xs text-[#E6EAF0] whitespace-pre-wrap leading-relaxed font-medium">
                                     {selectedReportForView.accomplishments || "No details provided."}
                                 </div>
                             </div>
 
                             {selectedReportForView.challenges && (
                                 <div>
-                                    <h4 className="text-[10px] font-bold text-[#DE350B] uppercase tracking-widest mb-1.5">Challenges & Impediments</h4>
-                                    <div className="bg-[#FFEBE6] border border-[#FFBDAD] p-4 rounded-md text-xs text-[#DE350B] whitespace-pre-wrap leading-relaxed font-medium">
+                                    <h4 className="text-[11px] font-bold text-[#F43F5E] uppercase tracking-wider mb-1.5">Challenges & Impediments</h4>
+                                    <div className="bg-[#FB71851F] border border-[#FB718533] p-4 rounded-md text-xs text-[#F43F5E] whitespace-pre-wrap leading-relaxed font-medium">
                                         {selectedReportForView.challenges}
                                     </div>
                                 </div>
@@ -552,19 +552,19 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
 
                             {selectedReportForView.tomorrowPlan && (
                                 <div>
-                                    <h4 className="text-[10px] font-bold text-[#006644] uppercase tracking-widest mb-1.5">Next Cycle Plan</h4>
-                                    <div className="bg-[#E3FCEF] border border-[#ABF5D1] p-4 rounded-md text-xs text-[#006644] whitespace-pre-wrap leading-relaxed font-medium">
+                                    <h4 className="text-[11px] font-bold text-[#059669] uppercase tracking-wider mb-1.5">Next Cycle Plan</h4>
+                                    <div className="bg-[#34D3991F] border border-[#34D39933] p-4 rounded-md text-xs text-[#059669] whitespace-pre-wrap leading-relaxed font-medium">
                                         {selectedReportForView.tomorrowPlan}
                                     </div>
                                 </div>
                             )}
                         </div>
 
-                        <div className="flex items-center justify-between border-t border-[#DFE1E6] pt-4 text-xs font-bold text-[#6B778C]">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#FFFFFF14] pt-4 text-xs font-bold text-[#8B94A5]">
                             <div className="flex items-center gap-4">
-                                <span>Tasks: <strong className="text-[#0052CC]">{selectedReportForView.tasksCompleted}</strong></span>
-                                <span>Hours: <strong className="text-[#172B4D]">{selectedReportForView.hoursWorked}h</strong></span>
-                                <span>Utilization: <strong className="text-[#006644]">{selectedReportForView.utilization}%</strong></span>
+                                <span>Tasks: <strong className="text-[#3B82F6]">{selectedReportForView.tasksCompleted}</strong></span>
+                                <span>Hours: <strong className="text-[#E6EAF0]">{selectedReportForView.hoursWorked}h</strong></span>
+                                <span>Utilization: <strong className="text-[#059669]">{selectedReportForView.utilization}%</strong></span>
                             </div>
                             <Button size="sm" variant="secondary" onClick={() => setSelectedReportForView(null)}>
                                 Close

@@ -25,22 +25,22 @@ export async function POST(req: NextRequest) {
 
         // 2. Validate token existence
         if (!otpRecord) {
-            return NextResponse.json({ error: "Invalid integrity check sequence." }, { status: 400 });
+            return NextResponse.json({ error: "That code is incorrect." }, { status: 400 });
         }
 
         // 3. Validate Expiration
         if (new Date() > otpRecord.expiresAt) {
             // Clean up expired token
             await prisma.oTPToken.delete({ where: { id: otpRecord.id } });
-            return NextResponse.json({ error: "Sequence expired. Initiate a new uplink." }, { status: 400 });
+            return NextResponse.json({ error: "That code has expired. Request a new one." }, { status: 400 });
         }
 
         // Return success, but DO NOT delete the token yet.
         // It will be deleted when the user actually sets the new password in the next immediate step.
-        return NextResponse.json({ message: "Integrity verified. Proceed to credential generation.", type: otpRecord.type });
+        return NextResponse.json({ message: "Code verified.", type: otpRecord.type });
 
     } catch (error: any) {
         console.error("OTP Verification Error:", error);
-        return NextResponse.json({ error: "Validation server error." }, { status: 500 });
+        return NextResponse.json({ error: "Could not verify the code." }, { status: 500 });
     }
 }

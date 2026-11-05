@@ -58,7 +58,7 @@ export default function ProfilePage() {
             const data = await res.json();
 
             if (res.ok) {
-                setPasswordMessage({ text: 'Tactical Credentials established successfully.', type: 'success' });
+                setPasswordMessage({ text: 'Password set.', type: 'success' });
                 setNewPassword(''); // Clear the field
             } else {
                 setPasswordMessage({ text: data.error || 'Failed to setup credentials.', type: 'error' });
@@ -72,19 +72,19 @@ export default function ProfilePage() {
 
     const getRoleBadgeColor = (role: string) => {
         switch (role) {
-            case 'ADMIN': return 'bg-[#FF5630] text-white';
-            case 'PM': return 'bg-[#0052CC] text-white';
-            default: return 'bg-[#36B37E] text-white';
+            case 'ADMIN': return 'bg-[#FB7185] text-white';
+            case 'PM': return 'bg-[#3B82F6] text-white';
+            default: return 'bg-[#34D399] text-white';
         }
     };
 
     return (
-        <div className="p-8 max-w-4xl mx-auto space-y-8">
+        <div className="space-y-8">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-[#172B4D] mb-2">Profile Settings</h1>
-                    <p className="text-[#6B778C]">Manage your account information and preferences</p>
+                    <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Profile and settings</h1>
+                    <p className="mt-2 max-w-2xl text-base text-slate-400">Manage your account information and preferences</p>
                 </div>
                 <Button
                     variant="ghost"
@@ -96,24 +96,24 @@ export default function ProfilePage() {
             </div>
 
             {/* Profile Card */}
-            <div className="bg-white border border-[#DFE1E6] rounded-lg p-8 space-y-6">
+            <div className="bg-white/[0.03] border border-[#FFFFFF14] rounded-lg p-5 sm:p-8 space-y-6">
                 {/* Avatar Section */}
                 <div className="flex items-center gap-6">
-                    <div className="w-24 h-24 rounded-full bg-[#DEEBFF] flex items-center justify-center text-[#0052CC] text-3xl font-bold">
+                    <div className="w-24 h-24 rounded-full bg-[#3B82F61F] flex items-center justify-center text-[#3B82F6] text-3xl font-bold">
                         {name?.charAt(0) || session?.user?.email?.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-[#172B4D] mb-1">{name || 'User'}</h2>
+                        <h2 className="text-xl font-bold text-[#E6EAF0] mb-1">{name || 'User'}</h2>
                         <div className="flex items-center gap-2">
                             <span className={`px-3 py-1 rounded-full text-xs font-bold ${getRoleBadgeColor(role)}`}>
                                 {role}
                             </span>
-                            <span className="text-sm text-[#6B778C]">· Member since {new Date().getFullYear()}</span>
+                            <span className="text-sm text-[#8B94A5]">· Member since {new Date().getFullYear()}</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="h-px bg-[#DFE1E6]" />
+                <div className="h-px bg-[#FFFFFF14]" />
 
                 {/* Form Section */}
                 <div className="space-y-4">
@@ -143,7 +143,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-end pt-4 pb-6 border-b border-[#DFE1E6]">
+                <div className="flex justify-end pt-4 pb-6 border-b border-[#FFFFFF14]">
                     <Button
                         variant="primary"
                         leftIcon={<Save className="w-4 h-4" />}
@@ -156,11 +156,11 @@ export default function ProfilePage() {
 
                 {/* Security Credentials Section */}
                 <div className="pt-4 space-y-4">
-                    <h3 className="font-bold text-[#172B4D] mb-1 flex items-center gap-2">
-                        <Lock className="w-4 h-4 text-[#0052CC]" />
+                    <h3 className="font-bold text-[#E6EAF0] mb-1 flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-[#3B82F6]" />
                         Credentials Configuration
                     </h3>
-                    <p className="text-sm text-[#6B778C] mb-4">Set a Tactical Security Key to bypass external provider requirements (Google). This allows local email-based authentication.</p>
+                    <p className="text-sm text-[#8B94A5] mb-4">Set a password so this person can also sign in with email instead of Google.</p>
 
                     <div className="flex items-end gap-4 max-w-md">
                         <div className="flex-1">
@@ -183,7 +183,7 @@ export default function ProfilePage() {
                     </div>
 
                     {passwordMessage.text && (
-                        <div className={`p-3 rounded-lg text-sm border flex items-center gap-2 ${passwordMessage.type === 'success' ? 'bg-[#E3FCEF] border-[#36B37E]/20 text-[#006644]' : 'bg-[#FFEBE6] border-[#FF5630]/20 text-[#BF2600]'}`}>
+                        <div className={`p-3 rounded-lg text-sm border flex items-center gap-2 ${passwordMessage.type === 'success' ? 'bg-[#34D3991F] border-[#34D399]/20 text-[#059669]' : 'bg-[#FB71851F] border-[#FB7185]/20 text-[#E11D48]'}`}>
                             <Shield className="w-4 h-4 shrink-0" /> {passwordMessage.text}
                         </div>
                     )}
@@ -191,12 +191,12 @@ export default function ProfilePage() {
             </div>
 
             {/* Role Information */}
-            <div className="bg-[#DEEBFF] border border-[#0052CC]/20 rounded-lg p-6">
-                <h3 className="font-bold text-[#172B4D] mb-3 flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-[#0052CC]" />
+            <div className="bg-[#3B82F61F] border border-[#3B82F6]/20 rounded-lg p-6">
+                <h3 className="font-bold text-[#E6EAF0] mb-3 flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-[#3B82F6]" />
                     Role Permissions
                 </h3>
-                <div className="space-y-2 text-sm text-[#172B4D]">
+                <div className="space-y-2 text-sm text-[#E6EAF0]">
                     {role === 'ADMIN' && (
                         <>
                             <p>✓ Full platform access</p>

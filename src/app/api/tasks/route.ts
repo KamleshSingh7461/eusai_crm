@@ -189,7 +189,7 @@ export async function POST(request: Request) {
                     actorId: (session.user as any).id,
                     targetId: targetId,
                     action: 'Task Assigned',
-                    title: 'New Mission Assigned',
+                    title: 'New task assigned',
                     details: `You have been assigned to task: ${title}`,
                     link: projectId ? `/projects/${projectId}` : '/tasks'
                 });
@@ -248,7 +248,7 @@ export async function PATCH(request: Request) {
                 actorId: userId,
                 targetId: oldTask.project?.managers?.[0]?.id || undefined,
                 action: 'Task Completed',
-                title: 'Mission Accomplished',
+                title: 'Completed',
                 details: `${userName} completed: ${oldTask.title}`,
                 link: oldTask.projectId ? `/projects/${oldTask.projectId}` : '/tasks'
             });

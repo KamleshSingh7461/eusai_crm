@@ -22,8 +22,9 @@ export async function GET() {
         const isAdmin = userRole === 'ADMIN' || userRole === 'DIRECTOR';
 
         // 1. Fetch channels based on role and membership
+        // Directors see every public channel, but direct messages and private groups only when they are a member.
         const channels = await prisma.chatChannel.findMany({
-            where: isAdmin ? {} : {
+            where: isAdmin ? { OR: [{ type: 'PUBLIC' }, { members: { some: { id: userId } } }] } : {
                 OR: [
                     { 
                         type: 'PUBLIC',
@@ -53,6 +54,12 @@ export async function GET() {
                 },
                 _count: {
                     select: { messages: true }
+                },
+                // newest message, for previews and unread badges
+                messages: {
+                    take: 1,
+                    orderBy: { createdAt: 'desc' },
+                    select: { content: true, createdAt: true, attachments: true, sender: { select: { id: true, name: true } } }
                 }
             },
             orderBy: { updatedAt: 'desc' }
@@ -174,7 +181,14 @@ export async function GET() {
         const uniqueChannels = [...otherChannels, ...Array.from(directMap.values())];
         
         // Final Unique filter by ID just in case
-        const finalChannels = Array.from(new Map(uniqueChannels.map(c => [c.id, c])).values());
+        const finalChannels = Array.from(new Map(uniqueChannels.map(c => [c.id, c])).values()).map((c: any) => {
+            const { messages, space, ...rest } = c;
+            const last = messages?.[0];
+            return {
+                ...rest,
+                lastMessage: last ? { content: last.content, createdAt: last.createdAt, senderId: last.sender?.id, senderName: last.sender?.name, hasAttachments: Array.isArray(last.attachments) && last.attachments.length > 0 } : null,
+            };
+        });
 
         return NextResponse.json({ channels: finalChannels });
 

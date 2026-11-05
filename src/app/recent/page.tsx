@@ -43,15 +43,15 @@ export default function RecentPage() {
     };
 
     return (
-        <div className="max-w-5xl mx-auto p-8 space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header */}
             <div className="flex items-end justify-between border-b border-[rgba(255,255,255,0.09)] pb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-[rgba(255,255,255,0.9)] mb-2 tracking-tight flex items-center gap-3">
-                        <Clock className="w-8 h-8 text-[#0052CC]" />
-                        Recent Activity
+                    <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl flex items-center gap-3">
+                        <Clock className="w-8 h-8 text-[#3B82F6]" />
+                        Recents
                     </h1>
-                    <p className="text-[rgba(255,255,255,0.7)] text-base">Track your latest updates across projects, tasks, and spaces.</p>
+                    <p className="mt-2 max-w-2xl text-base text-slate-400">Track your latest updates across projects, tasks, and spaces.</p>
                 </div>
             </div>
 
@@ -67,8 +67,8 @@ export default function RecentPage() {
                         {Object.entries(groupedItems).map(([period, items]: [string, any[]]) => (
                             items.length > 0 && (
                                 <div key={period} className="relative">
-                                    <div className="sticky top-0 bg-[#1D2125]/95 backdrop-blur-sm z-10 py-3 mb-2 border-b border-[rgba(255,255,255,0.09)]">
-                                        <h2 className="text-xs font-black text-[rgba(255,255,255,0.5)] uppercase tracking-widest pl-1">{period}</h2>
+                                    <div className="sticky top-0 bg-[#0D1016]/95 backdrop-blur-sm z-10 py-3 mb-2 border-b border-[rgba(255,255,255,0.09)]">
+                                        <h2 className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider pl-1">{period}</h2>
                                     </div>
                                     <div className="grid gap-3">
                                         {items.map((item) => (
@@ -80,8 +80,8 @@ export default function RecentPage() {
                         ))}
 
                         {recentItems.length === 0 && (
-                            <div className="bg-[#2f3437] border-2 border-dashed border-[rgba(255,255,255,0.09)] rounded-lg p-16 text-center">
-                                <div className="bg-[#3b4045] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="bg-[#131720] border-2 border-dashed border-[rgba(255,255,255,0.09)] rounded-lg p-6 sm:p-16 text-center">
+                                <div className="bg-[#1A1F2A] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Clock className="w-8 h-8 text-[rgba(255,255,255,0.5)]" />
                                 </div>
                                 <h3 className="text-[rgba(255,255,255,0.9)] font-bold text-lg mb-2">No recent activity found</h3>
@@ -119,7 +119,7 @@ function RecentItem({ item }: any) {
     const config = typeConfig[item.type] || typeConfig.page;
 
     const Content = (
-        <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.09)] rounded-lg p-4 hover:border-[#0052CC] hover:bg-[#3b4045] transition-all cursor-pointer group relative overflow-hidden">
+        <div className="bg-[#131720] border border-[rgba(255,255,255,0.09)] rounded-lg p-4 hover:border-[#3B82F6] hover:bg-[#1A1F2A] transition-all cursor-pointer group relative overflow-hidden">
             <div className="flex items-start gap-4">
                 {/* Icon Box */}
                 <div className={cn("p-3 rounded-md shrink-0 transition-colors", config.bg, config.text)}>
@@ -128,9 +128,9 @@ function RecentItem({ item }: any) {
 
                 <div className="flex-1 min-w-0 pt-0.5">
                     {/* Title Row */}
-                    <div className="flex items-start justify-between gap-4 mb-2">
-                        <div>
-                            <h3 className="text-base font-bold text-[rgba(255,255,255,0.9)] group-hover:text-[#0052CC] transition-colors truncate leading-tight">
+                    <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 mb-2">
+                        <div className="min-w-0 max-w-full">
+                            <h3 className="text-base font-bold text-[rgba(255,255,255,0.9)] group-hover:text-[#3B82F6] transition-colors truncate leading-tight">
                                 {item.title}
                             </h3>
                             {item.space !== 'Unassigned' && (
@@ -146,7 +146,7 @@ function RecentItem({ item }: any) {
                         {/* Status Badge */}
                         {item.status && (
                             <span className={cn(
-                                "px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0",
+                                "px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider shrink-0",
                                 item.status === 'DONE' || item.status === 'COMPLETED' ? "bg-emerald-500/20 text-emerald-400" :
                                     item.status === 'IN_PROGRESS' || item.status === 'EXECUTION' ? "bg-blue-500/20 text-blue-400" :
                                         item.status === 'TODO' || item.status === 'INITIATION' ? "bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.7)]" :
@@ -174,7 +174,7 @@ function RecentItem({ item }: any) {
 
                 {/* Hover Arrow */}
                 <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-0 translate-x-2">
-                    <ArrowUpRight className="w-5 h-5 text-[#0052CC]" />
+                    <ArrowUpRight className="w-5 h-5 text-[#3B82F6]" />
                 </div>
             </div>
         </div>
@@ -190,11 +190,11 @@ function RecentItem({ item }: any) {
 function SpaceSkeleton() {
     return (
         <div>
-            <Skeleton className="h-4 w-24 mb-4 bg-[#3b4045]" />
+            <Skeleton className="h-4 w-24 mb-4 bg-[#1A1F2A]" />
             <div className="space-y-3">
-                <Skeleton className="h-24 w-full bg-[#2f3437]" />
-                <Skeleton className="h-24 w-full bg-[#2f3437]" />
-                <Skeleton className="h-24 w-full bg-[#2f3437]" />
+                <Skeleton className="h-24 w-full bg-[#131720]" />
+                <Skeleton className="h-24 w-full bg-[#131720]" />
+                <Skeleton className="h-24 w-full bg-[#131720]" />
             </div>
         </div>
     );

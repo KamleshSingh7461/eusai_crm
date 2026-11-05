@@ -1,131 +1,118 @@
 import { PrismaClient } from '@prisma/client'
+import { seedDemoData } from './demo-data'
+
+// Seeds a small, realistic org for local/staging. Idempotent: safe to re-run.
+if (process.env.APP_ENV === 'production') {
+    console.error('✖ Refusing to seed a production database.')
+    process.exit(1)
+}
 
 const prisma = new PrismaClient()
+
+const daysFromNow = (days: number) => new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+
+async function upsertUser(email: string, name: string, role: string, managerIds: string[] = []) {
+    return prisma.user.upsert({
+        where: { email },
+        update: { role },
+        create: {
+            email,
+            name,
+            role,
+            reportingManagers: { connect: managerIds.map(id => ({ id })) }
+        }
+    })
+}
 
 async function main() {
     console.log('🌱 Starting seed...')
 
-    // 1. Create/Upsert Users
-    const adminDirector = await prisma.user.upsert({
-        where: { email: 'admin@eusaiteam.com' },
-        update: { role: 'DIRECTOR' },
-        create: {
-            email: 'admin@eusaiteam.com',
-            name: 'Admin Director',
-            role: 'DIRECTOR'
-        }
-    });
-    console.log(`✅ Seeded Director: ${adminDirector.email}`);
+    // 1. One user per role, wired into a reporting chain
+    const director = await upsertUser('admin@eusaiteam.com', 'Admin Director', 'DIRECTOR')
+    await upsertUser('management@eusaiteam.com', 'Read-only Management', 'MANAGEMENT')
+    const manager = await upsertUser('manager@eusaiteam.com', 'Sample Manager', 'MANAGER', [director.id])
+    const teamLeader = await upsertUser('teamlead@eusaiteam.com', 'Sample Team Leader', 'TEAM_LEADER', [manager.id])
+    const employee = await upsertUser('employee@eusaiteam.com', 'Sample Employee', 'EMPLOYEE', [teamLeader.id])
+    const intern = await upsertUser('intern@eusaiteam.com', 'Sample Intern', 'INTERN', [teamLeader.id])
+    console.log('✅ Seeded users for every role')
 
-    const pranavDirector = await prisma.user.upsert({
-        where: { email: 'pranav@eusaiteam.com' },
-        update: { role: 'DIRECTOR' },
-        create: {
-            email: 'pranav@eusaiteam.com',
-            name: 'Pranav Director',
-            role: 'DIRECTOR'
-        }
-    });
-    console.log(`✅ Seeded Director: ${pranavDirector.email}`);
+    // Your own Google account, so you can actually sign in (login is Google-only)
+    const ownEmail = process.env.SEED_DIRECTOR_EMAIL?.trim().toLowerCase()
+    if (ownEmail) {
+        await upsertUser(ownEmail, ownEmail.split('@')[0], 'DIRECTOR')
+        console.log(`✅ ${ownEmail} is a DIRECTOR`)
+    } else {
+        console.log('ℹ️  Set SEED_DIRECTOR_EMAIL in your env file to sign in with your own Google account')
+    }
 
-    const employee = await prisma.user.upsert({
-        where: { email: 'infotech@eusaiteam.com' },
-        update: { role: 'EMPLOYEE' },
-        create: {
-            email: 'infotech@eusaiteam.com',
-            name: 'InfoTech Employee',
-            role: 'EMPLOYEE'
-        }
-    });
-    console.log(`✅ Seeded Employee: ${employee.email}`);
+    // 2. Department (space) with members
+    let space = await prisma.space.findFirst({ where: { name: 'Sample Department' } })
+    if (!space) {
+        space = await prisma.space.create({
+            data: {
+                name: 'Sample Department',
+                description: 'Seeded department for local testing.',
+                type: 'DEPARTMENT',
+                managerId: manager.id,
+                members: { connect: [teamLeader, employee, intern].map(u => ({ id: u.id })) }
+            }
+        })
+        console.log(`✅ Seeded Space: ${space.name}`)
+    }
 
-    // 2. Create Project (Owned by Director)
-    let project = await prisma.project.findFirst({
-        where: { name: 'Local Development Initiative' }
-    });
-
+    // 3. Project
+    let project = await prisma.project.findFirst({ where: { name: 'Local Development Initiative' } })
     if (!project) {
         project = await prisma.project.create({
             data: {
                 name: 'Local Development Initiative',
                 description: 'A sandbox project for testing local database functionality.',
-                status: 'ACTIVE',
+                status: 'EXECUTION',
                 startDate: new Date(),
-                endDate: new Date(new Date().setMonth(new Date().getMonth() + 6)),
+                endDate: daysFromNow(180),
                 budget: 0,
-                managers: { connect: { id: adminDirector.id } }
+                spaceId: space.id,
+                managers: { connect: [{ id: manager.id }] }
             }
-        });
-        console.log(`✅ Seeded Project: ${project.name}`);
-    } else {
-        console.log(`ℹ️ Project already exists: ${project.name}`);
+        })
+        console.log(`✅ Seeded Project: ${project.name}`)
     }
 
-    // 3. Create Milestone for the Project
-    let milestone = await prisma.milestone.findFirst({
-        where: {
-            title: 'Initial local DB Setup Complete',
-            projectId: project.id
-        }
-    });
-
-    if (!milestone) {
-        milestone = await prisma.milestone.create({
+    // 4. Milestone
+    const milestoneTitle = 'Initial local DB Setup Complete'
+    if (!await prisma.milestone.findFirst({ where: { title: milestoneTitle, projectId: project.id } })) {
+        await prisma.milestone.create({
             data: {
-                title: 'Initial local DB Setup Complete',
+                title: milestoneTitle,
                 description: 'Finalize and verify the local environment sync.',
                 status: 'PENDING',
                 priority: 'HIGH',
-                targetDate: new Date(new Date().setDate(new Date().getDate() + 7)),
+                category: 'CUSTOM',
+                targetDate: daysFromNow(7),
                 projectId: project.id,
-                owner: employee.id,
-                category: 'CUSTOM'
+                spaceId: space.id,
+                owner: employee.id
             }
-        });
-        console.log(`✅ Seeded Milestone: ${milestone.title}`);
-    } else {
-        console.log(`ℹ️ Milestone already exists: ${milestone.title}`);
+        })
+        console.log(`✅ Seeded Milestone: ${milestoneTitle}`)
     }
 
-    // 4. Create Tasks for the Employee
+    // 5. Tasks
     const tasks = [
-        {
-            title: 'Register Local Account',
-            description: 'Create a local login to verify registration flow.',
-            status: 'TODO',
-            priority: 3,
-            deadline: new Date(new Date().setDate(new Date().getDate() + 2)),
-        },
-        {
-            title: 'Verify Project Backlog Display',
-            description: 'Ensure the new project mission backlog shows the seeded tasks.',
-            status: 'TODO',
-            priority: 2,
-            deadline: new Date(new Date().setDate(new Date().getDate() + 3)),
+        { title: 'Verify Project Backlog Display', status: 'TODO', priority: 3, deadline: daysFromNow(2), userId: employee.id },
+        { title: 'Submit first daily report', status: 'IN_PROGRESS', priority: 2, deadline: daysFromNow(1), userId: intern.id },
+        { title: 'Review team milestones', status: 'TODO', priority: 2, deadline: daysFromNow(3), userId: teamLeader.id },
+    ]
+    for (const task of tasks) {
+        if (!await prisma.task.findFirst({ where: { title: task.title, projectId: project.id } })) {
+            await prisma.task.create({ data: { ...task, projectId: project.id } })
+            console.log(`✅ Seeded Task: ${task.title}`)
         }
-    ];
+    }
 
-    for (const taskData of tasks) {
-        const existingTask = await prisma.task.findFirst({
-            where: {
-                title: taskData.title,
-                projectId: project.id,
-                userId: employee.id
-            }
-        });
-
-        if (!existingTask) {
-            await prisma.task.create({
-                data: {
-                    ...taskData,
-                    projectId: project.id,
-                    userId: employee.id
-                }
-            });
-            console.log(`✅ Seeded Task: ${taskData.title}`);
-        } else {
-            console.log(`ℹ️ Task already exists: ${taskData.title}`);
-        }
+    // Demo organization (people, departments, six months of history). Local only, or SEED_DEMO=1.
+    if (process.env.APP_ENV === 'local' || process.env.SEED_DEMO === '1') {
+        await seedDemoData(prisma, { director: director.id, manager: manager.id, teamLeader: teamLeader.id, employee: employee.id, intern: intern.id, spaceId: space.id })
     }
 
     console.log('🌱 Seed finished.')

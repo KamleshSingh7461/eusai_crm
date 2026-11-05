@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import jwt from 'jsonwebtoken';
+import { signMobileToken, devShortcutsAllowed } from '@/lib/mobileToken';
 import { OAuth2Client } from 'google-auth-library';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -42,11 +42,7 @@ export async function POST(req: Request) {
         });
 
         // Generate Standalone JWT for Mobile
-        const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role },
-            process.env.NEXTAUTH_SECRET || 'fallback-secret',
-            { expiresIn: '30d' }
-        );
+        const token = signMobileToken({ id: user.id, email: user.email, role: user.role });
 
         return NextResponse.json({
             token,

@@ -52,7 +52,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                         </div>
                         <div className="flex-1 pr-4">
                             <p className="text-sm font-bold text-white">{toast.message}</p>
-                            <p className="text-[10px] opacity-60 font-bold uppercase tracking-widest mt-0.5">
+                            <p className="text-[11px] opacity-60 font-bold uppercase tracking-wider mt-0.5">
                                 {toast.type === 'info' ? 'System Notification' : toast.type === 'success' ? 'Action Successful' : 'Error Alert'}
                             </p>
                         </div>

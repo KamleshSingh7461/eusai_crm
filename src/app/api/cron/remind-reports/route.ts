@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
+import { isReportWindowOpen, REPORT_WINDOW_LABEL } from '@/lib/reportWindow';
 import { createNotification } from '@/lib/notifications';
 
 export const dynamic = 'force-dynamic'; // Prevent static caching
@@ -15,17 +16,16 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Time Window Check (6-8 PM local time)
+    // 2. Time window check: same window as report submission, in IST
     const now = new Date();
-    const hour = now.getHours();
-    const isWithinWindow = hour >= 18 && hour < 20;
+    const isWithinWindow = isReportWindowOpen(now);
 
     // Allow forcing via ?force=true for testing
     const force = searchParams.get('force') === 'true';
 
     if (!isWithinWindow && !force) {
         return NextResponse.json({
-            message: 'Outside reminder window (6:00 PM - 8:00 PM). Reminder skipped.'
+            message: `Outside the report window (${REPORT_WINDOW_LABEL}). Reminder skipped.`
         });
     }
 
@@ -71,12 +71,12 @@ export async function GET(request: NextRequest) {
                     <h2 style="color: #c53030;">Immediate Action: Daily Report Overdue</h2>
                     <p>Hi ${user.name},</p>
                     <p>This is a recurring alert. Your <strong>Daily Report</strong> for today (${now.toLocaleDateString()}) has not been detected.</p>
-                    <p>Per operational protocol, reports must be submitted within the <strong>6:00 PM - 8:00 PM</strong> window.</p>
+                    <p>Daily reports must be submitted within the <strong>5:00 PM - 11:59 PM IST</strong> window.</p>
                     <p><strong>Note:</strong> You will receive this reminder every 20 minutes until the report is successfully uploaded.</p>
                     <br/>
                     <a href="${process.env.NEXTAUTH_URL}/reports/submit" style="background-color: #c53030; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Submit Report Now</a>
                     <br/><br/>
-                    <small style="color: #888;">Submission Window: 18:00 - 20:00 Daily</small>
+                    <small style="color: #888;">Submission window: 5:00 PM - 11:59 PM IST</small>
                 </div>
             `;
 
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
             await createNotification({
                 userId: user.id,
                 title: 'Reminder: Daily Report Missing',
-                message: `Your report for today is due. Please submit it within the 6:00 PM - 8:00 PM window.`,
+                message: `Your report for today is due. Please submit it between 5:00 PM and 11:59 PM IST.`,
                 type: 'WARNING',
                 link: '/reports/submit'
             });

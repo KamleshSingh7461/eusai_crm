@@ -34,13 +34,13 @@ export async function PATCH(
 
         // Permission check: Employees/Interns can only update tasks assigned to them
         if (!isManager && !isAssignedToUser) {
-            return NextResponse.json({ error: 'Forbidden: You are not authorized to update this mission' }, { status: 403 });
+            return NextResponse.json({ error: 'You can only update tasks assigned to you' }, { status: 403 });
         }
 
         // Status update check: Managers can update status ONLY if they are assigned to it
         if (status !== undefined && !isAssignedToUser) {
             return NextResponse.json({
-                error: 'Tactical Status Update Protocol: Only the assigned operative can update mission status.'
+                error: 'Only the person assigned to this task can change its status.'
             }, { status: 403 });
         }
 
@@ -81,7 +81,7 @@ export async function PATCH(
                     data: {
                         taskId: taskId,
                         userId: userId,
-                        text: completionRemark || "Mission objective completed. Evidence logged.",
+                        text: completionRemark || "Task completed. Proof attached.",
                         attachments: completionProof ? [completionProof] : [],
                         projectId: task.projectId
                     }
@@ -111,7 +111,7 @@ export async function PATCH(
                     }
                 });
             } catch (err: any) {
-                console.error("Telemetry failure: Failed to log mission activity:", err);
+                console.error("Failed to log activity:", err);
             }
         }
 

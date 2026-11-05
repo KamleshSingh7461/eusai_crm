@@ -30,7 +30,7 @@ export default function ChannelItem({ ch, selected, onClick, icon: Icon = Hash, 
             </div>
             <span className="truncate flex-1 text-left tracking-tight font-medium">{ch.name}</span>
             {badge && badge > 0 && (
-                <span className="w-5 h-5 rounded-full bg-blue-600 text-[10px] font-black text-white flex items-center justify-center animate-pulse">
+                <span className="w-5 h-5 rounded-full bg-blue-600 text-[11px] font-bold text-white flex items-center justify-center animate-pulse">
                     {badge}
                 </span>
             )}

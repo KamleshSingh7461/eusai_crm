@@ -84,7 +84,7 @@ export async function PATCH(
                     data: {
                         milestoneId: milestoneId,
                         userId: userId,
-                        text: completionRemark || "Strategic objective completed. Evidence logged.",
+                        text: completionRemark || "Milestone completed. Proof attached.",
                         attachments: completionProof ? [completionProof] : [],
                         projectId: milestone.projectId
                     }

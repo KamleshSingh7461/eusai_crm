@@ -106,8 +106,8 @@ export default function LibraryPage() {
             <div className="px-6 py-6 border-b border-[var(--notion-border-default)]">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-heading font-display tracking-tight">Library</h1>
-                        <p className="text-subheading mt-1">Centralized knowledge base and asset repository.</p>
+                        <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Library</h1>
+                        <p className="mt-2 max-w-2xl text-base text-slate-400">Centralized knowledge base and asset repository.</p>
                     </div>
                 </div>
 
@@ -169,7 +169,7 @@ export default function LibraryPage() {
             {/* Content Area */}
             <div className="flex-1 overflow-y-auto p-6">
                 {(isLoadingContent || isSpacesLoading) ? (
-                    <div className="flex flex-col items-center justify-center p-12 text-subheading">
+                    <div className="flex flex-col items-center justify-center p-6 sm:p-12 text-subheading">
                         <Clock className="w-8 h-8 animate-pulse mb-3 opacity-20" />
                         <p className="text-sm">Loading library content...</p>
                     </div>
@@ -192,10 +192,10 @@ export default function LibraryPage() {
                                     {filteredDocuments.slice(0, activeTab === 'ALL' ? 4 : undefined).map(doc => (
                                         <div key={doc.id} className="group relative bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] hover:border-[var(--notion-border-hover)] rounded-sm p-4 transition-all hover:shadow-sm">
                                             <div className="flex items-start justify-between mb-3">
-                                                <div className="p-2 bg-[var(--notion-bg-secondary)] rounded-sm group-hover:bg-blue-50 transition-colors">
+                                                <div className="p-2 bg-[var(--notion-bg-secondary)] rounded-sm group-hover:bg-blue-500/10 transition-colors">
                                                     {getFileIcon(doc.type || 'file')}
                                                 </div>
-                                                <button className="opacity-0 group-hover:opacity-100 text-subheading hover:text-heading transition-opacity">
+                                                <button onClick={() => doc.url && window.open(doc.url, '_blank', 'noopener')} title="Open" aria-label="Open document" className="opacity-0 group-hover:opacity-100 text-subheading hover:text-heading transition-opacity">
                                                     <MoreHorizontal className="w-4 h-4" />
                                                 </button>
                                             </div>
@@ -229,18 +229,18 @@ export default function LibraryPage() {
                                 </div>
                                 <div className="grid grid-cols-1 gap-2">
                                     {filteredWiki.slice(0, activeTab === 'ALL' ? 3 : undefined).map(page => (
-                                        <div key={page.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-3 hover:bg-[var(--notion-bg-secondary)] rounded-sm border border-transparent hover:border-[var(--notion-border-default)] transition-all group cursor-pointer">
-                                            <div className="p-2 bg-orange-50 rounded-sm text-orange-600">
+                                        <Link href={`/wiki/${page.id}`} key={page.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-3 hover:bg-[var(--notion-bg-secondary)] rounded-sm border border-transparent hover:border-[var(--notion-border-default)] transition-all group cursor-pointer">
+                                            <div className="p-2 bg-orange-500/10 rounded-sm text-orange-300">
                                                 <BookOpen className="w-4 h-4" />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <h3 className="font-bold text-heading text-sm mb-0.5 truncate">{page.title}</h3>
-                                                <p className="text-xs text-subheading truncate opacity-80">{page.content.substring(0, 100)}...</p>
+                                                <p className="text-xs text-subheading truncate opacity-80">{page.content ? page.content.substring(0, 100) : 'Empty page'}</p>
                                             </div>
                                             <div className="text-xs text-subheading hidden sm:block whitespace-nowrap">
                                                 Updated {formatDistanceToNow(new Date(page.updatedAt), { addSuffix: true })}
                                             </div>
-                                        </div>
+                                        </Link>
                                     ))}
                                 </div>
                             </section>
@@ -266,14 +266,14 @@ export default function LibraryPage() {
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <div
                                                         className="w-8 h-8 rounded-sm flex items-center justify-center text-white font-bold text-xs"
-                                                        style={{ backgroundColor: space.color || '#0052CC' }}
+                                                        style={{ backgroundColor: space.color || '#3B82F6' }}
                                                     >
                                                         {space.name.substring(0, 2).toUpperCase()}
                                                     </div>
-                                                    <h3 className="font-bold text-heading text-sm truncate group-hover:text-blue-600 transition-colors">{space.name}</h3>
+                                                    <h3 className="font-bold text-heading text-sm truncate group-hover:text-blue-300 transition-colors">{space.name}</h3>
                                                 </div>
                                                 <p className="text-xs text-subheading line-clamp-2 mb-3 h-8">{space.description || 'No description available.'}</p>
-                                                <div className="flex items-center gap-2 text-[10px] font-bold text-subheading uppercase tracking-wider">
+                                                <div className="flex items-center gap-2 text-[11px] font-bold text-subheading uppercase tracking-wider">
                                                     <span className="bg-[var(--notion-bg-secondary)] px-1.5 py-0.5 rounded-sm border border-[var(--notion-border-default)]">
                                                         {space.type}
                                                     </span>
@@ -289,7 +289,7 @@ export default function LibraryPage() {
 
                         {/* Empty States */}
                         {activeTab === 'ALL' && filteredDocuments.length === 0 && filteredWiki.length === 0 && filteredSpaces.length === 0 && (
-                            <div className="flex flex-col items-center justify-center py-16 text-center">
+                            <div className="flex flex-col items-center justify-center py-10 sm:py-16 text-center">
                                 <Search className="w-12 h-12 text-[var(--notion-border-default)] mb-4" />
                                 <h3 className="text-lg font-bold text-heading mb-1">No results found</h3>
                                 <p className="text-sm text-subheading max-w-md">

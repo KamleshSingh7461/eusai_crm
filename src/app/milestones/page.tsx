@@ -33,6 +33,9 @@ import CreateMilestoneModal from '@/components/modals/CreateMilestoneModal';
 import { StatusBadge, NotionButton } from '@/components/notion';
 import type { StatusType } from '@/components/notion/StatusBadge';
 import { cn } from '@/lib/utils';
+import PageHeader from '@/components/ui/PageHeader';
+import StatCard from '@/components/ui/StatCard';
+import Button from '@/components/ui/Button';
 import MilestoneDetailModal from '@/components/modals/MilestoneDetailModal';
 import CompletionModal from '@/components/modals/CompletionModal';
 
@@ -90,6 +93,14 @@ export default function MilestonesPage() {
     const canCreate = ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole);
     const isManagement = ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole);
     const isDirector = userRole === 'DIRECTOR';
+
+    // /milestones?new=1 (from the Create menu) opens the new-milestone dialog.
+    useEffect(() => {
+        if (canCreate && new URLSearchParams(window.location.search).get('new') === '1') {
+            setIsCreateModalOpen(true);
+            window.history.replaceState(null, '', '/milestones');
+        }
+    }, [canCreate]);
 
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -213,7 +224,7 @@ export default function MilestonesPage() {
                 showToast(data.error || 'Failed to validate objective completion', 'error');
             }
         } catch (error) {
-            showToast('Strategic synchronization failure', 'error');
+            showToast('Something went wrong. Try again.', 'error');
         }
     };
 
@@ -256,7 +267,7 @@ export default function MilestonesPage() {
                 showToast(data.error || 'Failed to send overdue reminder', 'error');
             }
         } catch (error) {
-            showToast('Strategic communication failure', 'error');
+            showToast('Something went wrong. Try again.', 'error');
         }
     };
 
@@ -267,7 +278,7 @@ export default function MilestonesPage() {
                 break;
             case 'OVERDUE':
                 setFilters({ ...filters, overdueOnly: true, flaggedOnly: false, assignedUser: 'all' });
-                showToast('Interrogating overdue objectives...', 'success');
+                showToast('Showing overdue items', 'success');
                 break;
             case 'FLAGGED':
                 setFilters({ ...filters, flaggedOnly: true, overdueOnly: false, assignedUser: 'all' });
@@ -276,7 +287,7 @@ export default function MilestonesPage() {
             case 'PERSONNEL':
                 setFilters({ category: 'ALL', employeeId: '', universityId: '', overdueOnly: false, flaggedOnly: false, assignedUser: payload === 'all' ? 'all' : payload });
                 if (payload !== 'all') {
-                    showToast(`Personnel isolation protocol active`, 'success');
+                    showToast(`Showing one person`, 'success');
                 }
                 break;
         }
@@ -309,47 +320,20 @@ export default function MilestonesPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#191919] text-[rgba(255,255,255,0.9)] pb-20">
-            {/* Header / Command Center */}
-            <div className="bg-[#1D2125] border-b border-[rgba(255,255,255,0.08)] shadow-xl relative z-20">
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#0052CC] to-[#0747A6] flex items-center justify-center shadow-lg shadow-blue-900/40">
-                                <Target className="w-7 h-7 text-white" />
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-2 text-[rgba(255,255,255,0.4)] text-[10px] font-black uppercase tracking-[0.2em] mb-1">
-                                    <Activity className="w-3 h-3 text-[#0052CC]" />
-                                    Strategic Intelligence
-                                </div>
-                                <h1 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tighter text-[rgba(255,255,255,0.95)]">Objectives Registry</h1>
-                                <p className="text-[rgba(255,255,255,0.5)] text-[10px] sm:text-[11px] font-bold uppercase tracking-widest mt-1">
-                                    {isManagement ? 'Governance oversight for all active missions' : 'Operational ledger for assigned deliverables'}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            {canCreate && (
-                                <NotionButton
-                                    onClick={() => setIsCreateModalOpen(true)}
-                                    className="bg-[#0052CC] hover:bg-[#0747A6] text-white shadow-xl shadow-blue-900/20 px-6 font-black uppercase tracking-[0.15em] text-[10px] h-11"
-                                    leftIcon={Plus}
-                                >
-                                    Initiate Milestone
-                                </NotionButton>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow="Work"
+                title="Milestones"
+                description={isManagement ? 'MOUs, sports logos and business orders across your teams.' : 'Your MOUs, sports logos and business orders.'}
+                actions={canCreate && <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setIsCreateModalOpen(true)}>New milestone</Button>}
+            />
 
-            <div className="max-w-[1600px] mx-auto px-2 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="space-y-8">
                 {/* Metrics Dashboard */}
                 {isManagement && !isLoading && milestones.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                         <MetricSummaryCard
-                            label="Operational yield"
+                            label="Completion rate"
                             value={`${Math.round((stats.completed / stats.total) * 100) || 0}%`}
                             subtext={`${stats.completed} of ${stats.total} goals met`}
                             icon={TrendingUp}
@@ -357,17 +341,17 @@ export default function MilestonesPage() {
                             onClick={() => handleQuickFilter('ALL')}
                         />
                         <MetricSummaryCard
-                            label="Overdue Missions"
+                            label="Overdue"
                             value={stats.overdue}
-                            subtext="Strategic timeline breach"
+                            subtext="Past the deadline"
                             icon={Clock}
                             color="emerald"
                             onClick={() => handleQuickFilter('OVERDUE')}
                         />
                         <MetricSummaryCard
-                            label="Personnel Units"
+                            label="People"
                             value={new Set(milestones.map(m => m.owner)).size}
-                            subtext="Active mission owners"
+                            subtext="Active owners"
                             icon={User}
                             color="indigo"
                             onClick={() => handleQuickFilter('PERSONNEL', 'all')}
@@ -383,54 +367,54 @@ export default function MilestonesPage() {
                     </div>
                 )}
 
-                {/* Strategic Personnel Assessment (Directors Only) */}
+                {/* Team Assessment (Directors Only) */}
                 {isDirector && teamPerformance.length > 0 && (
                     <div className="space-y-6">
                         <div className="flex items-center gap-3 px-1">
-                            <Activity className="w-4 h-4 text-[#0052CC]" />
-                            <h2 className="text-[11px] font-black text-white uppercase tracking-[0.3em]">Personnel Operational Yield</h2>
+                            <Activity className="w-4 h-4 text-[#3B82F6]" />
+                            <h2 className="text-[11px] font-bold text-white uppercase tracking-[0.12em]">Team output</h2>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             {teamPerformance.map((member: any) => (
                                 <div
                                     key={member.id}
                                     onClick={() => handleQuickFilter('PERSONNEL', member.id)}
-                                    className="bg-[#2f3437] border border-[rgba(255,255,255,0.08)] p-5 rounded-lg hover:border-[rgba(255,255,255,0.2)] transition-all group cursor-pointer active:scale-[0.98]"
+                                    className="bg-[#131720] border border-[rgba(255,255,255,0.08)] p-5 rounded-lg hover:border-[rgba(255,255,255,0.2)] transition-all group cursor-pointer active:scale-[0.98]"
                                 >
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded bg-[#1D2125] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-black text-[#0052CC] text-sm shadow-inner group-hover:scale-110 transition-transform">
+                                            <div className="w-10 h-10 rounded bg-[#0D1016] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-bold text-[#3B82F6] text-sm shadow-inner group-hover:scale-110 transition-transform">
                                                 {member.name?.charAt(0) || 'U'}
                                             </div>
                                             <div>
-                                                <h4 className="text-sm font-black text-white tracking-tight">{member.name}</h4>
-                                                <p className="text-[8px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] mt-0.5">Mission Controller</p>
+                                                <h4 className="text-sm font-bold text-white tracking-tight">{member.name}</h4>
+                                                <p className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] mt-0.5">Milestone owner</p>
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-end">
-                                            <span className="text-[10px] font-black text-white">{Math.round((member.completed / member.total) * 100) || 0}%</span>
-                                            <span className="text-[8px] font-black text-[rgba(255,255,255,0.2)] uppercase">Yield</span>
+                                            <span className="text-[11px] font-bold text-white">{Math.round((member.completed / member.total) * 100) || 0}%</span>
+                                            <span className="text-[11px] font-bold text-[rgba(255,255,255,0.2)] uppercase">Yield</span>
                                         </div>
                                     </div>
                                     <div className="space-y-3">
-                                        <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-tighter">
+                                        <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-tighter">
                                             <span className="text-[rgba(255,255,255,0.4)]">Objectives</span>
                                             <span className="text-white">{member.completed}/{member.total}</span>
                                         </div>
-                                        <div className="h-1 w-full bg-[#1D2125] rounded-full overflow-hidden">
+                                        <div className="h-1 w-full bg-[#0D1016] rounded-full overflow-hidden">
                                             <div
-                                                className="h-full bg-[#0052CC] transition-all duration-1000"
+                                                className="h-full bg-[#3B82F6] transition-all duration-1000"
                                                 style={{ width: `${(member.completed / member.total) * 100 || 0}%` }}
                                             />
                                         </div>
                                         <div className="flex items-center justify-between pt-1">
                                             <div className="flex items-center gap-1.5">
                                                 <Clock className={cn("w-3 h-3", member.overdue > 0 ? "text-red-500" : "text-[rgba(255,255,255,0.1)]")} />
-                                                <span className={cn("text-[9px] font-black", member.overdue > 0 ? "text-red-400" : "text-[rgba(255,255,255,0.2)]")}>{member.overdue} Delayed</span>
+                                                <span className={cn("text-[11px] font-bold", member.overdue > 0 ? "text-red-400" : "text-[rgba(255,255,255,0.2)]")}>{member.overdue} Delayed</span>
                                             </div>
                                             <div className="flex items-center gap-1.5">
                                                 <Flag className={cn("w-3 h-3", member.flagged > 0 ? "text-orange-500" : "text-[rgba(255,255,255,0.1)]")} />
-                                                <span className={cn("text-[9px] font-black", member.flagged > 0 ? "text-orange-400" : "text-[rgba(255,255,255,0.2)]")}>{member.flagged} Flagged</span>
+                                                <span className={cn("text-[11px] font-bold", member.flagged > 0 ? "text-orange-400" : "text-[rgba(255,255,255,0.2)]")}>{member.flagged} Flagged</span>
                                             </div>
                                         </div>
                                     </div>
@@ -441,11 +425,11 @@ export default function MilestonesPage() {
                 )}
 
                 {/* Filters & Control Deck */}
-                <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 bg-[#2f3437] p-4 lg:p-3 rounded-lg border border-[rgba(255,255,255,0.08)] shadow-lg sticky top-0 z-30 backdrop-blur-md bg-opacity-95">
+                <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 bg-[#131720] p-4 lg:p-3 rounded-lg border border-[rgba(255,255,255,0.08)] shadow-lg sticky top-0 z-30 backdrop-blur-md bg-opacity-95">
                     <div className="flex-1 relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(255,255,255,0.3)] group-focus-within:text-[#0052CC] transition-colors" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(255,255,255,0.3)] group-focus-within:text-[#3B82F6] transition-colors" />
                         <input
-                            placeholder="Interrogate data... (Name, Project, ID)"
+                            placeholder="Search by name, project or ID"
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                             className="w-full bg-transparent border-none text-sm pl-12 focus:ring-0 placeholder-[rgba(255,255,255,0.3)] text-[rgba(255,255,255,0.8)] font-bold tracking-tight py-2 sm:py-1"
@@ -454,11 +438,11 @@ export default function MilestonesPage() {
 
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:flex lg:items-center gap-3 lg:gap-4 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
                         <div className="flex flex-col lg:flex-row lg:items-center gap-1.5 lg:gap-3">
-                            <span className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.15em] lg:tracking-widest">Category:</span>
+                            <span className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.15em] lg:tracking-wider">Category:</span>
                             <select
                                 value={filters.category}
                                 onChange={e => setFilters({ ...filters, category: e.target.value })}
-                                className="bg-[#191919] border border-[rgba(255,255,255,0.1)] text-[10px] font-black uppercase tracking-wider text-[rgba(255,255,255,0.7)] focus:ring-1 focus:ring-[#0052CC] cursor-pointer hover:bg-[#3b4045] rounded-md px-2 py-1.5 transition-all outline-none h-8 lg:h-9 w-full lg:w-36"
+                                className="bg-[#07090D] border border-[rgba(255,255,255,0.1)] text-[11px] font-bold uppercase tracking-wider text-[rgba(255,255,255,0.7)] focus:ring-1 focus:ring-[#3B82F6] cursor-pointer hover:bg-[#1A1F2A] rounded-md px-2 py-1.5 transition-all outline-none h-8 lg:h-9 w-full lg:w-36"
                             >
                                 <option value="ALL">All Categories</option>
                                 {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
@@ -467,12 +451,12 @@ export default function MilestonesPage() {
 
                         {isManagement && (
                             <div className="flex flex-col lg:flex-row lg:items-center gap-1.5 lg:gap-3">
-                                <span className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.15em] lg:tracking-widest">Assignee:</span>
+                                <span className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.15em] lg:tracking-wider">Assignee:</span>
                                 <input
                                     placeholder="ID..."
                                     value={filters.employeeId}
                                     onChange={e => setFilters({ ...filters, employeeId: e.target.value })}
-                                    className="bg-[#191919] border border-[rgba(255,255,255,0.1)] text-[10px] font-bold text-[rgba(255,255,255,0.8)] py-1.5 px-3 focus:ring-1 focus:ring-[#0052CC] w-full lg:w-32 rounded-md outline-none h-8 lg:h-9 shadow-inner"
+                                    className="bg-[#07090D] border border-[rgba(255,255,255,0.1)] text-[11px] font-bold text-[rgba(255,255,255,0.8)] py-1.5 px-3 focus:ring-1 focus:ring-[#3B82F6] w-full lg:w-32 rounded-md outline-none h-8 lg:h-9 shadow-inner"
                                 />
                             </div>
                         )}
@@ -484,53 +468,53 @@ export default function MilestonesPage() {
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-40 gap-6">
                             <div className="relative">
-                                <div className="w-16 h-16 rounded-full border-4 border-t-[#0052CC] border-[rgba(255,255,255,0.05)] animate-spin" />
-                                <Target className="absolute inset-0 m-auto w-6 h-6 text-[#0052CC] animate-pulse" />
+                                <div className="w-16 h-16 rounded-full border-4 border-t-[#3B82F6] border-[rgba(255,255,255,0.05)] animate-spin" />
+                                <Target className="absolute inset-0 m-auto w-6 h-6 text-[#3B82F6] animate-pulse" />
                             </div>
-                            <p className="text-[rgba(255,255,255,0.4)] text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">Establishing Secure Uplink...</p>
+                            <p className="text-[rgba(255,255,255,0.4)] text-[11px] font-bold uppercase tracking-[0.12em] animate-pulse">Loading…</p>
                         </div>
                     ) : filteredMilestones.length === 0 ? (
-                        <div className="bg-[#2f3437] border-2 border-dashed border-[rgba(255,255,255,0.08)] rounded-xl py-32 flex flex-col items-center justify-center text-center px-8">
+                        <div className="bg-[#131720] border-2 border-dashed border-[rgba(255,255,255,0.08)] rounded-xl py-32 flex flex-col items-center justify-center text-center px-4 sm:px-8">
                             <SearchX className="w-16 h-16 text-[rgba(255,255,255,0.1)] mb-6" />
-                            <h3 className="text-xl font-black text-[rgba(255,255,255,0.9)] tracking-tight">Zero Objectives Found</h3>
+                            <h3 className="text-xl font-bold text-[rgba(255,255,255,0.9)] tracking-tight">Zero Objectives Found</h3>
                             <p className="text-[rgba(255,255,255,0.4)] text-sm mt-3 max-w-sm font-medium">No results match your current scope or filters. Reset parameters to re-scan the registry.</p>
                             <NotionButton
                                 variant="default"
-                                className="mt-8 bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] border-[rgba(255,255,255,0.08)] text-[10px] font-black uppercase tracking-widest"
+                                className="mt-8 bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] border-[rgba(255,255,255,0.08)] text-[11px] font-bold uppercase tracking-wider"
                                 onClick={() => handleQuickFilter('ALL')}
                             >
                                 Reset Registry
                             </NotionButton>
                         </div>
                     ) : (
-                        <div className="bg-[#2f3437] border border-[rgba(255,255,255,0.09)] rounded-lg overflow-hidden shadow-2xl">
+                        <div className="bg-[#131720] border border-[rgba(255,255,255,0.09)] rounded-lg overflow-hidden shadow-2xl">
                             <div className="hidden md:block overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-[rgba(0,0,0,0.2)] border-b border-[rgba(255,255,255,0.08)]">
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] w-12 hidden sm:table-cell">REF</th>
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] min-w-[200px] sm:min-w-[300px]">Strategic Initiative</th>
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em]">Status</th>
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] hidden md:table-cell">Priority</th>
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em]">Deadline</th>
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] hidden lg:table-cell">Core Entity</th>
-                                            {isManagement && <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] hidden md:table-cell">Owner</th>}
-                                            <th className="px-5 py-4 text-[10px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] text-right">Actions</th>
+                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] w-12 hidden sm:table-cell">REF</th>
+                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] min-w-[200px] sm:min-w-[300px]">Project</th>
+                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em]">Status</th>
+                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] hidden md:table-cell">Priority</th>
+                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em]">Deadline</th>
+                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] hidden lg:table-cell">Core Entity</th>
+                                            {isManagement && <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] hidden md:table-cell">Owner</th>}
+                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-[rgba(255,255,255,0.03)]">
                                         {filteredMilestones.map((m, idx) => (
                                             <tr key={m.id} className="hover:bg-[rgba(255,255,255,0.04)] transition-all duration-300 group relative">
-                                                <td className="px-5 py-5 text-[10px] font-black font-mono text-[rgba(255,255,255,0.15)] group-hover:text-[#0052CC] transition-colors hidden sm:table-cell">
+                                                <td className="px-5 py-5 text-[11px] font-bold font-mono text-[rgba(255,255,255,0.15)] group-hover:text-[#3B82F6] transition-colors hidden sm:table-cell">
                                                     {String(idx + 1).padStart(3, '0')}
                                                 </td>
                                                 <td className="px-5 py-5 cursor-pointer" onClick={() => setSelectedMilestoneForDetail(m)}>
                                                     <div className="flex flex-col gap-1.5">
                                                         <div className="flex items-center gap-2">
                                                             {m.isFlagged && <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" />}
-                                                            <span className="text-[13px] font-black tracking-tight text-[rgba(255,255,255,0.9)] group-hover:text-[#0052CC] transition-colors">{m.title}</span>
+                                                            <span className="text-[13px] font-bold tracking-tight text-[rgba(255,255,255,0.9)] group-hover:text-[#3B82F6] transition-colors">{m.title}</span>
                                                         </div>
-                                                        <span className="text-[10px] text-[rgba(255,255,255,0.4)] font-bold uppercase tracking-wider line-clamp-1 max-w-[150px] sm:max-w-sm">{m.description || "Mission-critical objective tracking."}</span>
+                                                        <span className="text-[11px] text-[rgba(255,255,255,0.4)] font-bold uppercase tracking-wider line-clamp-1 max-w-[150px] sm:max-w-sm">{m.description || "Track every milestone and its progress."}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-5 py-5">
@@ -538,7 +522,7 @@ export default function MilestonesPage() {
                                                 </td>
                                                 <td className="px-5 py-5 hidden md:table-cell">
                                                     <div className={cn(
-                                                        "text-[9px] font-black px-2 py-0.5 rounded-sm uppercase tracking-[0.1em] border inline-flex items-center gap-1.5 shadow-sm",
+                                                        "text-[11px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-[0.1em] border inline-flex items-center gap-1.5 shadow-sm",
                                                         m.priority === 'CRITICAL' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
                                                             m.priority === 'HIGH' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
                                                                 'bg-blue-500/10 text-blue-400 border-blue-500/20'
@@ -553,12 +537,12 @@ export default function MilestonesPage() {
                                                 </td>
                                                 <td className="px-5 py-5">
                                                     <div className="flex flex-col gap-0.5">
-                                                        <div className="flex items-center gap-1.5 text-xs text-[rgba(255,255,255,0.7)] font-black tracking-tight">
+                                                        <div className="flex items-center gap-1.5 text-xs text-[rgba(255,255,255,0.7)] font-bold tracking-tight">
                                                             <Clock className="w-3.5 h-3.5 text-[rgba(255,255,255,0.2)]" />
                                                             {new Date(m.targetDate).toLocaleDateString()}
                                                         </div>
                                                         {new Date(m.targetDate) < new Date() && m.status !== 'COMPLETED' && (
-                                                            <span className="text-[9px] font-black text-red-500/80 uppercase tracking-tighter">Overdue</span>
+                                                            <span className="text-[11px] font-bold text-red-500/80 uppercase tracking-tighter">Overdue</span>
                                                         )}
                                                     </div>
                                                 </td>
@@ -566,36 +550,36 @@ export default function MilestonesPage() {
                                                     {m.project ? (
                                                         <div className="flex items-center gap-2 group/link cursor-pointer">
                                                             <div className="p-1.5 bg-blue-500/10 rounded-md border border-blue-500/20 group-hover/link:bg-blue-500/20 transition-all">
-                                                                <Briefcase className="w-3 h-3 text-[#0052CC]" />
+                                                                <Briefcase className="w-3 h-3 text-[#3B82F6]" />
                                                             </div>
-                                                            <span className="text-xs font-black text-[#0052CC] tracking-tight group-hover/link:underline">{m.project.name}</span>
+                                                            <span className="text-xs font-bold text-[#3B82F6] tracking-tight group-hover/link:underline">{m.project.name}</span>
                                                         </div>
                                                     ) : m.university ? (
                                                         <div className="flex items-center gap-2">
                                                             <div className="p-1.5 bg-emerald-500/10 rounded-md border border-emerald-500/20">
                                                                 <GraduationCap className="w-3 h-3 text-emerald-400" />
                                                             </div>
-                                                            <span className="text-xs font-black text-emerald-400 tracking-tight">{m.university.name}</span>
+                                                            <span className="text-xs font-bold text-emerald-400 tracking-tight">{m.university.name}</span>
                                                         </div>
                                                     ) : (
-                                                        <span className="text-[rgba(255,255,255,0.1)] text-[9px] font-black tracking-[0.2em] uppercase">SYSTEM</span>
+                                                        <span className="text-[rgba(255,255,255,0.1)] text-[11px] font-bold tracking-[0.12em] uppercase">SYSTEM</span>
                                                     )}
                                                 </td>
                                                 {isManagement && (
                                                     <td className="px-5 py-5 hidden md:table-cell">
                                                         <div className="flex items-center gap-2.5">
-                                                            <div className="w-7 h-7 rounded bg-[#1D2125] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-black text-white text-[10px] shadow-inner">
+                                                            <div className="w-7 h-7 rounded bg-[#0D1016] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-bold text-white text-[11px] shadow-inner">
                                                                 {m.ownerUser?.name?.charAt(0) || 'U'}
                                                             </div>
                                                             <div className="flex flex-col">
-                                                                <span className="text-xs font-black text-[rgba(255,255,255,0.9)] tracking-tight truncate max-w-[120px]">{m.ownerUser?.name || "Staff"}</span>
-                                                                <span className="text-[9px] font-black text-[rgba(255,255,255,0.25)] uppercase tracking-tighter">Assigned Owner</span>
+                                                                <span className="text-xs font-bold text-[rgba(255,255,255,0.9)] tracking-tight truncate max-w-[120px]">{m.ownerUser?.name || "Staff"}</span>
+                                                                <span className="text-[11px] font-bold text-[rgba(255,255,255,0.25)] uppercase tracking-tighter">Assigned Owner</span>
                                                             </div>
                                                         </div>
                                                     </td>
                                                 )}
                                                 <td className="px-5 py-5 text-right">
-                                                    <div className="flex items-center justify-end gap-1.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 sm:translate-x-2 sm:group-hover:translate-x-0">
+                                                    <div className="flex flex-wrap items-center justify-end gap-1.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 sm:translate-x-2 sm:group-hover:translate-x-0">
                                                         {(m.owner === userId || isManagement) && m.status !== 'COMPLETED' && (
                                                             <button
                                                                 onClick={() => setMilestoneToComplete(m)}
@@ -627,12 +611,12 @@ export default function MilestonesPage() {
                                                                         ? "bg-red-500/20 border-red-500/40 text-red-400 hover:bg-red-500/30"
                                                                         : "hover:bg-[rgba(255,255,255,0.05)] border-transparent hover:border-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.4)] hover:text-white"
                                                                 )}
-                                                                title="Strategic Intervention"
+                                                                title="Flag for attention"
                                                             >
                                                                 <Flag className={cn("w-4 h-4", m.isFlagged && "fill-current")} />
                                                             </button>
                                                         )}
-                                                        <button className="p-2 hover:bg-[rgba(255,255,255,0.05)] border border-transparent hover:border-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.3)] hover:text-white rounded-md transition-all">
+                                                        <button onClick={() => setSelectedMilestoneForDetail(m)} title="Details" aria-label="Details" className="p-2 hover:bg-[rgba(255,255,255,0.05)] border border-transparent hover:border-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.3)] hover:text-white rounded-md transition-all">
                                                             <MoreHorizontal className="w-4 h-4" />
                                                         </button>
                                                     </div>
@@ -651,28 +635,28 @@ export default function MilestonesPage() {
                                             <div className="flex flex-col gap-1 min-w-0">
                                                 <div className="flex items-center gap-2">
                                                     {m.isFlagged && <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />}
-                                                    <span className="text-[13px] font-black text-white leading-tight">{m.title}</span>
+                                                    <span className="text-[13px] font-bold text-white leading-tight">{m.title}</span>
                                                 </div>
-                                                <span className="text-[10px] text-[rgba(255,255,255,0.4)] font-bold uppercase tracking-wider truncate">{m.description || "Mission-critical objective."}</span>
+                                                <span className="text-[11px] text-[rgba(255,255,255,0.4)] font-bold uppercase tracking-wider truncate">{m.description || "Milestone"}</span>
                                             </div>
                                             <StatusBadge status={mapStatusForBadge(m.status)} size="sm" />
                                         </div>
 
                                         <div className="flex flex-wrap items-center gap-3">
                                             <div className={cn(
-                                                "text-[9px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-tighter border",
+                                                "text-[11px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-tighter border",
                                                 m.priority === 'CRITICAL' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
                                                     m.priority === 'HIGH' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
                                                         'bg-blue-500/10 text-blue-400 border-blue-500/20'
                                             )}>
                                                 {m.priority}
                                             </div>
-                                            <div className="flex items-center gap-1 text-[10px] font-black text-[rgba(255,255,255,0.5)]">
+                                            <div className="flex items-center gap-1 text-[11px] font-bold text-[rgba(255,255,255,0.5)]">
                                                 <Clock className="w-3 h-3 opacity-30" />
                                                 {new Date(m.targetDate).toLocaleDateString()}
                                             </div>
                                             {m.project && (
-                                                <div className="text-[9px] font-black text-[#0052CC] uppercase tracking-widest truncate max-w-[100px]">
+                                                <div className="text-[11px] font-bold text-[#3B82F6] uppercase tracking-wider truncate max-w-[100px]">
                                                     {m.project.name}
                                                 </div>
                                             )}
@@ -680,22 +664,22 @@ export default function MilestonesPage() {
 
                                         <div className="flex items-center justify-between mt-4">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center font-black text-[8px]">
+                                                <div className="w-6 h-6 rounded bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center font-bold text-[11px]">
                                                     {m.ownerUser?.name?.charAt(0) || 'U'}
                                                 </div>
-                                                <span className="text-[10px] font-bold text-[rgba(255,255,255,0.4)]">{m.ownerUser?.name || "Governance"}</span>
+                                                <span className="text-[11px] font-bold text-[rgba(255,255,255,0.4)]">{m.ownerUser?.name || "Governance"}</span>
                                             </div>
 
                                             <div className="flex items-center gap-2">
                                                 {(m.owner === userId || isManagement) && m.status !== 'COMPLETED' && (
                                                     <button
                                                         onClick={() => setMilestoneToComplete(m)}
-                                                        className="px-3 py-1.5 bg-emerald-500/10 text-emerald-400 text-[9px] font-black uppercase tracking-widest rounded border border-emerald-500/20 active:scale-95 transition-all"
+                                                        className="px-3 py-1.5 bg-emerald-500/10 text-emerald-400 text-[11px] font-bold uppercase tracking-wider rounded border border-emerald-500/20 active:scale-95 transition-all"
                                                     >
                                                         Complete
                                                     </button>
                                                 )}
-                                                <button className="p-1.5 text-[rgba(255,255,255,0.2)]">
+                                                <button onClick={() => setSelectedMilestoneForDetail(m)} title="Details" aria-label="Details" className="p-1.5 text-[rgba(255,255,255,0.2)]">
                                                     <MoreHorizontal className="w-4 h-4" />
                                                 </button>
                                             </div>
@@ -731,35 +715,35 @@ export default function MilestonesPage() {
 
                 {/* Governance Intervention Layer (Modal) */}
                 {selectedMilestone && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl animate-in fade-in duration-300">
-                        <div className="bg-[#1D2125] w-full max-w-lg rounded-xl border border-[rgba(255,255,255,0.1)] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.7)] overflow-hidden animate-in zoom-in-95 duration-300">
-                            <div className="px-8 py-6 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between bg-gradient-to-r from-[rgba(0,0,0,0.3)] to-transparent">
+                    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] w-full max-w-lg animate-in zoom-in-95 duration-300 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
+                            <div className="px-4 sm:px-8 py-6 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between bg-gradient-to-r from-[rgba(0,0,0,0.3)] to-transparent">
                                 <div className="flex items-center gap-3">
-                                    <Activity className="w-5 h-5 text-[#0052CC]" />
-                                    <h3 className="text-[11px] font-black text-white uppercase tracking-[0.25em]">Strategic Assessment</h3>
+                                    <Activity className="w-5 h-5 text-[#3B82F6]" />
+                                    <h3 className="text-[11px] font-bold text-white uppercase tracking-[0.12em]">Assessment</h3>
                                 </div>
                                 <button onClick={() => setSelectedMilestone(null)} className="text-[rgba(255,255,255,0.3)] hover:text-white transition-colors p-2 hover:bg-[rgba(255,255,255,0.05)] rounded-full">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
-                            <form onSubmit={handleAddRemark} className="p-8 space-y-8">
+                            <form onSubmit={handleAddRemark} className="p-5 sm:p-8 space-y-8">
                                 <div className="space-y-2">
-                                    <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] block">Active Initiative</label>
-                                    <div className="text-lg font-black text-white tracking-tight flex items-center gap-2">
+                                    <label className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] block">Active Initiative</label>
+                                    <div className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
                                         {selectedMilestone.title}
-                                        {selectedMilestone.project && <span className="text-[9px] font-black text-[#0052CC] bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/10 uppercase tracking-widest">{selectedMilestone.project.name}</span>}
+                                        {selectedMilestone.project && <span className="text-[11px] font-bold text-[#3B82F6] bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/10 uppercase tracking-wider">{selectedMilestone.project.name}</span>}
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="text-[9px] font-black text-[rgba(255,255,255,0.3)] uppercase tracking-[0.2em] block">Operational Assessment</label>
+                                    <label className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] block">Assessment</label>
                                     <textarea
                                         required
                                         autoFocus
                                         value={remarkText}
                                         onChange={e => setRemarkText(e.target.value)}
-                                        className="w-full bg-[#141414] border border-[rgba(255,255,255,0.1)] rounded-lg p-4 text-sm font-bold tracking-tight focus:ring-1 focus:ring-[#0052CC] transition-all min-h-[160px] text-white resize-none shadow-inner placeholder-[rgba(255,255,255,0.2)]"
-                                        placeholder="Provide detailed strategic instructions..."
+                                        className="w-full bg-[#141414] border border-[rgba(255,255,255,0.1)] rounded-lg p-4 text-sm font-bold tracking-tight focus:ring-1 focus:ring-[#3B82F6] transition-all min-h-[160px] text-white resize-none shadow-inner placeholder-[rgba(255,255,255,0.2)]"
+                                        placeholder="Add instructions and context"
                                     />
                                 </div>
 
@@ -769,13 +753,13 @@ export default function MilestonesPage() {
                                         id="modal-flag-toggle"
                                         checked={isFlaggedChecked}
                                         onChange={e => setIsFlaggedChecked(e.target.checked)}
-                                        className="w-5 h-5 rounded border-[rgba(255,255,255,0.2)] bg-[#191919] text-red-600 focus:ring-red-600 cursor-pointer"
+                                        className="w-5 h-5 rounded border-[rgba(255,255,255,0.2)] bg-[#07090D] text-red-300 focus:ring-red-600 cursor-pointer"
                                     />
                                     <div className="flex flex-col">
-                                        <label htmlFor="modal-flag-toggle" className="text-[10px] font-black text-red-400 cursor-pointer uppercase tracking-[0.15em] flex items-center gap-2">
+                                        <label htmlFor="modal-flag-toggle" className="text-[11px] font-bold text-red-400 cursor-pointer uppercase tracking-[0.15em] flex items-center gap-2">
                                             Elevate Strategic Concern
                                         </label>
-                                        <span className="text-[10px] text-red-400/50 font-bold tracking-tight mt-0.5">Mandatory executive review triggered</span>
+                                        <span className="text-[11px] text-red-400/50 font-bold tracking-tight mt-0.5">Mandatory executive review triggered</span>
                                     </div>
                                 </div>
 
@@ -784,14 +768,14 @@ export default function MilestonesPage() {
                                         type="button"
                                         variant="default"
                                         onClick={() => setSelectedMilestone(null)}
-                                        className="bg-transparent border-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.5)] px-6 font-black uppercase tracking-[0.2em] text-[9px]"
+                                        className="bg-transparent border-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.5)] px-6 font-bold uppercase tracking-[0.12em] text-[11px]"
                                     >
                                         Abort
                                     </NotionButton>
                                     <NotionButton
                                         type="submit"
                                         disabled={isRemarking}
-                                        className="bg-[#0052CC] hover:bg-[#0747A6] text-white px-8 shadow-xl shadow-blue-900/40 font-black uppercase tracking-[0.2em] text-[9px] h-10"
+                                        className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-4 sm:px-8 shadow-xl shadow-blue-900/40 font-bold uppercase tracking-[0.12em] text-[11px] h-10"
                                     >
                                         {isRemarking ? 'Syncing...' : 'Sync Policy'}
                                     </NotionButton>
@@ -805,35 +789,7 @@ export default function MilestonesPage() {
     );
 }
 
-function MetricSummaryCard({ label, value, subtext, icon: Icon, color, onClick }: any) {
-    const colorStyles: any = {
-        blue: "text-blue-400 bg-blue-500/10 border-blue-500/10",
-        emerald: "text-emerald-400 bg-emerald-500/10 border-emerald-500/10",
-        indigo: "text-indigo-400 bg-indigo-500/10 border-indigo-500/10",
-        red: "text-red-400 bg-red-500/10 border-red-500/10"
-    };
-
-    return (
-        <div
-            onClick={onClick}
-            className={cn(
-                "bg-[#2f3437] border border-[rgba(255,255,255,0.08)] p-5 sm:p-6 rounded-lg flex items-center gap-4 sm:gap-6 shadow-xl relative overflow-hidden group transition-all duration-300",
-                onClick && "cursor-pointer hover:bg-[#32393d] hover:border-[rgba(255,255,255,0.2)] active:scale-[0.98]"
-            )}
-        >
-            <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity duration-700">
-                <Icon className="w-16 h-16 sm:w-20 sm:h-20 transform translate-x-4 translate-y-2 rotate-12" />
-            </div>
-            <div className={cn("p-3 sm:p-4 rounded-xl border transition-all duration-700 group-hover:scale-110", colorStyles[color])}>
-                <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
-            </div>
-            <div className="relative z-10">
-                <div className="text-2xl sm:text-3xl font-black text-[rgba(255,255,255,0.95)] tracking-tighter leading-none mb-1.5">{value}</div>
-                <div className="text-[9px] font-black text-[rgba(255,255,255,0.25)] uppercase tracking-[0.25em]">{label}</div>
-                {subtext && (
-                    <div className="text-[9px] font-bold text-[rgba(255,255,255,0.15)] mt-1 truncate">{subtext}</div>
-                )}
-            </div>
-        </div>
-    );
+function MetricSummaryCard({ label, value, subtext, icon, color, onClick }: any) {
+    const tone = ({ blue: 'blue', red: 'rose', orange: 'amber', emerald: 'emerald', green: 'emerald', purple: 'violet' } as const)[color as 'blue'] || 'blue';
+    return <StatCard label={label} value={value} note={subtext} icon={icon} tone={tone} onClick={onClick} />;
 }

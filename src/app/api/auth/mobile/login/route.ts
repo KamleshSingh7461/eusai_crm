@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { signMobileToken, devShortcutsAllowed } from '@/lib/mobileToken';
 
 export async function POST(req: Request) {
     try {
@@ -17,7 +17,8 @@ export async function POST(req: Request) {
 
         if (!user || !user.password) {
             // Check for hardcoded admin fallback
-            if (email === "admin@eusaiteam.com" && password === "admin123") {
+            // Test shortcut for the mobile dev build: local servers only.
+            if (devShortcutsAllowed() && email === "admin@eusaiteam.com" && password === "admin123") {
                 const adminUser = await prisma.user.upsert({
                     where: { email },
                     update: {},
@@ -28,11 +29,7 @@ export async function POST(req: Request) {
                     }
                 });
                 
-                const token = jwt.sign(
-                    { id: adminUser.id, email: adminUser.email, role: adminUser.role },
-                    process.env.NEXTAUTH_SECRET || 'fallback-secret',
-                    { expiresIn: '30d' }
-                );
+                const token = signMobileToken({ id: adminUser.id, email: adminUser.email, role: adminUser.role });
 
                 return NextResponse.json({
                     token,
@@ -54,11 +51,7 @@ export async function POST(req: Request) {
         }
 
         // Generate a standalone JWT for mobile
-        const token = jwt.sign(
-            { id: user.id, email: user.email, role: user.role },
-            process.env.NEXTAUTH_SECRET || 'fallback-secret',
-            { expiresIn: '30d' }
-        );
+        const token = signMobileToken({ id: user.id, email: user.email, role: user.role });
 
         return NextResponse.json({
             token,

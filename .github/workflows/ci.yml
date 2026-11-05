@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev-app, staging]
+  push:
+    branches: [dev-app, staging]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: eusai
+          POSTGRES_PASSWORD: eusai
+          POSTGRES_DB: eusai_crm
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U eusai -d eusai_crm"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      APP_ENV: local
+      NEXT_PUBLIC_APP_ENV: local
+      DATABASE_URL: postgresql://eusai:eusai@localhost:5432/eusai_crm?schema=public
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci-only-secret-ci-only-secret-ci-only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # Proves every committed migration applies cleanly to an empty database
+      # and that the schema has no changes missing a migration.
+      - run: npx prisma migrate deploy
+      - run: npx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --exit-code
+      - run: npx prisma db seed
+      - run: npm run build

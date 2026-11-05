@@ -83,10 +83,10 @@ export default function DashboardAISummary({ role, contextData }: DashboardAISum
 
                 <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-3 mb-3">
-                        <h3 className="text-sm font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
+                        <h3 className="text-sm font-bold text-white uppercase tracking-[0.12em] flex items-center gap-2">
                             EUSAI Insight Engine
                         </h3>
-                        <span className="text-[9px] px-2 py-0.5 rounded-md bg-green-500/10 text-green-400 border border-green-500/20 font-black tracking-widest uppercase">Live Pulse</span>
+                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-green-500/10 text-green-400 border border-green-500/20 font-bold tracking-wider uppercase">Live Pulse</span>
                         {isLoading && <Loader2 className="w-3 h-3 animate-spin text-purple-400" />}
                     </div>
 
@@ -126,7 +126,7 @@ export default function DashboardAISummary({ role, contextData }: DashboardAISum
 
                 <div className="shrink-0 w-full md:w-auto flex flex-col gap-2">
                     <Link href="/ai-assistant">
-                        <button className="group/btn flex items-center justify-center gap-3 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-[10px] font-black text-white uppercase tracking-widest transition-all w-full md:w-auto">
+                        <button className="group/btn flex items-center justify-center gap-3 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-[11px] font-bold text-white uppercase tracking-wider transition-all w-full md:w-auto">
                             Consult Intelligence
                             <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
                         </button>
@@ -134,7 +134,7 @@ export default function DashboardAISummary({ role, contextData }: DashboardAISum
                     <button 
                         onClick={fetchSummary}
                         disabled={isLoading}
-                        className="flex items-center justify-center gap-2 text-[9px] font-black text-white/30 hover:text-white/60 uppercase tracking-widest transition-all py-1"
+                        className="flex items-center justify-center gap-2 text-[11px] font-bold text-white/30 hover:text-white/60 uppercase tracking-wider transition-all py-1"
                     >
                         <RefreshCcw className={cn("w-3 h-3", isLoading && "animate-spin")} /> Re-Scan
                     </button>

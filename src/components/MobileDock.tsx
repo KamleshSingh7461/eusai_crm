@@ -1,24 +1,12 @@
 "use client";
 
 import React, { useState } from 'react';
-import {
-    Home,
-    Briefcase,
-    Plus,
-    Search,
-    Menu,
-    Sparkles,
-    CheckSquare,
-    X,
-    FileText,
-    LayoutDashboard,
-    MessageSquare,
-    Zap,
-    Users
-} from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Home, Briefcase, Plus, Menu, CheckSquare, FileText, Target, AlertTriangle, Search, MessageSquare, Users, Sparkles } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { cn } from '@/lib/utils';
+import { openCommandPalette } from '@/components/Sidebar';
 
 interface MobileDockProps {
     onMenuClick: () => void;
@@ -28,56 +16,58 @@ interface MobileDockProps {
 export default function MobileDock({ onMenuClick, closeMenu }: MobileDockProps) {
     const router = useRouter();
     const pathname = usePathname();
+    const { data: session } = useSession();
     const [isQuickMenuOpen, setIsQuickMenuOpen] = useState(false);
 
-    const handleNavigation = (href: string) => {
+    const role = (session?.user as any)?.role || 'EMPLOYEE';
+    const isReadOnly = role === 'MANAGEMENT';
+
+    const go = (href: string) => {
         router.push(href);
         closeMenu();
+        setIsQuickMenuOpen(false);
     };
 
-    const navItems = [
-        { name: 'Home', href: '/', icon: Home },
-        { name: 'Inbox', href: '/inbox', icon: MessageSquare },
-    ];
-
     const quickActions = [
-        { name: 'Establish Group', icon: Users, action: () => { router.push('/inbox'); closeMenu(); } },
-        { name: 'AI Consultation', icon: Sparkles, action: () => { router.push('/ai-assistant'); closeMenu(); } },
-        { name: 'System Report', icon: FileText, action: () => { router.push('/reports/submit'); closeMenu(); } },
-    ];
+        { name: 'New task', icon: CheckSquare, tone: 'text-emerald-300 bg-emerald-500/15', href: '/tasks?new=1', show: ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(role) },
+        { name: 'New project', icon: Briefcase, tone: 'text-blue-300 bg-blue-500/15', href: '/projects/new', show: ['DIRECTOR', 'MANAGER'].includes(role) },
+        { name: 'New milestone', icon: Target, tone: 'text-violet-300 bg-violet-500/15', href: '/milestones?new=1', show: ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(role) },
+        { name: 'Report an issue', icon: AlertTriangle, tone: 'text-amber-300 bg-amber-500/15', href: '/issues?new=1', show: true },
+        { name: 'Start a group chat', icon: Users, tone: 'text-sky-300 bg-sky-500/15', href: '/inbox', show: true },
+        { name: 'Ask EUSAI AI', icon: Sparkles, tone: 'text-fuchsia-300 bg-fuchsia-500/15', href: '/ai-assistant', show: true },
+        { name: 'Submit daily report', icon: FileText, tone: 'text-cyan-300 bg-cyan-500/15', href: '/reports/submit', show: true },
+    ].filter(a => a.show);
+
+    const NavButton = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string }) => {
+        const active = href === '/' ? pathname === '/' : pathname.startsWith(href);
+        return (
+            <button onClick={() => go(href)} aria-label={label} className={cn('relative flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-medium transition', active ? 'text-white' : 'text-slate-500')}>
+                <Icon className={cn('h-5 w-5', active && 'text-blue-300')} />
+                {label}
+                {active && <motion.span layoutId="dock-dot" className="absolute -bottom-1 h-1 w-1 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,1)]" />}
+            </button>
+        );
+    };
 
     return (
         <>
-            {/* Ultra-Premium Quick Action Overlay */}
             <AnimatePresence>
                 {isQuickMenuOpen && (
                     <>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setIsQuickMenuOpen(false)}
-                            className="fixed inset-0 bg-black/80 backdrop-blur-md z-[90] lg:hidden"
-                        />
-                        <div className="fixed bottom-28 left-0 right-0 z-[91] flex flex-col items-center gap-4 lg:hidden px-6 pointer-events-none">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsQuickMenuOpen(false)} className="fixed inset-0 z-[46] bg-black/70 backdrop-blur-sm lg:hidden" />
+                        <div className="pointer-events-none fixed inset-x-0 bottom-28 z-[47] flex flex-col items-center gap-2 px-4 lg:hidden">
                             {quickActions.map((action, index) => (
                                 <motion.button
                                     key={action.name}
-                                    initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                                    initial={{ opacity: 0, y: 20, scale: 0.9 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: 20, scale: 0.9 }}
-                                    transition={{ delay: index * 0.05, type: 'spring', stiffness: 300, damping: 25 }}
-                                    onClick={() => {
-                                        action.action();
-                                        setIsQuickMenuOpen(false);
-                                    }}
-                                    className="pointer-events-auto w-full max-w-sm bg-[#111111] border border-white/10 text-white py-4 px-6 rounded-2xl flex items-center justify-between shadow-2xl active:scale-95 transition-all group overflow-hidden"
+                                    exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                                    transition={{ delay: (quickActions.length - index) * 0.04, type: 'spring', damping: 22 }}
+                                    onClick={() => go(action.href)}
+                                    className="pointer-events-auto flex w-full max-w-xs items-center gap-3 rounded-2xl border border-white/[0.08] bg-[#11141B]/95 px-4 py-3 text-left text-white shadow-xl backdrop-blur-xl active:scale-95"
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <span className="font-black text-[11px] uppercase tracking-[0.2em] relative z-10">{action.name}</span>
-                                    <div className="p-2 bg-blue-600/10 rounded-lg relative z-10">
-                                        <action.icon className="w-5 h-5 text-blue-400" />
-                                    </div>
+                                    <span className={cn('flex h-9 w-9 items-center justify-center rounded-xl', action.tone)}><action.icon className="h-4 w-4" /></span>
+                                    <span className="text-sm font-medium">{action.name}</span>
                                 </motion.button>
                             ))}
                         </div>
@@ -85,73 +75,30 @@ export default function MobileDock({ onMenuClick, closeMenu }: MobileDockProps) 
                 )}
             </AnimatePresence>
 
-            {/* Tactical Orbital Dock */}
-            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-md lg:hidden">
-                <div className="bg-[#0A0A0A]/90 backdrop-blur-3xl border border-white/[0.08] rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-2 flex items-center justify-between relative overflow-hidden">
-                    
-                    {/* Interior Glow */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1 bg-blue-500/20 blur-md" />
-
-                    {/* Nav Items Left */}
-                    <div className="flex items-center justify-around flex-1 px-2">
-                        {navItems.map((item) => {
-                            const isActive = pathname === item.href;
-                            return (
-                                <button
-                                    key={item.name}
-                                    onClick={() => handleNavigation(item.href)}
-                                    className={cn(
-                                        "relative flex flex-col items-center justify-center w-12 h-12 rounded-2xl transition-all duration-300",
-                                        isActive ? "text-blue-400 bg-blue-600/5" : "text-white/20 hover:text-white/40"
-                                    )}
-                                >
-                                    <item.icon className={cn("w-6 h-6", isActive && "drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]")} />
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="navGlow"
-                                            className="absolute -bottom-1 w-1 h-1 rounded-full bg-blue-400 shadow-[0_0_10px_#3b82f6]"
-                                        />
-                                    )}
-                                </button>
-                            );
-                        })}
+            <div className="fixed bottom-4 left-1/2 z-[45] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 pb-[env(safe-area-inset-bottom)] lg:hidden">
+                <div className="relative flex items-center rounded-2xl border border-white/[0.08] bg-[#0B0E14]/85 px-2 py-2 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl">
+                    <NavButton href="/" icon={Home} label="Home" />
+                    <NavButton href="/inbox" icon={MessageSquare} label="Messages" />
+                    <div className="flex flex-1 justify-center">
+                        {!isReadOnly ? (
+                            <button
+                                onClick={() => setIsQuickMenuOpen(!isQuickMenuOpen)}
+                                aria-label="Quick actions"
+                                className={cn('-mt-7 flex h-14 w-14 items-center justify-center rounded-2xl border-4 border-[#07090D] text-white transition-all duration-300',
+                                    isQuickMenuOpen ? 'rotate-45 bg-rose-500' : 'bg-gradient-to-b from-blue-500 to-blue-600 shadow-[0_10px_30px_-6px_rgba(59,130,246,0.9)]')}
+                            >
+                                <Plus className="h-6 w-6" strokeWidth={2.5} />
+                            </button>
+                        ) : (
+                            <button onClick={openCommandPalette} aria-label="Search" className="flex flex-col items-center gap-1 py-1.5 text-[11px] font-medium text-slate-500">
+                                <Search className="h-5 w-5" />Search
+                            </button>
+                        )}
                     </div>
-
-                    {/* Center Tactical Orb */}
-                    <div className="relative px-2">
-                        <div className="absolute -inset-6 bg-blue-600/10 blur-2xl rounded-full" />
-                        <button
-                            onClick={() => setIsQuickMenuOpen(!isQuickMenuOpen)}
-                            className={cn(
-                                "w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 relative z-10 border-4 border-[#0A0A0A] shadow-2xl",
-                                isQuickMenuOpen
-                                    ? "bg-red-600 rotate-[135deg] shadow-red-900/40"
-                                    : "bg-gradient-to-br from-blue-600 to-blue-800 shadow-blue-900/40 hover:scale-105"
-                            )}
-                        >
-                            <Plus className="w-8 h-8 text-white stroke-[3.5px]" />
-                        </button>
-                    </div>
-
-                    {/* Nav Items Right */}
-                    <div className="flex items-center justify-around flex-1 px-2">
-                        <button
-                            onClick={() => {
-                                const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
-                                document.dispatchEvent(event);
-                            }}
-                            className="flex items-center justify-center w-12 h-12 rounded-2xl text-white/20 hover:text-white/40 transition-all"
-                        >
-                            <Search className="w-6 h-6" />
-                        </button>
-
-                        <button
-                            onClick={onMenuClick}
-                            className="flex items-center justify-center w-12 h-12 rounded-2xl text-white/20 hover:text-white/40 transition-all"
-                        >
-                            <Menu className="w-6 h-6" />
-                        </button>
-                    </div>
+                    <NavButton href="/tasks" icon={CheckSquare} label="Tasks" />
+                    <button onClick={onMenuClick} aria-label="Menu" className="flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-medium text-slate-500">
+                        <Menu className="h-5 w-5" />Menu
+                    </button>
                 </div>
             </div>
         </>

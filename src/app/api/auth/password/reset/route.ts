@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
         const { email, token, newPassword } = body;
 
         if (!email || !token || !newPassword || newPassword.length < 6) {
-            return NextResponse.json({ error: "Invalid parameters. Protocol violation." }, { status: 400 });
+            return NextResponse.json({ error: "Enter your email, the code and a password of at least 6 characters." }, { status: 400 });
         }
 
         const normalizedEmail = email.toLowerCase().trim();
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (!otpRecord || new Date() > otpRecord.expiresAt) {
-            return NextResponse.json({ error: "Integrity sequence invalid or expired." }, { status: 400 });
+            return NextResponse.json({ error: "That code is incorrect or has expired." }, { status: 400 });
         }
 
         // 2. Hash the new password securely
@@ -44,10 +44,10 @@ export async function POST(req: NextRequest) {
             where: { email: normalizedEmail }
         });
 
-        return NextResponse.json({ message: "Credentials formally synchronized." }, { status: 200 });
+        return NextResponse.json({ message: "Password updated." }, { status: 200 });
 
     } catch (error: any) {
         console.error("Password Restructure Error:", error);
-        return NextResponse.json({ error: "Core sync failure." }, { status: 500 });
+        return NextResponse.json({ error: "Could not update the password." }, { status: 500 });
     }
 }

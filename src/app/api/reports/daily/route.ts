@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { isReportWindowOpen } from '@/lib/reportWindow';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getSubordinateIds } from '@/lib/hierarchy';
@@ -161,15 +162,7 @@ export async function POST(request: NextRequest) {
         const validUtilization = isNaN(parsedUtilization) ? 80 : Math.max(0, Math.min(100, parsedUtilization));
 
         // 1. Time Window Validation (5:00 PM - 11:59 PM IST)
-        const now = new Date();
-        const istTimeOptions: Intl.DateTimeFormatOptions = { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false };
-        const istTimeStr = new Intl.DateTimeFormat('en-US', istTimeOptions).format(now);
-        const [hourStr, minuteStr] = istTimeStr.split(':');
-        let hour = parseInt(hourStr, 10);
-        if (hour === 24) hour = 0; // standardize midnight
-
-        // Check if between 17:00 (inclusive) and 23:59 (inclusive) in IST
-        const isWithinWindow = hour >= 17; // 5 PM to midnight
+        const isWithinWindow = isReportWindowOpen();
 
         // Directors/Managers can force submit outside the window
         const isForced = body.forceSubmission === true;

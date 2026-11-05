@@ -99,7 +99,7 @@ export async function GET(
         const enhancedUser = {
             ...user,
             rank: rank > 0 ? rank : null,
-            // Only include non-done items in the list to match frontend "Active missions" filter but keep counts accurate
+            // Only include non-done items in the list to match frontend "Active tasks" filter but keep counts accurate
             activeTasks: user.tasks.filter(t => t.status !== 'DONE'),
             activeMilestones: user.milestones.filter(m => m.status !== 'COMPLETED'),
         };

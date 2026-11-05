@@ -3,10 +3,14 @@ import prisma from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
 import { createNotification } from '@/lib/notifications';
 
-// This endpoint should be secured with a secret in production
-// e.g. check for Authorization: Bearer process.env.CRON_SECRET
+export const dynamic = 'force-dynamic';
 
+// Flags employees who missed today's report. Called by the scheduler with Authorization: Bearer <CRON_SECRET>.
 export async function GET(request: NextRequest) {
+    if (!process.env.CRON_SECRET || request.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -56,10 +60,10 @@ export async function GET(request: NextRequest) {
                 // In real app, use a nice HTML template
                 const sent = await sendEmail({
                     to: user.email,
-                    subject: 'URGENT: Daily Report Not Submitted',
+                    subject: 'Daily report not submitted',
                     html: `<p>Hi ${user.name},</p>
                      <p>You have not submitted your daily report for <strong>${today.toLocaleDateString()}</strong>.</p>
-                     <p>Please submit it immediately. Your account has been flagged for non-compliance.</p>
+                     <p>Please submit it as soon as you can. Missed reports are recorded on your profile.</p>
                      <p>Regards,<br/>EUSAI Team</p>`
                 });
                 results.push({ email: user.email, sent });
@@ -69,7 +73,7 @@ export async function GET(request: NextRequest) {
             await createNotification({
                 userId: user.id,
                 title: 'Action Required: Daily Report Missing',
-                message: `You missed your report for ${today.toLocaleDateString()}. Please submit it immediately.`,
+                message: `You missed your report for ${today.toLocaleDateString()}. Please submit it as soon as you can.`,
                 type: 'ERROR',
                 link: '/reports/submit'
             });

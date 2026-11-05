@@ -60,9 +60,9 @@ function MarkdownText({ text }: { text: string }) {
         .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>')
         .replace(/\*(.*?)\*/g, '<em class="text-purple-300">$1</em>')
         .replace(/`(.*?)`/g, '<code class="bg-white/10 px-1.5 py-0.5 rounded text-[11px] font-mono text-purple-200 border border-white/10">$1</code>')
-        .replace(/^#{3}\s(.+)$/gm, '<h3 class="text-sm font-black text-white mt-4 mb-1 border-l-2 border-purple-500 pl-2">$1</h3>')
-        .replace(/^#{2}\s(.+)$/gm, '<h2 class="text-base font-black text-white mt-5 mb-2 border-l-4 border-purple-600 pl-3 uppercase tracking-wider">$1</h2>')
-        .replace(/^#{1}\s(.+)$/gm, '<h1 class="text-lg font-black text-white mt-6 mb-3 border-b border-white/10 pb-1">$1</h1>')
+        .replace(/^#{3}\s(.+)$/gm, '<h3 class="text-sm font-bold text-white mt-4 mb-1 border-l-2 border-purple-500 pl-2">$1</h3>')
+        .replace(/^#{2}\s(.+)$/gm, '<h2 class="text-base font-bold text-white mt-5 mb-2 border-l-4 border-purple-600 pl-3 uppercase tracking-wider">$1</h2>')
+        .replace(/^#{1}\s(.+)$/gm, '<h1 class="text-lg font-bold text-white mt-6 mb-3 border-b border-white/10 pb-1">$1</h1>')
         .replace(/^[-•]\s(.+)$/gm, '<div class="flex gap-3 my-1 items-start group"><span class="text-purple-500 shrink-0 mt-1">▶</span><span class="group-hover:text-white transition-colors">$1</span></div>')
         .replace(/\n\n/g, '<div class="h-3"></div>')
         .replace(/\n/g, '<br/>');
@@ -196,19 +196,19 @@ export default function AIAssistantPage() {
                                     <Bot className="text-white w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h1 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-                                        EUSAI AI <span className="text-[10px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20 uppercase tracking-widest">Tactical Core</span>
+                                    <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                                        EUSAI AI <span className="text-[11px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full border border-blue-500/20 uppercase tracking-wider">Tactical Core</span>
                                     </h1>
                                     <div className="flex items-center gap-2 mt-0.5">
                                         <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                        <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Neural Link Active</span>
+                                        <span className="text-[11px] text-white/40 font-bold uppercase tracking-wider">Neural Link Active</span>
                                     </div>
                                 </div>
                             </motion.div>
 
                             <div className="hidden md:flex items-center gap-4">
                                 <div className="flex flex-col items-end">
-                                    <span className="text-[9px] text-white/30 uppercase font-black tracking-[0.2em]">Session Identity</span>
+                                    <span className="text-[11px] text-white/30 uppercase font-bold tracking-[0.12em]">Session Identity</span>
                                     <span className="text-xs text-white/70 font-mono tracking-wider">{session?.user?.name || 'Authorized Personnel'}</span>
                                 </div>
                                 <div className="h-8 w-px bg-white/5" />
@@ -228,7 +228,7 @@ export default function AIAssistantPage() {
                 </div>
 
                 <div className="flex-1 overflow-hidden relative flex flex-col">
-                    <div className="flex-1 overflow-y-auto px-4 py-8 scroll-smooth" id="chat-container">
+                    <div className="flex-1 overflow-y-auto px-4 py-6 sm:py-8 scroll-smooth" id="chat-container">
                         <div className="w-full space-y-8">
                             <AnimatePresence initial={false}>
                                 {messages.map((msg, index) => (
@@ -270,7 +270,7 @@ export default function AIAssistantPage() {
                                             <MarkdownText text={msg.content} />
                                             
                                             <div className={cn(
-                                                "flex items-center gap-2 mt-4 text-[9px] font-black uppercase tracking-widest",
+                                                "flex items-center gap-2 mt-4 text-[11px] font-bold uppercase tracking-wider",
                                                 msg.role === 'assistant' ? "text-white/20" : "text-white/40"
                                             )}>
                                                 <span>{msg.timestamp.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
@@ -301,7 +301,7 @@ export default function AIAssistantPage() {
                                         <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/10" />
                                         <div className="flex items-center gap-2">
                                             <Zap className="w-3 h-3 text-purple-400" />
-                                            <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Operational Directives</span>
+                                            <span className="text-[11px] font-bold text-white/30 uppercase tracking-[0.12em]">Operational Directives</span>
                                         </div>
                                         <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/10" />
                                     </div>
@@ -347,11 +347,11 @@ export default function AIAssistantPage() {
                         <div className="flex items-center justify-center gap-4 mt-4">
                             <div className="flex items-center gap-1.5">
                                 <div className="w-1 h-1 rounded-full bg-purple-500" />
-                                <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em]">Neural Engine: 1.5 Flash</span>
+                                <span className="text-[11px] font-bold text-white/20 uppercase tracking-[0.12em]">Neural Engine: 1.5 Flash</span>
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <div className="w-1 h-1 rounded-full bg-blue-500" />
-                                <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em]">Security: RBAC Layer 4</span>
+                                <span className="text-[11px] font-bold text-white/20 uppercase tracking-[0.12em]">Security: RBAC Layer 4</span>
                             </div>
                         </div>
                     </div>

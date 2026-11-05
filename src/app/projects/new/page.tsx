@@ -132,7 +132,7 @@ export default function NewProjectPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--notion-bg-primary)] py-8 font-sans text-[var(--notion-text-primary)] animate-in fade-in duration-500">
+        <div className="min-h-screen bg-[var(--notion-bg-primary)] py-6 sm:py-8 font-sans text-[var(--notion-text-primary)] animate-in fade-in duration-500">
             <div className="max-w-2xl mx-auto px-4">
                 <div className="flex items-center gap-4 mb-8">
                     <button
@@ -142,17 +142,17 @@ export default function NewProjectPage() {
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-bold font-display flex items-center gap-2">
-                            <Rocket className="w-6 h-6 text-[#2383e2]" />
-                            Initiate New Mission
+                        <h1 className="font-display text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
+                            <Rocket className="w-6 h-6 text-[#3B82F6]" />
+                            New project
                         </h1>
-                        <p className="text-[var(--notion-text-tertiary)]">Define parameters for the new strategic initiative.</p>
+                        <p className="text-[var(--notion-text-tertiary)]">Set up the basics. You can change them later.</p>
                     </div>
                 </div>
 
                 <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm shadow-sm overflow-hidden">
                     <div className="p-6 border-b border-[var(--notion-border-default)]">
-                        <h2 className="text-lg font-bold">Mission Charter</h2>
+                        <h2 className="text-lg font-bold">Project brief</h2>
                         <p className="text-sm text-[var(--notion-text-tertiary)]">Core details and ownership assignment.</p>
                     </div>
 
@@ -160,12 +160,12 @@ export default function NewProjectPage() {
                         {/* Project Name */}
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider flex items-center gap-2">
-                                <Briefcase className="w-4 h-4" /> Mission Name
+                                <Briefcase className="w-4 h-4" /> Project name
                             </label>
                             <input
                                 {...register('name')}
                                 placeholder="e.g., Q3 Expansion Initiative"
-                                className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm py-2 px-4 focus:outline-none focus:ring-1 focus:ring-[#2383e2] transition-all text-[var(--notion-text-primary)] placeholder-[var(--notion-text-disabled)]"
+                                className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm py-2 px-4 focus:outline-none focus:ring-1 focus:ring-[#3B82F6] transition-all text-[var(--notion-text-primary)] placeholder-[var(--notion-text-disabled)]"
                             />
                             {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
                         </div>
@@ -173,13 +173,13 @@ export default function NewProjectPage() {
                         {/* Description */}
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider flex items-center gap-2">
-                                <FileText className="w-4 h-4" /> Strategic Objectives
+                                <FileText className="w-4 h-4" /> Objectives
                             </label>
                             <textarea
                                 {...register('description')}
                                 rows={4}
-                                placeholder="Describe the mission goals and success criteria..."
-                                className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm py-2 px-4 focus:outline-none focus:ring-1 focus:ring-[#2383e2] transition-all text-[var(--notion-text-primary)] placeholder-[var(--notion-text-disabled)] resize-none"
+                                placeholder="Describe the goals and what success looks like"
+                                className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm py-2 px-4 focus:outline-none focus:ring-1 focus:ring-[#3B82F6] transition-all text-[var(--notion-text-primary)] placeholder-[var(--notion-text-disabled)] resize-none"
                             />
                             {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
                         </div>
@@ -193,7 +193,7 @@ export default function NewProjectPage() {
                                 <div className="relative">
                                     <select
                                         {...register('spaceId')}
-                                        className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm py-2 px-4 appearance-none focus:outline-none focus:ring-1 focus:ring-[#2383e2] transition-all text-[var(--notion-text-primary)]"
+                                        className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm py-2 px-4 appearance-none focus:outline-none focus:ring-1 focus:ring-[#3B82F6] transition-all text-[var(--notion-text-primary)]"
                                     >
                                         <option value="">Select Space...</option>
                                         {spaces.map((space) => (
@@ -210,11 +210,11 @@ export default function NewProjectPage() {
 
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider flex items-center gap-2">
-                                    <User className="w-4 h-4" /> Mission Leads
+                                    <User className="w-4 h-4" /> Managers
                                 </label>
                                 <div className="p-3 bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm max-h-48 overflow-y-auto space-y-2">
                                     {isLoadingManagers ? (
-                                        <div className="flex items-center gap-2 text-[10px] text-body italic">
+                                        <div className="flex items-center gap-2 text-[11px] text-body italic">
                                             <Loader2 className="w-3 h-3 animate-spin" /> Fetching available leads...
                                         </div>
                                     ) : (
@@ -223,7 +223,7 @@ export default function NewProjectPage() {
                                                 <input
                                                     type="checkbox"
                                                     value={manager.id}
-                                                    className="rounded-sm border-[var(--notion-border-default)] text-[#2383e2] focus:ring-[#2383e2]"
+                                                    className="rounded-sm border-[var(--notion-border-default)] text-[#3B82F6] focus:ring-[#3B82F6]"
                                                     checked={selectedManagerIds.includes(manager.id)}
                                                     onChange={(e) => {
                                                         const id = manager.id;
@@ -234,12 +234,12 @@ export default function NewProjectPage() {
                                                     }}
                                                 />
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-6 h-6 rounded-full bg-[var(--notion-bg-secondary)] flex items-center justify-center text-[10px] font-bold border border-[var(--notion-border-default)]">
+                                                    <div className="w-6 h-6 rounded-full bg-[var(--notion-bg-secondary)] flex items-center justify-center text-[11px] font-bold border border-[var(--notion-border-default)]">
                                                         {manager.name?.charAt(0) || 'M'}
                                                     </div>
                                                     <div className="flex flex-col">
                                                         <span className="text-xs text-[var(--notion-text-primary)] font-medium">{manager.name}</span>
-                                                        <span className="text-[9px] text-[var(--notion-text-disabled)] uppercase">{manager.role}</span>
+                                                        <span className="text-[11px] text-[var(--notion-text-disabled)] uppercase">{manager.role}</span>
                                                     </div>
                                                 </div>
                                             </label>
@@ -261,7 +261,7 @@ export default function NewProjectPage() {
                                     <input
                                         {...register('startDate')}
                                         type="date"
-                                        className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm py-2 px-4 focus:outline-none focus:ring-1 focus:ring-[#2383e2] transition-all text-[var(--notion-text-primary)]"
+                                        className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm py-2 px-4 focus:outline-none focus:ring-1 focus:ring-[#3B82F6] transition-all text-[var(--notion-text-primary)]"
                                     />
                                     {errors.startDate && <p className="text-xs text-red-500">{errors.startDate.message}</p>}
                                 </div>
@@ -271,7 +271,7 @@ export default function NewProjectPage() {
                                     <input
                                         {...register('endDate')}
                                         type="date"
-                                        className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm py-2 px-4 focus:outline-none focus:ring-1 focus:ring-[#2383e2] transition-all text-[var(--notion-text-primary)]"
+                                        className="w-full bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm py-2 px-4 focus:outline-none focus:ring-1 focus:ring-[#3B82F6] transition-all text-[var(--notion-text-primary)]"
                                     />
                                     {errors.endDate && <p className="text-xs text-red-500">{errors.endDate.message}</p>}
                                 </div>
@@ -290,7 +290,7 @@ export default function NewProjectPage() {
                             <Button
                                 type="submit"
                                 isLoading={isSubmitting}
-                                className="bg-[#2383e2] hover:bg-[#1a6fcc] text-white"
+                                className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
                             >
                                 Initiate Mission
                             </Button>

@@ -1,10 +1,13 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import AppShell from "@/components/AppShell";
 import { Providers } from "@/components/Providers";
+import EnvBadge from "@/components/EnvBadge";
 
-const inter = Inter({ subsets: ["latin"] });
+// Inter for interface text, Plus Jakarta Sans for headings and key numbers.
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["500", "600", "700", "800"], variable: "--font-jakarta", display: "swap" });
 
 export const metadata: Metadata = {
   title: "EUSAI CRM | Enterprise Business Process Management",
@@ -15,14 +18,20 @@ export const metadata: Metadata = {
   }
 };
 
+export const viewport: Viewport = {
+  themeColor: "#07090D",
+  colorScheme: "dark",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased`}>
+    <html lang="en" className={`${inter.variable} ${jakarta.variable}`}>
+      <body className="font-sans antialiased">
+        <EnvBadge />
         <Providers>
           <AppShell>
             {children}

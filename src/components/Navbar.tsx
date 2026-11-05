@@ -1,313 +1,198 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import {
-    Bell,
-    Search,
-    Settings,
-    HelpCircle,
-    Plus,
-    FileText,
-    Briefcase,
-    LayoutDashboard,
-    Menu,
-    LogOut,
-    User,
-    Video,
-    Compass,
-    TrendingUp,
-    Shield,
-    Users,
-    ChevronDown
-} from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
-import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useSession, signOut } from 'next-auth/react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Plus, Briefcase, CheckSquare, FileText, Target, AlertTriangle, HelpCircle, LogOut, User, ChevronRight, ChevronDown, Search, Video, Building2, Users } from 'lucide-react';
+import NewTaskModal from '@/components/modals/NewTaskModal';
+import CreateMilestoneModal from '@/components/modals/CreateMilestoneModal';
+import CreateSpaceModal from '@/components/modals/CreateSpaceModal';
 import GeminiAssistant from "@/components/GeminiAssistant";
 import NotificationCenter from "@/components/NotificationCenter";
 import { cn } from "@/lib/utils";
-import Avatar from "@/components/ui/Avatar";
-import NewTaskModal from "@/components/modals/NewTaskModal";
-import CreateMilestoneModal from "@/components/modals/CreateMilestoneModal";
+import Avatar, { initialsOf } from "@/components/ui/Avatar";
+import Badge from "@/components/ui/Badge";
+import { humanize, roleTone } from "@/components/ui/tones";
+import { openCommandPalette } from "@/components/Sidebar";
 
 interface NavbarProps {
     onMenuClick?: () => void;
 }
 
-export default function Navbar({ onMenuClick }: NavbarProps) {
+const SECTION_NAMES: Record<string, string> = {
+    '': 'Home', inbox: 'Messages', meetings: 'Meetings', recent: 'Recents', projects: 'Projects', milestones: 'Milestones',
+    tasks: 'Tasks', issues: 'Issues', notes: 'Notes', reports: 'Reports', library: 'Library', 'ai-assistant': 'EUSAI AI',
+    welcome: 'Getting started', universities: 'Universities', resources: 'Resources', team: 'Team', admin: 'System admin',
+    spaces: 'Departments', wiki: 'Knowledge', health: 'Platform health', logs: 'System logs', profile: 'Profile', new: 'New', submit: 'Submit report', performance: 'Performance', users: 'Users',
+};
+
+/** "/reports/submit" -> [Reports, Submit report]; ids become "Details". */
+function useBreadcrumbs() {
+    const pathname = usePathname();
+    const parts = pathname.split('/').filter(Boolean);
+    if (parts.length === 0) return [{ label: 'Home', href: '/' }];
+    return parts.map((part, i) => ({
+        label: SECTION_NAMES[part] ?? 'Details',
+        href: '/' + parts.slice(0, i + 1).join('/'),
+    }));
+}
+
+const menuItemClass = "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-slate-200 transition hover:bg-white/[0.06]";
+
+function Dropdown({ open, onClose, className, children }: { open: boolean; onClose: () => void; className?: string; children: React.ReactNode }) {
+    return (
+        <AnimatePresence>
+            {open && (
+                <>
+                    <div className="fixed inset-0 z-40" onClick={onClose} />
+                    <motion.div
+                        initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                        transition={{ duration: 0.15 }}
+                        className={cn('absolute right-0 top-full z-50 mt-2 rounded-2xl border border-white/[0.08] bg-[#11141B]/95 p-1.5 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.8)] backdrop-blur-2xl', className)}
+                    >
+                        {children}
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+    );
+}
+
+// The sidebar opens from the mobile dock's menu button, so onMenuClick is optional here.
+export default function Navbar(_props: NavbarProps) {
     const { data: session } = useSession();
     const router = useRouter();
+    const crumbs = useBreadcrumbs();
     const [showAssistant, setShowAssistant] = useState(false);
     const [showCreateMenu, setShowCreateMenu] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
+    // Create-menu dialogs open in place, without leaving the current page
+    const [dialog, setDialog] = useState<'task' | 'milestone' | 'department' | null>(null);
 
-    const createMenuRef = useRef<HTMLDivElement>(null);
-    const profileMenuRef = useRef<HTMLDivElement>(null);
+    const userRole = (session?.user as any)?.role || "EMPLOYEE";
+    const isReadOnly = userRole === 'MANAGEMENT';
+    const canCreateProject = userRole === "MANAGER" || userRole === "DIRECTOR";
+    const canCreateMilestone = ['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole);
+    const isLeader = canCreateMilestone || userRole === 'MANAGEMENT';
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (createMenuRef.current && !createMenuRef.current.contains(event.target as Node)) {
-                setShowCreateMenu(false);
-            }
-            if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
-                setShowProfileMenu(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
-
-    // Modals
-    const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-    const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
-
-    const userRole = ((session?.user as any)?.role || "EMPLOYEE").toUpperCase();
-    const isExecutive = userRole === "DIRECTOR" || userRole === "MANAGEMENT";
-    const isManager = isExecutive || userRole === "MANAGER";
-    const isTeamLeader = isManager || userRole === "TEAM_LEADER";
-
-    const getRoleBadgeStyle = (role: string) => {
-        switch (role) {
-            case 'DIRECTOR':
-                return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-            case 'MANAGEMENT':
-                return 'bg-[#0052CC]/20 text-blue-300 border-[#0052CC]/30';
-            case 'MANAGER':
-                return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
-            case 'TEAM_LEADER':
-                return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
-            default:
-                return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
-        }
+    const go = (href: string) => {
+        router.push(href);
+        setShowCreateMenu(false);
+        setShowProfileMenu(false);
     };
 
-    const handleSearchClick = () => {
-        const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
-        document.dispatchEvent(event);
-    };
+    const createItems: { show: boolean; label: string; hint: string; icon: React.ElementType; tone: string; href?: string; dialog?: 'task' | 'milestone' | 'department' }[] = [
+        { show: userRole === 'DIRECTOR', label: 'New department', hint: 'Group projects and people', icon: Building2, tone: 'text-violet-300 bg-violet-500/15', dialog: 'department' as const },
+        { show: canCreateProject, label: 'New project', hint: 'Plan a new initiative', icon: Briefcase, tone: 'text-blue-300 bg-blue-500/15', href: '/projects/new' },
+        { show: canCreateMilestone, label: 'New task', hint: 'Assign work to your team', icon: CheckSquare, tone: 'text-emerald-300 bg-emerald-500/15', dialog: 'task' as const },
+        { show: canCreateMilestone, label: 'New milestone', hint: 'MOU, logo, business order', icon: Target, tone: 'text-violet-300 bg-violet-500/15', dialog: 'milestone' as const },
+        { show: true, label: 'Schedule video call', hint: 'Google Meet with your team', icon: Video, tone: 'text-sky-300 bg-sky-500/15', href: '/meetings' },
+        { show: true, label: 'Report an issue', hint: 'Flag a blocker', icon: AlertTriangle, tone: 'text-amber-300 bg-amber-500/15', href: '/issues?new=1' },
+        { show: true, label: 'Submit daily report', hint: "Log today's work", icon: FileText, tone: 'text-cyan-300 bg-cyan-500/15', href: '/reports/submit' },
+    ].filter(item => item.show);
 
     return (
         <>
-            <nav className="h-16 border-b border-[rgba(255,255,255,0.08)] backdrop-blur-xl sticky top-0 z-40 px-4 flex items-center justify-between transition-all duration-300 bg-[#1c1c1c]/90 lg:bg-[#191919]/80 supports-[backdrop-filter]:bg-[#1c1c1c]/80 lg:supports-[backdrop-filter]:bg-[#191919]/60">
-                {/* Left Section: Mobile Menu & Logo */}
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={onMenuClick}
-                        className="hidden p-2 -ml-1 rounded-lg transition-all hover:bg-[var(--notion-bg-hover)]"
-                        style={{ color: 'var(--notion-text-secondary)' }}
-                        aria-label="Toggle Menu"
-                    >
-                        <Menu className="w-5 h-5" />
-                    </button>
+            <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-white/[0.06] bg-[#07090D]/70 px-4 backdrop-blur-2xl sm:px-6 lg:px-8">
+                {/* mobile brand */}
+                <Link href="/" className="flex items-center gap-2 lg:hidden">
+                    <span className="h-8 w-8 rounded-lg bg-white p-0.5"><img src="/EUSAI-LOGO.png" alt="EUSAI" className="h-full w-full object-contain" /></span>
+                    <span className="font-display text-base font-bold text-white">EUSAI</span>
+                </Link>
 
-                    <div className="lg:hidden flex items-center gap-2">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-transparent overflow-hidden flex-shrink-0">
-                            <img src="/EUSAI-LOGO.png" alt="E" className="w-full h-full object-contain" />
-                        </div>
-                        <span className="font-bold text-white text-lg tracking-tight">EUSAI CRM</span>
-                    </div>
-                </div>
+                {/* breadcrumbs */}
+                <nav aria-label="Breadcrumb" className="hidden min-w-0 items-center gap-2 text-sm lg:flex">
+                    <span className="text-slate-500">Workspace</span>
+                    {crumbs.map((crumb, i) => (
+                        <React.Fragment key={crumb.href}>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-slate-600" />
+                            {i === crumbs.length - 1
+                                ? <span className="truncate font-medium text-slate-200">{crumb.label}</span>
+                                : <Link href={crumb.href} className="truncate text-slate-400 hover:text-slate-200">{crumb.label}</Link>}
+                        </React.Fragment>
+                    ))}
+                </nav>
 
-                {/* Center/Right Section */}
-                <div className="flex items-center gap-2 sm:gap-4 flex-1 justify-end">
+                <div className="flex-1" />
 
-                    {/* Search Bar - Desktop */}
-                    <button
-                        onClick={handleSearchClick}
-                        className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-md border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.03)] hover:bg-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.2)] transition-all w-64 group"
-                    >
-                        <Search className="w-4 h-4 text-[rgba(255,255,255,0.4)] group-hover:text-[rgba(255,255,255,0.8)] transition-colors" />
-                        <span className="text-sm text-[rgba(255,255,255,0.4)] group-hover:text-[rgba(255,255,255,0.8)] transition-colors">Search tasks, spaces...</span>
-                        <div className="ml-auto flex items-center gap-1">
-                            <span className="text-[10px] bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.5)] px-1.5 py-0.5 rounded font-mono">⌘K</span>
-                        </div>
-                    </button>
+                <button onClick={openCommandPalette} className="hidden h-10 w-64 items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 text-sm text-slate-500 transition hover:bg-white/[0.06] hover:text-slate-300 xl:flex">
+                    <Search className="h-4 w-4" />
+                    <span className="flex-1 truncate whitespace-nowrap text-left">Search everything</span>
+                    <kbd className="rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[11px]">Ctrl K</kbd>
+                </button>
 
-                    {/* Role-tailored "+ Create" Action Button */}
-                    <div ref={createMenuRef} className="relative hidden sm:block">
+                <NotificationCenter />
+
+                <button
+                    onClick={() => setShowAssistant(!showAssistant)}
+                    className={cn('hidden h-10 w-10 items-center justify-center rounded-xl border transition lg:flex',
+                        showAssistant ? 'border-blue-400/30 bg-blue-500/15 text-blue-300' : 'border-white/[0.07] bg-white/[0.03] text-slate-300 hover:bg-white/[0.06]')}
+                    title="Help assistant"
+                    aria-label="Help assistant"
+                >
+                    <HelpCircle className="h-[18px] w-[18px]" />
+                </button>
+
+                {!isReadOnly && (
+                    <div className="relative hidden lg:block">
                         <button
                             onClick={() => setShowCreateMenu(!showCreateMenu)}
-                            className="flex items-center justify-center gap-2 h-8 px-3.5 bg-[#0052CC] hover:bg-[#0747A6] text-white rounded-lg transition-all font-bold text-xs shadow-md active:scale-95"
+                            className="flex h-10 items-center gap-2 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 px-4 text-sm font-semibold text-white shadow-[0_8px_24px_-8px_rgba(59,130,246,0.8),inset_0_1px_0_rgba(255,255,255,0.25)] transition hover:from-blue-400 hover:to-blue-500"
                         >
-                            <Plus className="w-3.5 h-3.5" />
-                            <span>
-                                {userRole === 'DIRECTOR' ? 'Create Space' :
-                                    userRole === 'MANAGEMENT' ? 'New Operation' :
-                                        userRole === 'MANAGER' ? 'New Operation' :
-                                            userRole === 'TEAM_LEADER' ? 'Assign Task' : 'New Task'}
-                            </span>
-                            <ChevronDown className={cn("w-3 h-3 transition-transform", showCreateMenu && "rotate-180")} />
+                            <Plus className="h-4 w-4" /> Create <ChevronDown className={cn('h-4 w-4 opacity-70 transition', showCreateMenu && 'rotate-180')} />
                         </button>
-
-                        {showCreateMenu && (
-                            <div className="absolute top-full right-0 mt-2 w-60 bg-[#2f3437] border border-[rgba(255,255,255,0.12)] rounded-xl shadow-2xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-150">
-
-                                    {/* Director Only Options */}
-                                    {userRole === 'DIRECTOR' && (
-                                        <button
-                                            onClick={() => { router.push('/spaces'); setShowCreateMenu(false); }}
-                                            className="w-full text-left px-4 py-2 text-xs font-bold text-white hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors"
-                                        >
-                                            <Compass className="w-4 h-4 text-purple-400" /> New Space Registry
-                                        </button>
-                                    )}
-
-                                    {/* Executive / Manager Options */}
-                                    {isManager && (
-                                        <button
-                                            onClick={() => { router.push('/projects'); setShowCreateMenu(false); }}
-                                            className="w-full text-left px-4 py-2 text-xs font-bold text-white hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors"
-                                        >
-                                            <Briefcase className="w-4 h-4 text-[#0052CC]" /> New Operation / Project
-                                        </button>
-                                    )}
-
-                                    {/* Milestone Creation (Manager or Above) */}
-                                    {isManager && (
-                                        <button
-                                            onClick={() => { setIsMilestoneModalOpen(true); setShowCreateMenu(false); }}
-                                            className="w-full text-left px-4 py-2 text-xs font-bold text-white hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors"
-                                        >
-                                            <TrendingUp className="w-4 h-4 text-amber-400" /> New Milestone
-                                        </button>
-                                    )}
-
-                                    {/* Task Creation (All Roles) */}
-                                    <button
-                                        onClick={() => { setIsTaskModalOpen(true); setShowCreateMenu(false); }}
-                                        className="w-full text-left px-4 py-2 text-xs font-bold text-white hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors"
-                                    >
-                                        <FileText className="w-4 h-4 text-[#36B37E]" /> New Strategic Task
-                                    </button>
-
-                                    {/* Meeting Creation */}
-                                    <button
-                                        onClick={() => { router.push('/meetings'); setShowCreateMenu(false); }}
-                                        className="w-full text-left px-4 py-2 text-xs font-bold text-white hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors"
-                                    >
-                                        <Video className="w-4 h-4 text-blue-400" /> Schedule Video Call
-                                    </button>
-
-                                    <div className="h-px bg-[rgba(255,255,255,0.1)] my-1" />
-
-                                    {/* Daily Report */}
-                                    <button
-                                        onClick={() => { router.push('/reports/submit'); setShowCreateMenu(false); }}
-                                        className="w-full text-left px-4 py-2 text-xs font-bold text-white hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors"
-                                    >
-                                        <LayoutDashboard className="w-4 h-4 text-purple-400" /> Submit Daily Report
-                                    </button>
-                                </div>
-                        )}
+                        <Dropdown open={showCreateMenu} onClose={() => setShowCreateMenu(false)} className="w-72">
+                            {createItems.map(item => (
+                                <button key={item.label} onClick={() => { if (item.dialog) { setDialog(item.dialog); setShowCreateMenu(false); } else if (item.href) go(item.href); }} className={menuItemClass}>
+                                    <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg', item.tone)}><item.icon className="h-4 w-4" /></span>
+                                    <span className="min-w-0">
+                                        <span className="block font-medium text-slate-100">{item.label}</span>
+                                        <span className="block text-xs text-slate-500">{item.hint}</span>
+                                    </span>
+                                </button>
+                            ))}
+                        </Dropdown>
                     </div>
+                )}
 
-                    {/* Divider */}
-                    <div className="h-4 w-px bg-[rgba(255,255,255,0.1)] mx-1 hidden lg:block" />
-
-                    {/* Notification Center */}
-                    <NotificationCenter />
-
-                    {/* AI Assistant */}
+                <div className="relative">
                     <button
-                        onClick={() => setShowAssistant(!showAssistant)}
-                        className={cn(
-                            "p-2 rounded-lg transition-all hidden lg:block hover:bg-[var(--notion-bg-hover)]",
-                            showAssistant ? "text-[#0052CC] bg-[rgba(0,82,204,0.1)]" : "text-[rgba(255,255,255,0.6)]"
-                        )}
-                        title="AI Strategic Assistant"
+                        onClick={() => setShowProfileMenu(!showProfileMenu)}
+                        className="flex h-10 items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.03] pl-1 pr-2 transition hover:bg-white/[0.06] sm:pr-3"
+                        aria-label="Account menu"
                     >
-                        <HelpCircle className="w-5 h-5" />
+                        <Avatar src={(session?.user as any)?.image} alt={session?.user?.name || ''} fallback={initialsOf(session?.user?.name)} className="h-8 w-8 text-[11px]" />
+                        <span className="hidden max-w-[120px] truncate text-sm font-medium text-slate-200 sm:block">{(session?.user?.name || 'User').split(' ')[0]}</span>
+                        <ChevronDown className="hidden h-4 w-4 text-slate-500 sm:block" />
                     </button>
-
-                    {/* Profile Dropdown */}
-                    <div ref={profileMenuRef} className="relative">
-                        <button
-                            onClick={() => setShowProfileMenu(!showProfileMenu)}
-                            className="flex items-center gap-2.5 pl-1.5 pr-3 h-9 rounded-full bg-[#191919] border border-[rgba(255,255,255,0.1)] hover:border-[rgba(255,255,255,0.3)] hover:bg-[rgba(255,255,255,0.05)] transition-all focus:outline-none"
-                        >
-                            <div className="w-6 h-6 rounded-full overflow-hidden bg-gray-700 flex-shrink-0">
-                                <Avatar
-                                    src={(session?.user as any)?.image}
-                                    alt=""
-                                    fallback={(session?.user?.name?.charAt(0) || 'U').toUpperCase()}
-                                    className="w-full h-full object-cover"
-                                />
+                    <Dropdown open={showProfileMenu} onClose={() => setShowProfileMenu(false)} className="w-72">
+                        <div className="flex items-center gap-3 px-3 py-3">
+                            <Avatar src={(session?.user as any)?.image} alt={session?.user?.name || ''} fallback={initialsOf(session?.user?.name)} className="h-10 w-10 text-xs" />
+                            <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-semibold text-white">{session?.user?.name || 'User'}</p>
+                                <p className="truncate text-xs text-slate-500">{session?.user?.email}</p>
                             </div>
-                            <div className="flex flex-col text-left hidden sm:flex">
-                                <span className="text-xs font-bold text-white max-w-[100px] truncate leading-tight">
-                                    {session?.user?.name || 'User'}
-                                </span>
-                                <span className="text-[9px] font-bold text-[rgba(255,255,255,0.4)] uppercase tracking-wider leading-none mt-0.5">
-                                    {userRole}
-                                </span>
-                            </div>
-                        </button>
-
-                        {showProfileMenu && (
-                            <div className="absolute top-full right-0 mt-2 w-64 bg-[#2f3437] border border-[rgba(255,255,255,0.12)] rounded-xl shadow-2xl z-50 py-2 animate-in fade-in zoom-in-95 duration-150">
-                                <div className="px-4 py-3 border-b border-[rgba(255,255,255,0.1)] mb-1">
-                                    <div className="flex items-center justify-between gap-2 mb-1">
-                                        <p className="text-sm font-bold text-white truncate">{session?.user?.name || 'User'}</p>
-                                        <span className={cn("text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider border", getRoleBadgeStyle(userRole))}>
-                                            {userRole}
-                                        </span>
-                                    </div>
-                                    <p className="text-xs text-[rgba(255,255,255,0.5)] truncate">{session?.user?.email}</p>
-                                </div>
-
-                                {/* Role-tailored Quick Nav */}
-                                <button onClick={() => { router.push('/profile'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
-                                    <User className="w-4 h-4 text-blue-400" /> My Profile
-                                </button>
-
-                                {isTeamLeader && (
-                                    <button onClick={() => { router.push('/team'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
-                                        <Users className="w-4 h-4 text-emerald-400" /> Team & Personnel
-                                    </button>
-                                )}
-
-                                {isManager && (
-                                    <button onClick={() => { router.push('/spaces'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
-                                        <Compass className="w-4 h-4 text-purple-400" /> Spaces & Departments
-                                    </button>
-                                )}
-
-                                <button onClick={() => { router.push('/settings'); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
-                                    <Settings className="w-4 h-4 text-gray-400" /> Settings
-                                </button>
-
-                                <div className="h-px bg-[rgba(255,255,255,0.1)] my-1" />
-
-                                <button onClick={() => { signOut({ callbackUrl: '/login' }); setShowProfileMenu(false); }} className="w-full text-left px-4 py-2 text-xs font-bold text-red-400 hover:bg-[rgba(255,255,255,0.06)] flex items-center gap-3 transition-colors">
-                                    <LogOut className="w-4 h-4" /> Log Out
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                        </div>
+                        <div className="px-3 pb-2"><Badge tone={roleTone(userRole)}>{humanize(userRole)}</Badge></div>
+                        <div className="my-1 h-px bg-white/[0.06]" />
+                        <button onClick={() => go('/profile')} className={menuItemClass}><User className="h-4 w-4 text-slate-400" /> Profile and settings</button>
+                        {isLeader && userRole !== 'MANAGEMENT' && <button onClick={() => go('/team')} className={menuItemClass}><Users className="h-4 w-4 text-slate-400" /> Team</button>}
+                        {isLeader && <button onClick={() => go('/spaces')} className={menuItemClass}><Building2 className="h-4 w-4 text-slate-400" /> Departments</button>}
+                        <button onClick={() => go('/reports/submit')} className={menuItemClass}><FileText className="h-4 w-4 text-slate-400" /> Submit daily report</button>
+                        <div className="my-1 h-px bg-white/[0.06]" />
+                        <button onClick={() => signOut({ callbackUrl: '/login' })} className={cn(menuItemClass, 'text-rose-300 hover:bg-rose-500/10')}><LogOut className="h-4 w-4" /> Log out</button>
+                    </Dropdown>
                 </div>
-            </nav>
+            </header>
 
-            {/* Modals */}
-            {isTaskModalOpen && (
-                <NewTaskModal
-                    isOpen={isTaskModalOpen}
-                    onClose={() => setIsTaskModalOpen(false)}
-                    onTaskCreated={() => router.push('/tasks')}
-                />
-            )}
-
-            {isMilestoneModalOpen && (
-                <CreateMilestoneModal
-                    isOpen={isMilestoneModalOpen}
-                    onClose={() => setIsMilestoneModalOpen(false)}
-                    onSuccess={() => router.push('/milestones')}
-                />
-            )}
-
-            {/* Render Gemini Assistant */}
             {showAssistant && <GeminiAssistant onClose={() => setShowAssistant(false)} />}
+            {dialog === 'task' && <NewTaskModal isOpen onClose={() => setDialog(null)} onTaskCreated={() => { setDialog(null); router.push('/tasks'); }} />}
+            {dialog === 'milestone' && <CreateMilestoneModal isOpen onClose={() => setDialog(null)} onSuccess={() => { setDialog(null); router.push('/milestones'); }} />}
+            <CreateSpaceModal open={dialog === 'department'} onClose={() => setDialog(null)} />
         </>
     );
 }

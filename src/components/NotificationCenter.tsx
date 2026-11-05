@@ -128,12 +128,12 @@ export default function NotificationCenter() {
         <div className="relative" ref={popupRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 rounded-full hover:bg-[#F4F5F7] text-[#42526E] relative transition-colors"
+                className="p-2 rounded-full hover:bg-[#FFFFFF0A] text-[#A0A9B8] relative transition-colors"
                 title="Notifications"
             >
-                <Bell className={cn("w-5 h-5", isOpen && "text-[#0052CC]")} />
+                <Bell className={cn("w-5 h-5", isOpen && "text-[#3B82F6]")} />
                 {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white ring-2 ring-white animate-in zoom-in duration-200">
+                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white ring-2 ring-white animate-in zoom-in duration-200">
                         {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                 )}
@@ -142,19 +142,19 @@ export default function NotificationCenter() {
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-40 bg-black/20 lg:hidden" onClick={() => setIsOpen(false)} />
-                    <div className="fixed left-4 right-4 top-16 w-auto lg:absolute lg:right-0 lg:top-full lg:left-auto lg:mt-2 lg:w-96 bg-white rounded-lg shadow-xl border border-[#DFE1E6] z-50 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden flex flex-col max-h-[80vh]">
-                        <div className="p-4 border-b border-[#DFE1E6] flex items-center justify-between bg-gray-50/50">
+                    <div className="fixed left-4 right-4 top-16 w-auto lg:absolute lg:right-0 lg:top-full lg:left-auto lg:mt-2 lg:w-96 bg-white/[0.03] rounded-lg shadow-xl border border-[#FFFFFF14] z-50 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden flex flex-col max-h-[80vh]">
+                        <div className="p-4 border-b border-[#FFFFFF14] flex items-center justify-between bg-white/[0.03]/50">
                             <div className="flex items-center gap-2">
-                                <h3 className="font-semibold text-sm text-[#172B4D]">Notifications</h3>
+                                <h3 className="font-semibold text-sm text-[#E6EAF0]">Notifications</h3>
                                 {unreadCount > 0 && (
-                                    <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">{unreadCount} New</span>
+                                    <span className="bg-blue-500/15 text-blue-300 text-[11px] font-bold px-1.5 py-0.5 rounded-full">{unreadCount} New</span>
                                 )}
                             </div>
                             <div className="flex items-center gap-1">
                                 {unreadCount > 0 && (
                                     <button
                                         onClick={markAllAsRead}
-                                        className="p-1.5 text-xs font-medium text-[#0052CC] hover:bg-blue-50 rounded-sm transition-colors flex items-center gap-1"
+                                        className="p-1.5 text-xs font-medium text-[#3B82F6] hover:bg-blue-500/10 rounded-sm transition-colors flex items-center gap-1"
                                         title="Mark all as read"
                                     >
                                         <Check className="w-3.5 h-3.5" /> Mark all read
@@ -163,7 +163,7 @@ export default function NotificationCenter() {
                                 {notifications.length > 0 && (
                                     <button
                                         onClick={clearAll}
-                                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-sm transition-colors"
+                                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-sm transition-colors"
                                         title="Clear all"
                                     >
                                         <Trash2 className="w-3.5 h-3.5" />
@@ -172,19 +172,19 @@ export default function NotificationCenter() {
                             </div>
                         </div>
 
-                        <div className="overflow-y-auto custom-scrollbar flex-1 bg-white">
+                        <div className="overflow-y-auto custom-scrollbar flex-1 bg-white/[0.03]">
                             {loading && notifications.length === 0 ? (
-                                <div className="p-8 text-center text-gray-500">
+                                <div className="p-5 sm:p-8 text-center text-slate-400">
                                     <div className="animate-spin w-5 h-5 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
                                     <p className="text-xs">Loading...</p>
                                 </div>
                             ) : notifications.length === 0 ? (
-                                <div className="p-8 text-center">
-                                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                        <Bell className="w-6 h-6 text-gray-400" />
+                                <div className="p-5 sm:p-8 text-center">
+                                    <div className="w-12 h-12 bg-white/[0.03] rounded-full flex items-center justify-center mx-auto mb-3">
+                                        <Bell className="w-6 h-6 text-slate-400" />
                                     </div>
-                                    <p className="text-sm font-medium text-gray-900">All caught up!</p>
-                                    <p className="text-xs text-gray-500 mt-1">No new notifications to show.</p>
+                                    <p className="text-sm font-medium text-fg">All caught up!</p>
+                                    <p className="text-xs text-slate-400 mt-1">No new notifications to show.</p>
                                 </div>
                             ) : (
                                 <div className="divide-y divide-gray-100">
@@ -193,8 +193,8 @@ export default function NotificationCenter() {
                                             key={notification.id}
                                             onClick={() => handleNotificationClick(notification)}
                                             className={cn(
-                                                "p-4 hover:bg-gray-50 cursor-pointer transition-colors relative group",
-                                                !notification.isRead && "bg-blue-50/30"
+                                                "p-4 hover:bg-white/[0.03] cursor-pointer transition-colors relative group",
+                                                !notification.isRead && "bg-blue-500/10/30"
                                             )}
                                         >
                                             <div className="flex gap-3 items-start">
@@ -203,19 +203,19 @@ export default function NotificationCenter() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-start justify-between gap-2">
-                                                        <p className={cn("text-sm font-medium text-[#172B4D]", !notification.isRead && "font-bold")}>
+                                                        <p className={cn("text-sm font-medium text-[#E6EAF0]", !notification.isRead && "font-bold")}>
                                                             {notification.title}
                                                         </p>
-                                                        <span className="text-[10px] text-gray-400 whitespace-nowrap flex-shrink-0">
+                                                        <span className="text-[11px] text-slate-400 whitespace-nowrap flex-shrink-0">
                                                             {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                                                         </span>
                                                     </div>
-                                                    <p className="text-xs text-[#42526E] mt-0.5 line-clamp-2">
+                                                    <p className="text-xs text-[#A0A9B8] mt-0.5 line-clamp-2">
                                                         {notification.message}
                                                     </p>
                                                 </div>
                                                 {!notification.isRead && (
-                                                    <div className="w-2 h-2 bg-[#0052CC] rounded-full mt-1.5 flex-shrink-0" />
+                                                    <div className="w-2 h-2 bg-[#3B82F6] rounded-full mt-1.5 flex-shrink-0" />
                                                 )}
                                             </div>
                                         </div>

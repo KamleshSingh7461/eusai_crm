@@ -1,38 +1,44 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import { cn } from '@/lib/utils';
+import { TONES, type Tone } from './tones';
 
 interface AvatarProps {
     src?: string | null;
     alt?: string;
     fallback: string;
     className?: string;
+    tone?: Tone;
 }
 
-export default function Avatar({ src, alt = "User", fallback, className = "" }: AvatarProps) {
+const TONE_ORDER: Tone[] = ['blue', 'violet', 'emerald', 'amber', 'cyan', 'rose'];
+
+/** Stable tone per name so the same person always gets the same color. */
+export const toneFor = (seed: string): Tone => {
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+    return TONE_ORDER[Math.abs(hash) % TONE_ORDER.length];
+};
+
+export const initialsOf = (name?: string | null) =>
+    (name || '?').trim().split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase();
+
+export default function Avatar({ src, alt = "User", fallback, className = "", tone }: AvatarProps) {
     const [imgError, setImgError] = useState(false);
 
-    // Default styling for the fallback initials block
-    const fallbackClass = `flex items-center justify-center bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] font-bold uppercase ${className}`;
-
     if (!src || imgError) {
+        const t = tone ?? toneFor(alt + fallback);
         return (
-            <div className={fallbackClass} title={alt}>
+            <div
+                className={cn('flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-semibold uppercase ring-1 ring-inset', TONES[t].tile, className)}
+                title={alt}
+            >
                 {fallback}
             </div>
         );
     }
 
-    // Attempt to render the image. If it fails (e.g., broken URL, 404), switch to fallback.
-    // Using native img tag here instead of next/image since user avatars come from diverse unpredictable domains
-    // and next/image requires strict hostname configurations in next.config.js which might block valid external Google URLs.
-    return (
-        <img
-            src={src}
-            alt={alt}
-            onError={() => setImgError(true)}
-            className={`object-cover ${className}`}
-        />
-    );
+    // Native img: avatars come from arbitrary domains (Google etc.) that next/image would need whitelisted.
+    return <img src={src} alt={alt} onError={() => setImgError(true)} className={cn('shrink-0 rounded-full object-cover ring-1 ring-white/10', className)} />;
 }

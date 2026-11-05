@@ -4,14 +4,14 @@ import { Smile, Sparkles, Star } from 'lucide-react';
 
 export default function WelcomePage() {
     return (
-        <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500">
             {/* Welcome Header */}
-            <div className="text-center py-12">
+            <div className="text-center py-8 sm:py-12">
                 <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 mb-6">
                     <Smile className="w-10 h-10 text-white" />
                 </div>
-                <h1 className="text-4xl font-bold text-heading mb-4">Welcome to EUSAI CRM!</h1>
-                <p className="text-lg text-body max-w-2xl mx-auto">
+                <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Welcome to EUSAI</h1>
+                <p className="mt-2 max-w-2xl text-base text-slate-400">
                     Your enterprise platform for seamless project management, team collaboration, and business growth.
                 </p>
             </div>
@@ -39,7 +39,7 @@ export default function WelcomePage() {
             </div>
 
             {/* Quick Start Guide */}
-            <div className="bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm shadow-sm p-8">
+            <div className="bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm shadow-sm p-5 sm:p-8">
                 <h2 className="text-xl font-bold text-heading mb-6">Quick Start Guide</h2>
                 <div className="space-y-4">
                     <QuickStartStep
@@ -66,13 +66,13 @@ export default function WelcomePage() {
             </div>
 
             {/* Team Introduction */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-500/30 rounded-sm p-8 text-center">
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-500/30 rounded-sm p-5 sm:p-8 text-center">
                 <h2 className="text-xl font-bold text-heading mb-3">Built for Teams, Powered by Innovation</h2>
                 <p className="text-sm text-body max-w-2xl mx-auto mb-6">
                     EUSAI CRM is designed to help teams of all sizes work smarter, collaborate better, and achieve more together.
                     Whether you're a director overseeing projects or an employee managing daily tasks, we've got you covered.
                 </p>
-                <p className="text-xs text-[#97A0AF]">
+                <p className="text-xs text-[#6B7385]">
                     Need help? Check out our documentation or reach out to your team administrator.
                 </p>
             </div>
@@ -83,8 +83,8 @@ export default function WelcomePage() {
 function FeatureCard({ icon, title, description, color }: any) {
     const colors: any = {
         blue: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-        purple: 'bg-purple-50 text-purple-600 border-purple-200',
-        green: 'bg-green-50 text-green-600 border-green-200'
+        purple: 'bg-purple-500/10 text-purple-300 border-purple-400/25',
+        green: 'bg-green-500/10 text-green-300 border-green-400/25'
     };
 
     return (
@@ -101,7 +101,7 @@ function FeatureCard({ icon, title, description, color }: any) {
 function QuickStartStep({ number, title, description }: any) {
     return (
         <div className="flex gap-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#0052CC] text-white flex items-center justify-center font-bold text-sm">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#3B82F6] text-white flex items-center justify-center font-bold text-sm">
                 {number}
             </div>
             <div>

@@ -1,35 +1,179 @@
 @import "../styles/design-tokens.css";
 @import "tailwindcss";
 
+/*
+ * EUSAI design system: dark only.
+ * Semantic colors become utilities: bg-canvas, bg-surface, text-fg-muted, border-line, text-brand ...
+ */
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-primary: #0052CC;
-  --color-border: #DFE1E6;
+  --font-display: var(--font-jakarta), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* surfaces, darkest to lightest */
+  --color-canvas: #07090D;
+  --color-surface: #0D1016;
+  --color-elevated: #131720;
+  --color-overlay: #181D28;
+
+  /* lines */
+  --color-line: rgba(255, 255, 255, 0.07);
+  --color-line-strong: rgba(255, 255, 255, 0.12);
+  --color-border: rgba(255, 255, 255, 0.07);
+
+  /* text */
+  --color-fg: #E6EAF0;
+  --color-fg-muted: #A0A9B8;
+  --color-fg-subtle: #6B7385;
+
+  /* brand and status */
+  --color-brand: #3B82F6;
+  --color-brand-hover: #60A5FA;
+  --color-brand-strong: #2563EB;
+  --color-success: #34D399;
+  --color-warning: #FBBF24;
+  --color-danger: #FB7185;
+  --color-info: #38BDF8;
+  --color-leader: #A78BFA;
+
+  /* aliases used by older shadcn-style markup */
+  --color-background: #07090D;
+  --color-foreground: #E6EAF0;
+  --color-primary: #3B82F6;
+  --color-primary-foreground: #FFFFFF;
+  --color-card: #0D1016;
+  --color-muted: rgba(255, 255, 255, 0.04);
+  --color-muted-foreground: #A0A9B8;
+  --color-destructive: #F43F5E;
 }
 
-:root {
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --primary: 217 91% 40%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 214 32% 91%;
-  --secondary-foreground: 222 47% 11%;
-  --muted: 214 32% 91%;
-  --muted-foreground: 215 16% 47%;
-  --accent: 214 32% 91%;
-  --accent-foreground: 222 47% 11%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 217 91% 40%;
-  --radius: 0.25rem;
+@layer base {
+  * {
+    @apply border-line;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  html,
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    background-color: var(--color-canvas);
+    color: var(--color-fg);
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+
+  ::selection {
+    background: rgba(59, 130, 246, 0.35);
+  }
+
+  /* Grid items default to min-width:auto, so one long title or nowrap row can push a
+     whole card off a phone screen. Let them shrink; truncate/wrap inside instead. */
+  .grid > * {
+    min-width: 0;
+  }
+
+  /* Media never wider than its container */
+  img, svg, video, canvas {
+    max-width: 100%;
+  }
+
+  /* dark native form controls everywhere */
+  input, select, textarea {
+    color-scheme: dark;
+  }
+
+  option {
+    background-color: var(--color-overlay);
+    color: var(--color-fg);
+  }
+
+  :focus-visible {
+    outline: 2px solid rgba(96, 165, 250, 0.7);
+    outline-offset: 2px;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* glass card: the base surface for every panel */
+@utility glass {
+  position: relative;
+  border-radius: 1rem;
+  border: 1px solid var(--color-line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 20px 40px -24px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px);
+}
+
+@utility glass-hover {
+  transition: border-color 0.3s, transform 0.3s;
+
+  &:hover {
+    border-color: var(--color-line-strong);
+    transform: translateY(-2px);
+  }
+}
+
+@layer components {
+  /* legacy class names, restyled so untouched markup matches the new system */
+  .card-eusai,
+  .card-jira {
+    @apply glass p-5;
+  }
+
+  .card-eusai:hover,
+  .card-jira:hover {
+    border-color: var(--color-line-strong);
+  }
+
+  .btn-eusai-create,
+  .btn-jira-create {
+    @apply inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl text-sm font-semibold text-white transition-all;
+    background-image: linear-gradient(to bottom, #3B82F6, #2563EB);
+    box-shadow: 0 8px 24px -8px rgba(59, 130, 246, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+
+  .btn-eusai-create:hover,
+  .btn-jira-create:hover {
+    background-image: linear-gradient(to bottom, #60A5FA, #3B82F6);
+  }
+
+  .btn-jira-secondary {
+    @apply inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl text-sm font-medium text-fg-muted border border-line bg-white/[0.03] hover:bg-white/[0.06] hover:text-fg transition-all;
+  }
+
+  .sidebar-link-eusai {
+    @apply relative flex items-center gap-3 h-10 px-3 rounded-xl text-sm font-medium text-fg-muted transition-all;
+  }
+
+  .sidebar-link-eusai:hover {
+    @apply bg-white/[0.04] text-fg;
+  }
+
+  .sidebar-link-eusai.active {
+    @apply text-white ring-1 ring-inset ring-blue-400/20;
+    background-image: linear-gradient(to right, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.04));
+  }
 }
 
 @layer utilities {
@@ -42,134 +186,16 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #DFE1E6;
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #B3BAC5;
-  }
-
-  /* Dark scrollbar for sidebar */
-  .bg-\[\#191919\] .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  .bg-\[\#191919\] .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
   }
-}
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  html,
-  body {
-    max-width: 100vw;
-    overflow-x: hidden;
-  }
-
-  body {
-    @apply bg-background text-foreground font-sans;
-    background-color: #191919;
-    color: rgba(255, 255, 255, 0.9);
-  }
-}
-
-/*
- * Mobile Navbar Optimization
- *
- * Issues: Resolved a syntax error introduced during the responsive grid implementation.
- * Layout: Fixed "Content behind sidebar" bug on desktop by synchronizing AppShell and Sidebar layouts.
- * Navbar: Optimized the top navigation bar for mobile by increasing height, simplifies the Create and Search buttons, and hiding secondary icons.
- *
- * Proof of Work
- *
- * Mobile Navbar Optimization
- * NOTE: The top navbar is now much more spacious on mobile. Search and Create have been simplified to icon-only buttons on small screens to prevent congestion.
- *
- * Desktop Sidebar Alignment
- */
-.sidebar-link-eusai {
-  @apply flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-sm transition-all;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.sidebar-link-eusai:hover {
-  background: #2c2c2c;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.sidebar-link-eusai.active {
-  background: rgba(35, 131, 226, 0.2);
-  color: #2383e2;
-  position: relative;
-}
-
-.sidebar-link-eusai.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 4px;
-  bottom: 4px;
-  width: 3px;
-  background: #FFFFFF;
-  border-radius: 0 2px 2px 0;
-}
-
-.card-eusai {
-  background: #2f3437;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 3px;
-  padding: 1rem;
-}
-
-.card-eusai:hover {
-  background: #3b4045;
-  border-color: #2383e2;
-}
-
-.btn-eusai-create {
-  @apply px-4 py-2 rounded-md font-semibold text-sm transition-all shadow-sm;
-  background-color: var(--notion-accent-blue);
-  color: #ffffff;
-}
-
-.btn-eusai-create:hover {
-  background-color: var(--notion-accent-blue-hover);
-  box-shadow: 0 2px 8px rgba(35, 131, 226, 0.3);
-}
-
-.card-jira {
-  @apply p-6 bg-[#2f3437] border border-[rgba(255_255_255/0.09)] rounded-sm shadow-sm transition-all;
-}
-
-.card-jira:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-
-.btn-jira-create {
-  @apply px-3 py-1.5 rounded-sm font-medium text-sm transition-all;
-  background-color: var(--notion-accent-blue);
-  color: #ffffff;
-}
-
-.btn-jira-create:hover {
-  background-color: var(--notion-accent-blue-hover);
-  box-shadow: 0 1px 4px rgba(35, 131, 226, 0.3);
-}
-
-.btn-jira-secondary {
-  @apply px-3 py-1.5 bg-[#3b4045] border border-[rgba(255_255_255/0.09)] rounded-sm font-medium text-sm text-[rgba(255_255_255/0.7)] hover:bg-[#464c51];
-}
-
-/* Design Tokens - Focus & Interaction */
-@layer utilities {
   .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-[#0052CC]/30 focus:ring-offset-2;
+    @apply focus:outline-none focus:ring-2 focus:ring-blue-400/40;
   }
 
   .transition-smooth {
@@ -177,28 +203,31 @@
   }
 
   .hover-lift {
-    @apply hover:shadow-md hover:-translate-y-0.5 transition-all duration-200;
+    @apply hover:-translate-y-0.5 transition-all duration-200;
   }
 
   .text-eusai {
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--color-fg);
   }
 
   .text-eusai-muted {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--color-fg-muted);
   }
 
   .bg-eusai-subtle {
-    background-color: #2f3437;
+    background-color: var(--color-elevated);
   }
 
   .border-eusai {
-    border-color: rgba(255, 255, 255, 0.09);
+    border-color: var(--color-line);
+  }
+
+  .text-gradient-brand {
+    @apply bg-gradient-to-r from-blue-300 via-sky-200 to-violet-300 bg-clip-text text-transparent;
   }
 }
 
 @media print {
-
   aside,
   header,
   footer,

@@ -78,7 +78,7 @@ export default function GeminiAssistant({ onClose }: { onClose: () => void }) {
     };
 
     return (
-        <div className="fixed bottom-20 right-4 w-96 h-[500px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden z-[50] animate-in slide-in-from-bottom-10 fade-in duration-300">
+        <div className="fixed bottom-20 right-4 w-96 h-[500px] bg-white/[0.03] rounded-2xl shadow-2xl border border-line flex flex-col overflow-hidden z-[50] animate-in slide-in-from-bottom-10 fade-in duration-300">
             {/* Header */}
             <div className="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -87,7 +87,7 @@ export default function GeminiAssistant({ onClose }: { onClose: () => void }) {
                     </div>
                     <div>
                         <h3 className="font-semibold text-sm">Gemini Assistant</h3>
-                        <p className="text-[10px] text-white/80">Powered by Google AI</p>
+                        <p className="text-[11px] text-white/80">Powered by Google AI</p>
                     </div>
                 </div>
                 <button onClick={onClose} className="p-1 hover:bg-white/20 rounded transition-colors">
@@ -96,7 +96,7 @@ export default function GeminiAssistant({ onClose }: { onClose: () => void }) {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50" ref={scrollRef}>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/[0.03]" ref={scrollRef}>
                 {messages.map((msg) => (
                     <div
                         key={msg.id}
@@ -104,17 +104,17 @@ export default function GeminiAssistant({ onClose }: { onClose: () => void }) {
                             "flex max-w-[85%] rounded-2xl p-3 text-sm shadow-sm",
                             msg.role === "user"
                                 ? "ml-auto bg-blue-600 text-white rounded-br-none"
-                                : "mr-auto bg-white border border-gray-100 text-gray-800 rounded-bl-none"
+                                : "mr-auto bg-white/[0.03] border border-line text-fg rounded-bl-none"
                         )}
                     >
                         {msg.role === "assistant" && (
-                            <Bot className="w-4 h-4 mr-2 mt-0.5 text-blue-600 flex-shrink-0 inline-block" />
+                            <Bot className="w-4 h-4 mr-2 mt-0.5 text-blue-300 flex-shrink-0 inline-block" />
                         )}
                         <span className="whitespace-pre-wrap">{msg.content}</span>
                     </div>
                 ))}
                 {isLoading && (
-                    <div className="mr-auto bg-white border border-gray-100 text-gray-500 rounded-2xl rounded-bl-none p-3 text-sm shadow-sm flex items-center gap-2">
+                    <div className="mr-auto bg-white/[0.03] border border-line text-slate-400 rounded-2xl rounded-bl-none p-3 text-sm shadow-sm flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Thinking...
                     </div>
@@ -122,12 +122,12 @@ export default function GeminiAssistant({ onClose }: { onClose: () => void }) {
             </div>
 
             {/* Input Area */}
-            <form onSubmit={handleSend} className="p-3 bg-white border-t border-gray-100 flex gap-2">
+            <form onSubmit={handleSend} className="p-3 bg-white/[0.03] border-t border-line flex gap-2">
                 <input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Ask for help..."
-                    className="flex-1 bg-gray-100 border-none rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 text-gray-800"
+                    className="flex-1 bg-white/[0.03] border-none rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 text-fg"
                 />
                 <button
                     type="submit"

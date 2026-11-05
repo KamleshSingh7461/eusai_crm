@@ -1,5 +1,5 @@
 import { headers } from 'next/headers';
-import jwt from 'jsonwebtoken';
+import { DEV_MOBILE_TOKEN, devShortcutsAllowed, verifyMobileToken } from '@/lib/mobileToken';
 import prisma from '@/lib/prisma';
 
 export async function getMobileSession() {
@@ -12,19 +12,15 @@ export async function getMobileSession() {
 
     const token = authHeader.split(' ')[1];
     
-    // DEV OVERRIDE: Accept mock token for rapid testing
-    if (token === 'dev_mock_token_2026') {
-        return {
-            user: {
-                id: '462ca1a5-61aa-40e0-89b7-99b70cd8fcab',
-                email: 'admin@eusaiteam.com',
-                role: 'DIRECTOR'
-            }
-        };
+    // Mobile dev login: local only, and resolves to the real local admin user.
+    if (token === DEV_MOBILE_TOKEN) {
+        if (!devShortcutsAllowed()) return null;
+        const admin = await prisma.user.findUnique({ where: { email: 'admin@eusaiteam.com' }, select: { id: true, email: true, role: true } });
+        return admin ? { user: admin } : null;
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = verifyMobileToken(token);
         
         // CRITICAL: Check DB for suspension status
         const user = await prisma.user.findUnique({

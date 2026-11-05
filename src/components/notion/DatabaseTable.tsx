@@ -86,7 +86,7 @@ export default function DatabaseTable({
     if (!data || data.length === 0) {
         return (
             <div
-                className="rounded-md border p-12 text-center"
+                className="rounded-md border p-6 sm:p-12 text-center"
                 style={{
                     backgroundColor: 'var(--notion-bg-secondary)',
                     borderColor: 'var(--notion-border-default)'

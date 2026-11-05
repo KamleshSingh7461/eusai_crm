@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
             };
         });
 
-        // 3. Strategic Risks (Critical/High Issues)
+        // 3. Risks (Critical/High Issues)
         const criticalIssues = await prisma.issue.findMany({
             where: {
                 status: { not: 'CLOSED' },

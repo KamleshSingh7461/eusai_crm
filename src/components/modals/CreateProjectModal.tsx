@@ -99,18 +99,18 @@ export default function CreateProjectModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-md shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] w-full max-w-lg flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
                 
                 {/* Header */}
                 <div className="p-5 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-primary)]">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-sm bg-[#2383e2]/15 flex items-center justify-center text-[#2383e2]">
+                        <div className="w-9 h-9 rounded-sm bg-[#3B82F6]/15 flex items-center justify-center text-[#3B82F6]">
                             <Briefcase className="w-5 h-5" />
                         </div>
                         <div>
                             <h2 className="text-base font-bold text-[var(--notion-text-primary)]">New Operation (Project)</h2>
-                            <p className="text-xs text-[var(--notion-text-tertiary)]">Initialize a project under space <span className="font-semibold text-[#2383e2]">{spaceName}</span></p>
+                            <p className="text-xs text-[var(--notion-text-tertiary)]">Initialize a project under space <span className="font-semibold text-[#3B82F6]">{spaceName}</span></p>
                         </div>
                     </div>
                     <button
@@ -133,7 +133,7 @@ export default function CreateProjectModal({
                             placeholder="e.g. University Outreach Q3"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full px-3 py-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] focus:outline-none focus:border-[#2383e2]"
+                            className="w-full px-3 py-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] focus:outline-none focus:border-[#3B82F6]"
                         />
                     </div>
 
@@ -146,11 +146,11 @@ export default function CreateProjectModal({
                             placeholder="Key goals, scope, and target outcomes..."
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="w-full px-3 py-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] focus:outline-none focus:border-[#2383e2]"
+                            className="w-full px-3 py-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] focus:outline-none focus:border-[#3B82F6]"
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold uppercase text-[var(--notion-text-tertiary)] tracking-wider mb-1">
                                 Start Date
@@ -159,7 +159,7 @@ export default function CreateProjectModal({
                                 type="date"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
-                                className="w-full px-3 py-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] focus:outline-none focus:border-[#2383e2]"
+                                className="w-full px-3 py-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] focus:outline-none focus:border-[#3B82F6]"
                             />
                         </div>
                         <div>
@@ -170,12 +170,12 @@ export default function CreateProjectModal({
                                 type="date"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
-                                className="w-full px-3 py-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] focus:outline-none focus:border-[#2383e2]"
+                                className="w-full px-3 py-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] focus:outline-none focus:border-[#3B82F6]"
                             />
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold uppercase text-[var(--notion-text-tertiary)] tracking-wider mb-1">
                                 Budget (INR)
@@ -185,7 +185,7 @@ export default function CreateProjectModal({
                                 placeholder="0.00"
                                 value={budget}
                                 onChange={(e) => setBudget(e.target.value)}
-                                className="w-full px-3 py-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] focus:outline-none focus:border-[#2383e2]"
+                                className="w-full px-3 py-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] focus:outline-none focus:border-[#3B82F6]"
                             />
                         </div>
                         <div>
@@ -195,7 +195,7 @@ export default function CreateProjectModal({
                             <select
                                 value={managerId}
                                 onChange={(e) => setManagerId(e.target.value)}
-                                className="w-full px-3 py-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] focus:outline-none focus:border-[#2383e2]"
+                                className="w-full px-3 py-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm text-xs text-[var(--notion-text-primary)] focus:outline-none focus:border-[#3B82F6]"
                             >
                                 <option value="">Select Manager / Lead...</option>
                                 {users.map(u => (
@@ -219,7 +219,7 @@ export default function CreateProjectModal({
                         <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-[#2383e2] hover:bg-[#1a6fcc] text-white"
+                            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
                         >
                             {isSubmitting ? (
                                 <span className="flex items-center gap-2">

@@ -5,75 +5,77 @@
 
 :root {
     /* ===== BACKGROUNDS ===== */
-    --notion-bg-primary: #191919;
+    --notion-bg-primary: #07090D;
     /* Main background */
-    --notion-bg-blue: #2383e2;
-    --notion-bg-blue-hover: #1a6fcc;
-    --notion-bg-red: #e03e3e;
-    --notion-bg-orange: #d9730d;
-    --notion-bg-yellow: #dfab01;
-    --notion-bg-green: #0f7b6c;
-    --notion-bg-purple: #6940a5;
+    --notion-bg-blue: #3B82F6;
+    --notion-bg-blue-hover: #2563EB;
+    --notion-bg-red: #F43F5E;
+    --notion-bg-orange: #F59E0B;
+    --notion-bg-yellow: #FBBF24;
+    --notion-bg-green: #10B981;
+    --notion-bg-purple: #8B5CF6;
     --notion-bg-pink: #ad1a72;
-    --notion-bg-gray: #ebeced;
-    --notion-bg-secondary: #1e1e1e;
+    --notion-bg-gray: #1A1F2A;
+    --notion-bg-secondary: #0D1016;
     /* Cards, elevated surfaces */
-    --notion-bg-tertiary: #2a2a2a;
+    --notion-bg-tertiary: #131720;
     /* Hover states */
-    --notion-bg-sidebar: #191919;
+    --notion-bg-sidebar: #080A0F;
     /* Sidebar */
-    --notion-bg-hover: rgba(255, 255, 255, 0.03);
+    --notion-bg-hover: rgba(255, 255, 255, 0.04);
     /* Subtle hover */
 
     /* ===== TEXT COLORS ===== */
-    --notion-text-primary: rgba(255, 255, 255, 0.9);
+    --notion-text-primary: #E6EAF0;
     /* Headings, important text */
-    --notion-text-secondary: rgba(255, 255, 255, 0.7);
+    --notion-text-secondary: #A0A9B8;
     /* Body text */
-    --notion-text-tertiary: rgba(255, 255, 255, 0.5);
+    --notion-text-tertiary: #8B94A5;
     /* Muted text, labels */
-    --notion-text-disabled: rgba(255, 255, 255, 0.3);
+    --notion-text-disabled: #4B5262;
     /* Disabled state */
 
     /* ===== BORDERS ===== */
-    --notion-border-default: rgba(255, 255, 255, 0.08);
+    --notion-border-default: rgba(255, 255, 255, 0.07);
     --notion-border-hover: rgba(255, 255, 255, 0.12);
-    --notion-border-focus: rgba(35, 131, 226, 0.5);
+    --notion-border-focus: rgba(96, 165, 250, 0.5);
 
     /* ===== STATUS COLORS (Notion-style badges) ===== */
-    --status-done-bg: rgba(76, 175, 80, 0.15);
-    --status-done-text: #4caf50;
-    --status-done-border: rgba(76, 175, 80, 0.3);
+    --status-done-bg: rgba(52, 211, 153, 0.12);
+    --status-done-text: #6EE7B7;
+    --status-done-border: rgba(52, 211, 153, 0.25);
 
-    --status-progress-bg: rgba(33, 150, 243, 0.15);
-    --status-progress-text: #2196f3;
-    --status-progress-border: rgba(33, 150, 243, 0.3);
+    --status-progress-bg: rgba(59, 130, 246, 0.12);
+    --status-progress-text: #93C5FD;
+    --status-progress-border: rgba(96, 165, 250, 0.25);
 
-    --status-not-started-bg: rgba(158, 158, 158, 0.15);
-    --status-not-started-text: #9e9e9e;
-    --status-not-started-border: rgba(158, 158, 158, 0.3);
+    --status-not-started-bg: rgba(148, 163, 184, 0.12);
+    --status-not-started-text: #CBD5E1;
+    --status-not-started-border: rgba(148, 163, 184, 0.25);
 
-    --status-review-bg: rgba(255, 152, 0, 0.15);
-    --status-review-text: #ff9800;
-    --status-review-border: rgba(255, 152, 0, 0.3);
+    --status-review-bg: rgba(251, 191, 36, 0.12);
+    --status-review-text: #FCD34D;
+    --status-review-border: rgba(251, 191, 36, 0.25);
 
-    --status-planned-bg: rgba(156, 39, 176, 0.15);
-    --status-planned-text: #9c27b0;
-    --status-planned-border: rgba(156, 39, 176, 0.3);
+    --status-planned-bg: rgba(167, 139, 250, 0.12);
+    --status-planned-text: #C4B5FD;
+    --status-planned-border: rgba(167, 139, 250, 0.25);
 
     /* ===== ACCENT COLORS ===== */
-    --notion-accent-blue: #2383e2;
-    --notion-accent-blue-hover: #1a6fcc;
-    --notion-accent-red: #eb5757;
-    --notion-accent-yellow: #f2c94c;
-    --notion-accent-green: #27ae60;
+    --notion-red: #F43F5E;
+    --notion-green: #10B981;
+    --notion-accent-blue: #3B82F6;
+    --notion-accent-blue-hover: #2563EB;
+    --notion-accent-red: #FB7185;
+    --notion-accent-yellow: #FBBF24;
+    --notion-accent-green: #34D399;
 
     /* ===== TYPOGRAPHY ===== */
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    
     --font-mono: 'Jetbrains Mono', 'Fira Code', 'Consolas', monospace;
 
     /* Font Sizes */
-    --text-xs: 11px;
+    --text-xs: 12px;
     --text-sm: 13px;
     --text-base: 14px;
     --text-lg: 16px;
@@ -105,10 +107,10 @@
     --space-16: 64px;
 
     /* ===== RADIUS ===== */
-    --radius-sm: 3px;
-    --radius-md: 6px;
-    --radius-lg: 8px;
-    --radius-xl: 12px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
     --radius-full: 9999px;
 
     /* ===== SHADOWS ===== */

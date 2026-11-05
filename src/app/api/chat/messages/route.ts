@@ -5,6 +5,10 @@ import prisma from '@/lib/prisma';
 import { sendPushNotification } from '@/lib/webPush';
 import { sendFcmNotification } from '@/lib/fcm';
 import { getMobileSession } from '@/lib/auth-mobile';
+import { canAnnounce, getChannelAccess } from '@/lib/chatAccess';
+
+const senderSelect = { id: true, name: true, email: true, image: true, role: true };
+const PAGE = 200;
 
 export async function GET(req: Request) {
     try {
@@ -29,17 +33,40 @@ export async function GET(req: Request) {
             return NextResponse.json({ messages: [] });
         }
 
-        const messages = await prisma.chatMessage.findMany({
-            where: { channelId },
-            include: {
-                sender: {
-                    select: { id: true, name: true, email: true, image: true, role: true }
-                }
-            },
-            orderBy: { createdAt: 'asc' }
-        });
+        const { canRead } = await getChannelAccess(channelId, (session.user as any).id, (session.user as any).role);
+        if (!canRead) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
 
-        return NextResponse.json({ messages });
+        // Paging (all optional, so older clients keep working):
+        //   after=<ISO date>  only messages newer than this (cheap polling)
+        //   before=<ISO date> older messages for infinite scroll
+        //   limit=<n>         page size (max 500)
+        // Without them: the latest page, oldest first, as before.
+        const after = searchParams.get('after');
+        const before = searchParams.get('before');
+        const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '') || PAGE, 1), 500);
+
+        if (after) {
+            const messages = await prisma.chatMessage.findMany({
+                where: { channelId, OR: [{ createdAt: { gt: new Date(after) } }, { updatedAt: { gt: new Date(after) } }] },
+                include: { sender: { select: senderSelect } },
+                orderBy: { createdAt: 'asc' },
+                take: 500,
+            });
+            return NextResponse.json({ messages, hasMore: false });
+        }
+
+        const page = await prisma.chatMessage.findMany({
+            where: { channelId, ...(before ? { createdAt: { lt: new Date(before) } } : {}) },
+            include: { sender: { select: senderSelect } },
+            orderBy: { createdAt: 'desc' },
+            take: limit + 1,
+        });
+        const hasMore = page.length > limit;
+        const messages = page.slice(0, limit).reverse();
+
+        return NextResponse.json({ messages, hasMore });
 
     } catch (error) {
         console.error('CHAT_MESSAGES_GET', error);
@@ -61,6 +88,21 @@ export async function POST(req: Request) {
         const userId = (session.user as any).id;
         const senderName = session.user.name || 'Someone';
         const { channelId, content, attachments } = await req.json();
+        const role = (session.user as any).role;
+
+        if (!channelId || (typeof content !== 'string') || (!content.trim() && !(Array.isArray(attachments) && attachments.length))) {
+            return NextResponse.json({ error: 'A message needs text or an attachment' }, { status: 400 });
+        }
+        if (channelId === 'sys-announcements' && !canAnnounce(role)) {
+            return NextResponse.json({ error: 'Only leaders can post announcements' }, { status: 403 });
+        }
+        if (channelId.startsWith('space-')) {
+            const spaceId = channelId.replace('space-', '');
+            const inSpace = await prisma.space.count({ where: { id: spaceId, members: { some: { id: userId } } } });
+            if (!inSpace && !['DIRECTOR', 'MANAGEMENT', 'ADMIN'].includes((role || '').toUpperCase())) {
+                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            }
+        }
 
         let targetChannelId = channelId;
 
@@ -106,6 +148,13 @@ export async function POST(req: Request) {
                     }
                 });
                 targetChannelId = channel.id;
+            }
+        }
+
+        if (!channelId.startsWith('space-') && channelId !== 'sys-announcements') {
+            const { canPost } = await getChannelAccess(targetChannelId, userId, role);
+            if (!canPost) {
+                return NextResponse.json({ error: 'You can’t post in this conversation' }, { status: 403 });
             }
         }
 

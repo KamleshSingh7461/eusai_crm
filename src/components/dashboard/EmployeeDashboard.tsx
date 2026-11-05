@@ -1,333 +1,245 @@
-
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import {
-    GraduationCap,
-    CheckCircle2,
-    Calendar,
-    ArrowRight,
-    Search,
-    Loader2,
-    FileText,
-    TrendingUp,
-    AlertCircle,
-    Clock,
-    DollarSign,
-    ExternalLink
-} from 'lucide-react';
-import Link from 'next/link';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { format, formatDistanceToNow, isPast } from 'date-fns';
+import {
+    CheckCircle2, Flame, AlertCircle, Target, FileText, GraduationCap, IndianRupee,
+    Clock, PlayCircle, ArrowUpRight, CalendarDays, Send
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useToast } from '@/context/ToastContext';
+import Button from '@/components/ui/Button';
+import Badge, { StatusPill } from '@/components/ui/Badge';
+import PageHeader from '@/components/ui/PageHeader';
+import StatCard from '@/components/ui/StatCard';
+import Tabs from '@/components/ui/Tabs';
+import EmptyState from '@/components/ui/EmptyState';
+import { ProgressBar, ProgressRing } from '@/components/ui/Progress';
+import { humanize } from '@/components/ui/tones';
+import ExpenseModal from '@/components/modals/ExpenseModal';
 import TaskDetailModal from '@/components/modals/TaskDetailModal';
-// import ExpenseModal from '../ExpenseModal'; // TODO: Create ExpenseModal component
+import { isReportWindowOpen } from '@/lib/reportWindow';
+import { Card, CardHeader, DashboardError, DashboardSkeleton, firstName, greeting, todayLabel } from './widgets';
 
 interface DashboardData {
     hasSubmittedReport: boolean;
     reportSubmissionTime: string | null;
-    kpi: {
-        efficiencyScore: number;
-        streak: number;
-        overdueMissions: number;
-        activeMilestones: number;
-        completedMilestones: number;
-    };
+    kpi: { efficiencyScore: number; streak: number; overdueMissions: number; activeMilestones: number; completedMilestones: number };
     milestones: any[];
     recentTasks: any[];
     pendingExpenses: any[];
 }
 
+const PRIORITY: Record<number, { label: string; tone: 'rose' | 'amber' | 'slate' }> = {
+    3: { label: 'High', tone: 'rose' }, 2: { label: 'Medium', tone: 'amber' }, 1: { label: 'Low', tone: 'slate' },
+};
+
 export default function EmployeeDashboard() {
     const { data: session } = useSession();
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(true);
+    const { showToast } = useToast();
     const [data, setData] = useState<DashboardData | null>(null);
-    const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
-    const [activeSection, setActiveSection] = useState<'tasks' | 'milestones'>('tasks');
-    const [selectedTask, setSelectedTask] = useState<any | null>(null);
-    const [showTaskDetailModal, setShowTaskDetailModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [section, setSection] = useState<'tasks' | 'milestones'>('tasks');
+    const [expenseOpen, setExpenseOpen] = useState(false);
+    const [startingId, setStartingId] = useState<string | null>(null);
+    const [openTask, setOpenTask] = useState<any | null>(null);
 
-    useEffect(() => {
-        if (session) {
-            fetchDashboardData();
-        }
-    }, [session]);
-
-    const fetchDashboardData = async () => {
+    const load = useCallback(async () => {
+        setError(null);
         try {
             const res = await fetch('/api/dashboard/employee');
-            if (res.ok) {
-                const dashboardData = await res.json();
-                setData(dashboardData);
-            }
-        } catch (error) {
-            console.error("Failed to load dashboard", error);
+            if (!res.ok) throw new Error('The dashboard service returned an error.');
+            setData(await res.json());
+        } catch (e: any) {
+            setError(e.message);
         } finally {
             setIsLoading(false);
         }
+    }, []);
+
+    useEffect(() => { load(); }, [load]);
+
+    const startTask = async (taskId: string) => {
+        setStartingId(taskId);
+        try {
+            const res = await fetch(`/api/tasks/${taskId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'IN_PROGRESS' }) });
+            if (!res.ok) throw new Error();
+            showToast('Task moved to in progress', 'success');
+            load();
+        } catch {
+            showToast('Could not update the task', 'error');
+        } finally {
+            setStartingId(null);
+        }
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex h-[60vh] items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-[#2383e2]" />
-            </div>
-        );
-    }
+    if (isLoading) return <DashboardSkeleton />;
+    if (error || !data) return <DashboardError message={error || undefined} onRetry={load} />;
 
-    const currentHour = new Date().getHours();
-    const isAfterSix = currentHour >= 18;
+    const { kpi } = data;
+    const totalMilestones = kpi.activeMilestones + kpi.completedMilestones;
+    // "Due now" once the IST submission window has opened
+    const isLate = isReportWindowOpen();
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto pb-20">
-            {/* 1. Dynamic Greeting & Report Status */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold text-heading tracking-tight">
-                        Good {currentHour < 12 ? 'morning' : currentHour < 17 ? 'afternoon' : 'evening'}, {session?.user?.name?.split(' ')[0]}
-                    </h1>
-                    <p className="text-subheading text-sm font-medium">Here's your performance impact for today.</p>
-                </div>
+        <div className="space-y-6">
+            <PageHeader
+                eyebrow={todayLabel()}
+                title={<>{greeting()}, <span className="text-gradient-brand">{firstName(session?.user?.name)}</span></>}
+                description="Your work, deadlines and progress at a glance."
+                actions={
+                    <>
+                        <Button variant="secondary" leftIcon={<IndianRupee className="h-4 w-4" />} onClick={() => setExpenseOpen(true)}>Expense request</Button>
+                        <Button leftIcon={<FileText className="h-4 w-4" />} onClick={() => router.push('/reports/submit')}>
+                            {data.hasSubmittedReport ? 'Update report' : 'Submit report'}
+                        </Button>
+                    </>
+                }
+            />
 
-                {!data?.hasSubmittedReport && (
-                    <div className={cn(
-                        "p-3 rounded-lg border flex items-center gap-4 animate-pulse",
-                        isAfterSix ? "bg-red-500/10 border-red-500/20 text-red-500" : "bg-blue-500/10 border-blue-500/20 text-blue-500"
-                    )}>
-                        {isAfterSix ? <AlertCircle className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                            <span className="text-sm font-bold">Daily Report {isAfterSix ? 'Overdue' : 'Pending'}</span>
-                            <button
-                                onClick={() => router.push('/reports/submit')}
-                                className={cn(
-                                    "px-4 py-1 rounded-full text-xs font-bold transition-all",
-                                    isAfterSix ? "bg-red-500 text-white hover:bg-red-600" : "bg-blue-500 text-white hover:bg-blue-600"
+            <Card delay={0.05} padding="none" className={cn('flex flex-wrap items-center gap-4 px-5 py-4',
+                data.hasSubmittedReport ? 'border-emerald-400/20 bg-gradient-to-r from-emerald-500/[0.1] to-transparent'
+                    : isLate ? 'border-rose-400/20 bg-gradient-to-r from-rose-500/[0.12] to-transparent' : 'border-blue-400/20 bg-gradient-to-r from-blue-500/[0.12] to-transparent')}>
+                <span className={cn('flex h-10 w-10 items-center justify-center rounded-xl ring-1 ring-inset',
+                    data.hasSubmittedReport ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-400/25' : isLate ? 'bg-rose-500/15 text-rose-300 ring-rose-400/25' : 'bg-blue-500/15 text-blue-300 ring-blue-400/25')}>
+                    {data.hasSubmittedReport ? <CheckCircle2 className="h-5 w-5" /> : isLate ? <AlertCircle className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
+                </span>
+                <div className="min-w-[200px] flex-1">
+                    <p className="text-sm font-semibold text-white">
+                        {data.hasSubmittedReport ? "Today's report is submitted" : isLate ? "Today's report is due now" : "Today's report is still pending"}
+                    </p>
+                    <p className="text-sm text-slate-400">
+                        {data.hasSubmittedReport && data.reportSubmissionTime
+                            ? `Sent at ${format(new Date(data.reportSubmissionTime), 'h:mm a')}. Keep your ${kpi.streak}-day streak going tomorrow.`
+                            : 'Submit between 5:00 PM and 11:59 PM IST.'}
+                    </p>
+                </div>
+                {!data.hasSubmittedReport && <Button size="sm" variant={isLate ? 'danger' : 'primary'} leftIcon={<Send className="h-3.5 w-3.5" />} onClick={() => router.push('/reports/submit')}>Submit now</Button>}
+            </Card>
+
+            <section className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4">
+                <StatCard delay={0.1} label="Completion rate" value={`${kpi.efficiencyScore}%`} icon={CheckCircle2}
+                    tone={kpi.efficiencyScore >= 80 ? 'emerald' : kpi.efficiencyScore >= 60 ? 'amber' : 'rose'} note="Tasks done, last 30 days" href="/tasks" />
+                <StatCard delay={0.15} label="Report streak" value={kpi.streak} icon={Flame} tone="amber" note={kpi.streak === 1 ? 'day in a row' : 'days in a row'} href="/reports" />
+                <StatCard delay={0.2} label="Overdue" value={kpi.overdueMissions} icon={AlertCircle} tone={kpi.overdueMissions > 0 ? 'rose' : 'emerald'}
+                    note={kpi.overdueMissions > 0 ? 'Tasks and milestones past due' : "You're fully up to date"} href="/tasks" />
+                <StatCard delay={0.25} label="Active milestones" value={kpi.activeMilestones} icon={Target} tone="violet" note={`${kpi.completedMilestones} completed`} href="/milestones" />
+            </section>
+
+            <section className="grid gap-5 xl:grid-cols-3">
+                <div className="space-y-4 xl:col-span-2">
+                    <Tabs value={section} onChange={id => setSection(id as any)} items={[
+                        { id: 'tasks', label: 'My tasks', icon: CheckCircle2, count: data.recentTasks.length },
+                        { id: 'milestones', label: 'My milestones', icon: Target, count: data.milestones.length },
+                    ]} />
+
+                    {section === 'tasks' && (
+                        <Card padding="none" className="overflow-hidden">
+                            {data.recentTasks.length === 0
+                                ? <EmptyState icon={CheckCircle2} title="You're all caught up" description="New tasks assigned to you will appear here." />
+                                : (
+                                    <ul className="divide-y divide-white/[0.05]">
+                                        {data.recentTasks.map((task: any) => {
+                                            const overdue = isPast(new Date(task.deadline));
+                                            const priority = PRIORITY[task.priority] || PRIORITY[1];
+                                            return (
+                                                <li key={task.id} className="group flex flex-wrap items-center gap-4 px-5 py-4 transition hover:bg-white/[0.025]">
+                                                    <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset',
+                                                        task.status === 'IN_PROGRESS' ? 'bg-blue-500/15 text-blue-300 ring-blue-400/25' : 'bg-white/[0.04] text-slate-400 ring-white/10')}>
+                                                        {task.status === 'IN_PROGRESS' ? <PlayCircle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
+                                                    </span>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="truncate font-semibold text-slate-100">{task.title}</p>
+                                                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                                            {task.project?.name && <span className="rounded-md bg-white/[0.05] px-1.5 py-0.5 text-slate-300">{task.project.name}</span>}
+                                                            <span className={cn('flex items-center gap-1', overdue && 'text-rose-300')}>
+                                                                <CalendarDays className="h-3.5 w-3.5" />
+                                                                {overdue ? 'Overdue ' : 'Due '}{formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <Badge tone={priority.tone}>{priority.label}</Badge>
+                                                    <StatusPill status={task.status} />
+                                                    <div className="flex gap-2">
+                                                        {task.status === 'TODO' && (
+                                                            <Button size="sm" variant="secondary" isLoading={startingId === task.id} leftIcon={<PlayCircle className="h-3.5 w-3.5" />} onClick={() => startTask(task.id)}>Start</Button>
+                                                        )}
+                                                        <Button size="sm" variant="ghost" rightIcon={<ArrowUpRight className="h-3.5 w-3.5" />} onClick={() => setOpenTask(task)}>Open</Button>
+                                                    </div>
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
                                 )}
-                            >
-                                Submit Now
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
+                        </Card>
+                    )}
 
-            {/* 2. Performance Dashboard */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Efficiency Score */}
-                <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] p-4 rounded-xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <TrendingUp className="w-12 h-12 text-[#2383e2]" />
-                    </div>
-                    <div className="text-subheading text-[10px] font-bold uppercase tracking-widest mb-1">Efficiency Score</div>
-                    <div className="flex items-baseline gap-1">
-                        <span className={cn(
-                            "text-3xl font-bold",
-                            (data?.kpi?.efficiencyScore || 0) >= 80 ? "text-emerald-500" :
-                                (data?.kpi?.efficiencyScore || 0) >= 60 ? "text-orange-500" : "text-red-500"
-                        )}>
-                            {data?.kpi?.efficiencyScore ?? 100}%
-                        </span>
-                        <span className="text-xs text-subheading">completion rate</span>
-                    </div>
-                    <div className="mt-2 w-full bg-[var(--notion-bg-tertiary)] h-1 rounded-full overflow-hidden">
-                        <div
-                            className={cn("h-full transition-all duration-1000",
-                                (data?.kpi?.efficiencyScore || 0) >= 80 ? "bg-emerald-500" :
-                                    (data?.kpi?.efficiencyScore || 0) >= 60 ? "bg-orange-500" : "bg-red-500"
-                            )}
-                            style={{ width: `${data?.kpi?.efficiencyScore ?? 100}%` }}
-                        />
-                    </div>
-                </div>
-
-                {/* Consistency Streak */}
-                <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] p-4 rounded-xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <CheckCircle2 className="w-12 h-12 text-blue-500" />
-                    </div>
-                    <div className="text-subheading text-[10px] font-bold uppercase tracking-widest mb-1">Impact Streak</div>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-blue-500">{data?.kpi?.streak ?? 0}</span>
-                        <span className="text-xs text-subheading">days consecutive</span>
-                    </div>
-                    <div className="mt-2 text-[10px] text-subheading truncate">
-                        Keep submitting reports daily!
-                    </div>
-                </div>
-
-                {/* Overdue Missions */}
-                <div className={cn(
-                    "border p-4 rounded-xl relative overflow-hidden transition-all group",
-                    (data?.kpi?.overdueMissions || 0) > 0
-                        ? "bg-red-500/5 border-red-500/20 hover:border-red-500/40"
-                        : "bg-[var(--notion-bg-secondary)] border-[var(--notion-border-default)]"
-                )}>
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <AlertCircle className={cn("w-12 h-12", (data?.kpi?.overdueMissions || 0) > 0 ? "text-red-500" : "text-emerald-500")} />
-                    </div>
-                    <div className="text-subheading text-[10px] font-bold uppercase tracking-widest mb-1">Overdue Missions</div>
-                    <div className="flex items-baseline gap-1">
-                        <span className={cn(
-                            "text-3xl font-bold",
-                            (data?.kpi?.overdueMissions || 0) > 0 ? "text-red-500" : "text-emerald-500"
-                        )}>
-                            {data?.kpi?.overdueMissions ?? 0}
-                        </span>
-                        <span className="text-xs text-subheading">items need attention</span>
-                    </div>
-                    <div className="mt-2 text-[10px] text-subheading truncate">
-                        {(data?.kpi?.overdueMissions || 0) > 0 ? "Prioritize these immediately." : "You are completely up to date."}
-                    </div>
-                </div>
-
-                {/* Milestone Velocity */}
-                <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] p-4 rounded-xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <GraduationCap className="w-12 h-12 text-purple-500" />
-                    </div>
-                    <div className="text-subheading text-[10px] font-bold uppercase tracking-widest mb-1">Milestone Velocity</div>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-heading">{data?.kpi?.activeMilestones ?? 0}</span>
-                        <span className="text-xs text-subheading">active / {data?.kpi?.completedMilestones ?? 0} done</span>
-                    </div>
-                    <div className="mt-2 text-[10px] text-subheading flex items-center gap-1">
-                        <span className="text-purple-500 font-bold">Turnover Rate</span>
-                        <span>{(data?.kpi?.completedMilestones && data?.kpi?.activeMilestones) ? Math.round((data.kpi.completedMilestones / (data.kpi.completedMilestones + data.kpi.activeMilestones)) * 100) : 0}%</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* 3. Section Navigation */}
-            <div className="flex border-b border-[var(--notion-border-default)] gap-6">
-                {[
-                    { id: 'tasks', label: 'Assigned Tasks', icon: CheckCircle2 },
-                    { id: 'milestones', label: 'My Milestones', icon: TrendingUp },
-                ].map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveSection(tab.id as any)}
-                        className={cn(
-                            "pb-3 text-sm font-bold flex items-center gap-2 transition-all border-b-2",
-                            activeSection === tab.id
-                                ? "text-heading border-heading"
-                                : "text-subheading border-transparent hover:text-heading hover:border-[var(--notion-border-default)]"
-                        )}
-                    >
-                        <tab.icon className="w-4 h-4" />
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-
-            <div className="w-full">
-                {/* Main Content Area */}
-                <div className="w-full space-y-6">
-                    {activeSection === 'tasks' ? (
-                        <div className="space-y-4 animate-in slide-in-from-bottom-2 duration-300">
-                            {(!data?.recentTasks || data.recentTasks.length === 0) ? (
-                                <div className="py-20 text-center border border-dashed border-[var(--notion-border-default)] rounded-xl bg-[var(--notion-bg-secondary)]/30">
-                                    <CheckCircle2 className="w-10 h-10 text-subheading mx-auto mb-3 opacity-30" />
-                                    <p className="text-subheading text-sm">No pending tasks. Great job!</p>
+                    {section === 'milestones' && (
+                        data.milestones.length === 0
+                            ? <Card><EmptyState icon={Target} title="No milestones assigned" description="Milestones you own will appear here." /></Card>
+                            : (
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    {data.milestones.map((m: any, i: number) => (
+                                        <Card key={m.id} delay={i * 0.03} interactive onClick={() => router.push('/milestones')}>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <Badge tone="violet" icon={<Target />}>{humanize(m.category)}</Badge>
+                                                <StatusPill status={m.status} />
+                                            </div>
+                                            <p className="mt-4 font-semibold text-white">{m.title}</p>
+                                            <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+                                                <GraduationCap className="h-3.5 w-3.5" />{m.university?.name || m.project?.name || 'General'}
+                                                <span>·</span>
+                                                <CalendarDays className="h-3.5 w-3.5" />{format(new Date(m.targetDate), 'd MMM yyyy')}
+                                            </p>
+                                            <div className="mt-4 flex items-center justify-between text-xs">
+                                                <span className="text-slate-400">Progress</span>
+                                                <span className="font-semibold text-slate-200 tabular-nums">{m.progress}%</span>
+                                            </div>
+                                            <ProgressBar value={m.progress} tone="blue" className="mt-2 h-2" glow />
+                                        </Card>
+                                    ))}
                                 </div>
-                            ) : (
-                                 data.recentTasks.map((task: any) => (
-                                    <div
-                                        key={task.id}
-                                        onClick={() => {
-                                            if (task.projectId) {
-                                                router.push(`/projects/${task.projectId}`);
-                                            } else {
-                                                setSelectedTask(task);
-                                                setShowTaskDetailModal(true);
-                                            }
-                                        }}
-                                        className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] p-4 rounded-xl hover:border-[var(--notion-border-active)] hover:shadow-md transition-all cursor-pointer flex items-center justify-between group"
-                                    >
-                                        <div className="flex items-start gap-4">
-                                            <div className={cn(
-                                                "mt-1 p-2 rounded-lg transition-colors",
-                                                task.priority === 3 ? "bg-red-500/10 text-red-500" : "bg-blue-500/10 text-blue-500"
-                                            )}>
-                                                <CheckCircle2 className="w-4 h-4" />
-                                            </div>
-                                            <div>
-                                                <div className="font-bold text-heading group-hover:text-[#2383e2] transition-colors">{task.title}</div>
-                                                <div className="text-xs text-subheading flex items-center gap-2 mt-1">
-                                                    <span className="font-bold text-[10px] bg-[var(--notion-bg-tertiary)] px-1.5 py-0.5 rounded-sm uppercase">{task.project?.name || 'GEN'}</span>
-                                                    <span>•</span>
-                                                    <span>Due {formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all text-subheading" />
-                                    </div>
-                                ))
-                            )}
-                            <Link href="/tasks" className="flex items-center justify-center py-2 text-xs font-bold text-subheading hover:text-heading transition-colors gap-2">
-                                Go to Dedicated Tasks Page <ExternalLink className="w-3 h-3" />
-                            </Link>
-                        </div>
-                    ) : (
-                        <div className="space-y-4 animate-in slide-in-from-bottom-2 duration-300">
-                            {(!data?.milestones || data.milestones.length === 0) ? (
-                                <div className="py-20 text-center border border-dashed border-[var(--notion-border-default)] rounded-xl bg-[var(--notion-bg-secondary)]/30">
-                                    <TrendingUp className="w-10 h-10 text-subheading mx-auto mb-3 opacity-30" />
-                                    <p className="text-subheading text-sm">No assigned milestones found.</p>
-                                </div>
-                            ) : (
-                                data.milestones.map((milestone: any) => (
-                                    <div
-                                        key={milestone.id}
-                                        onClick={() => router.push(`/milestones`)}
-                                        className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] p-4 rounded-xl hover:border-[var(--notion-border-active)] transition-all cursor-pointer flex flex-col gap-3 group"
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div className="font-bold text-heading group-hover:text-[#2383e2] transition-colors">{milestone.title}</div>
-                                            <div className={cn(
-                                                "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider",
-                                                milestone.status === 'COMPLETED' ? "bg-emerald-500/10 text-emerald-500" :
-                                                    milestone.status === 'DELAYED' ? "bg-red-500/10 text-red-500" : "bg-blue-500/10 text-blue-500"
-                                            )}>
-                                                {milestone.status}
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <div className="text-xs text-subheading flex items-center gap-2">
-                                                <GraduationCap className="w-3.5 h-3.5" />
-                                                <span>{milestone.university?.name || 'General University'}</span>
-                                                <span>•</span>
-                                                <span>Target: {new Date(milestone.targetDate).toLocaleDateString()}</span>
-                                            </div>
-                                            <div className="w-32 h-1.5 bg-[var(--notion-bg-tertiary)] rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-[#2383e2] transition-all duration-500"
-                                                    style={{ width: `${milestone.progress}%` }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                            <Link href="/milestones" className="flex items-center justify-center py-2 text-xs font-bold text-subheading hover:text-heading transition-colors gap-2">
-                                Go to Specialized Milestones Ledger <ExternalLink className="w-3 h-3" />
-                            </Link>
-                        </div>
+                            )
                     )}
                 </div>
-            </div>
 
-            <TaskDetailModal
-                isOpen={showTaskDetailModal}
-                onClose={() => {
-                    setShowTaskDetailModal(false);
-                    setSelectedTask(null);
-                }}
-                task={selectedTask}
-            />
+                <div className="space-y-5">
+                    <Card delay={0.3} padding="lg">
+                        <CardHeader title="Milestone completion" description={`${kpi.completedMilestones} of ${totalMilestones} done`} />
+                        <div className="mt-5 flex justify-center">
+                            <ProgressRing value={totalMilestones ? (kpi.completedMilestones / totalMilestones) * 100 : 0} size={140} stroke={12} label="complete" from="#A78BFA" to="#60A5FA" />
+                        </div>
+                    </Card>
+
+                    <Card delay={0.4} padding="lg">
+                        <CardHeader title="Expense requests" description="Waiting for approval"
+                            action={<Button size="sm" variant="secondary" onClick={() => setExpenseOpen(true)}>New</Button>} />
+                        {data.pendingExpenses.length === 0
+                            ? <p className="mt-4 text-sm text-slate-500">Nothing waiting for approval.</p>
+                            : (
+                                <ul className="mt-4 space-y-3">
+                                    {data.pendingExpenses.map((e: any) => (
+                                        <li key={e.id} className="flex items-center gap-3 rounded-xl bg-white/[0.03] p-3">
+                                            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/15 text-amber-300"><IndianRupee className="h-4 w-4" /></span>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm font-medium text-slate-100">{e.description || humanize(e.category)}</p>
+                                                <p className="truncate text-xs text-slate-500">{e.project?.name}</p>
+                                            </div>
+                                            <span className="text-sm font-semibold text-white tabular-nums">₹{Number(e.amount).toLocaleString('en-IN')}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                    </Card>
+                </div>
+            </section>
+
+            <TaskDetailModal isOpen={!!openTask} onClose={() => setOpenTask(null)} onDelete={load} task={openTask} />
+            <ExpenseModal open={expenseOpen} onClose={() => setExpenseOpen(false)} onCreated={load} />
         </div>
     );
 }
-
-// Add Missing Import for 'cn' and formatDistanceToNow
-import { cn } from "@/lib/utils";
-import { formatDistanceToNow } from 'date-fns';

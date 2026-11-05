@@ -1,0 +1,32 @@
+# Local development services. Start with `npm run services:up`.
+# Nothing here is used by staging or production.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: eusai-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: eusai
+      POSTGRES_PASSWORD: eusai
+      POSTGRES_DB: eusai_crm
+    ports:
+      - "5432:5432"
+    volumes:
+      - eusai-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eusai -d eusai_crm"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Catches every email the app sends locally. Inbox UI: http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:v1.21
+    container_name: eusai-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  eusai-pgdata:

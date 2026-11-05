@@ -2,12 +2,35 @@
   "name": "eusai_crm",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.12"
+  },
   "scripts": {
-    "dev": "next dev -H 0.0.0.0",
-    "build": "npx prisma generate && next build",
+    "dev": "node scripts/env.mjs local next dev -H 0.0.0.0",
+    "dev:staging": "node scripts/env.mjs staging next dev -H 0.0.0.0",
+    "build": "prisma generate && next build",
+    "build:local": "node scripts/env.mjs local npm run build",
+    "build:staging": "node scripts/env.mjs staging npm run build",
+    "build:production": "node scripts/env.mjs production npm run build",
     "start": "next start",
+    "start:local": "node scripts/env.mjs local next start",
+    "start:staging": "node scripts/env.mjs staging next start",
+    "start:production": "node scripts/env.mjs production next start",
     "lint": "eslint",
-    "prisma:deploy": "npx prisma migrate deploy"
+    "services:up": "docker compose up -d --wait",
+    "services:down": "docker compose down",
+    "setup": "npm run services:up && npm run db:deploy && npm run db:seed",
+    "db:migrate": "node scripts/env.mjs local prisma migrate dev",
+    "db:deploy": "node scripts/env.mjs local prisma migrate deploy",
+    "db:deploy:staging": "node scripts/env.mjs staging prisma migrate deploy",
+    "db:deploy:production": "node scripts/env.mjs production prisma migrate deploy",
+    "db:status:staging": "node scripts/env.mjs staging prisma migrate status",
+    "db:status:production": "node scripts/env.mjs production prisma migrate status",
+    "db:seed": "node scripts/env.mjs local prisma db seed",
+    "db:seed:staging": "node scripts/env.mjs staging prisma db seed",
+    "db:reset": "node scripts/env.mjs local prisma migrate reset",
+    "db:studio": "node scripts/env.mjs local prisma studio",
+    "prisma:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
@@ -54,9 +77,10 @@
     "@types/react-dom": "^19",
     "@types/web-push": "^3.6.4",
     "eslint": "^9",
-    "eslint-config-next": "15.1.7"
+    "eslint-config-next": "15.1.7",
+    "tsx": "^4.19.2"
   },
   "prisma": {
-    "seed": "npx tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts"
   }
 }

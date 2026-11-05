@@ -208,52 +208,52 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300 p-4">
-            <div className="relative bg-[#191919]/95 border border-[rgba(255,255,255,0.08)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] relative w-full rounded-b-none sm:rounded-b-3xl max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
                 {/* Glossy background detail */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl -ml-24 -mb-24 pointer-events-none" />
 
                 {/* Header */}
-                <div className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-[rgba(255,255,255,0.06)]">
+                <div className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-6 border-b border-[rgba(255,255,255,0.06)]">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0052CC] to-[#0747A6] flex items-center justify-center shadow-lg shadow-blue-900/20">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center shadow-lg shadow-blue-900/20">
                             <Layout className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-white tracking-tight">Strategic Deliverables</h2>
-                            <p className="text-xs text-gray-400 font-medium">Define high-impact milestones and objectives</p>
+                            <h2 className="font-display text-lg font-bold text-white">New milestone</h2>
+                            <p className="text-xs text-slate-400 font-medium">Define high-impact milestones and objectives</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                        className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto p-8 space-y-8 scrollbar-thin scrollbar-thumb-white/10">
+                <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto p-5 sm:p-8 space-y-8 scrollbar-thin scrollbar-thumb-white/10">
 
                     {/* Global Settings */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-white/5 border border-white/10 rounded-2xl">
                         <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
                                     Assign All To
                                 </label>
                                 <button
                                     type="button"
                                     onClick={() => setIsBulkMode(!isBulkMode)}
-                                    className="text-[9px] font-black text-[#0052CC] uppercase tracking-tighter hover:underline"
+                                    className="text-[11px] font-bold text-[#3B82F6] uppercase tracking-tighter hover:underline"
                                 >
                                     {isBulkMode ? "Single Mode" : "Bulk Assign"}
                                 </button>
                             </div>
 
                             {isLoadingUsers ? (
-                                <div className="h-11 flex items-center text-xs text-gray-500 gap-2">
+                                <div className="h-11 flex items-center text-xs text-slate-400 gap-2">
                                     <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                                     Synchronizing...
                                 </div>
@@ -268,7 +268,7 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                                 type="checkbox"
                                                 checked={ownerIds.includes(u.id)}
                                                 onChange={() => setOwnerIds(prev => prev.includes(u.id) ? prev.filter(i => i !== u.id) : [...prev, u.id])}
-                                                className="w-4 h-4 rounded border-white/10 bg-white/5 text-[#0052CC] focus:ring-0 transition-all"
+                                                className="w-4 h-4 rounded border-white/10 bg-white/5 text-[#3B82F6] focus:ring-0 transition-all"
                                             />
                                             <span className="text-xs font-medium text-gray-300 group-hover:text-white">{u.name || (u as any).email}</span>
                                         </label>
@@ -281,10 +281,10 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                     required
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
                                 >
-                                    <option value="" className="bg-[#191919]">Select Assignee...</option>
-                                    <option value={(session?.user as any)?.id} className="bg-[#191919]">Assign to Me</option>
+                                    <option value="" className="bg-[#07090D]">Select Assignee...</option>
+                                    <option value={(session?.user as any)?.id} className="bg-[#07090D]">Assign to Me</option>
                                     {users.filter(u => u.id !== (session?.user as any)?.id).map(user => (
-                                        <option key={user.id} value={user.id} className="bg-[#191919]">
+                                        <option key={user.id} value={user.id} className="bg-[#07090D]">
                                             {user.name || (user as any).email} ({user.role})
                                         </option>
                                     ))}
@@ -293,12 +293,12 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                            <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
                                 Project Context
                             </label>
                             {isLoadingProjects ? (
-                                <div className="h-11 flex items-center text-xs text-gray-500 gap-2">
-                                    <span className="w-4 h-4 border-2 border-[#0052CC] border-t-transparent rounded-full animate-spin" />
+                                <div className="h-11 flex items-center text-xs text-slate-400 gap-2">
+                                    <span className="w-4 h-4 border-2 border-[#3B82F6] border-t-transparent rounded-full animate-spin" />
                                     Fetching Projects...
                                 </div>
                             ) : (
@@ -307,9 +307,9 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                     onChange={(e) => setProjectId(e.target.value)}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
                                 >
-                                    <option value="" className="bg-[#191919]">Link Project (Optional)</option>
+                                    <option value="" className="bg-[#07090D]">Link Project (Optional)</option>
                                     {projects.map(project => (
-                                        <option key={project.id} value={project.id} className="bg-[#191919]">
+                                        <option key={project.id} value={project.id} className="bg-[#07090D]">
                                             {project.name}
                                         </option>
                                     ))}
@@ -322,18 +322,18 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                     <div className="space-y-12">
                         {entries.map((entry, index) => (
                             <div key={entry.id} className="relative p-6 bg-white/5 border border-white/10 rounded-2xl group animate-in slide-in-from-bottom-4 duration-500">
-                                <div className="flex items-center justify-between mb-8">
+                                <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-[10px] font-bold text-white border border-white/10">
+                                        <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-[11px] font-bold text-white border border-white/10">
                                             {index + 1}
                                         </div>
-                                        <h3 className="text-xs font-bold text-white uppercase tracking-widest">Milestone Objective</h3>
+                                        <h3 className="text-xs font-bold text-white">Milestone Objective</h3>
                                     </div>
                                     {entries.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => removeEntry(entry.id)}
-                                            className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -342,42 +342,42 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
 
                                 <div className="space-y-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Title</label>
+                                        <label className="text-sm font-medium text-slate-300">Title</label>
                                         <input
                                             placeholder="e.g. Phase 1 Completion"
                                             value={entry.title}
                                             onChange={(e) => updateEntry(entry.id, 'title', e.target.value)}
                                             required
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-medium"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-fg-muted focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-medium"
                                         />
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Description</label>
+                                        <label className="text-sm font-medium text-slate-300">Description</label>
                                         <textarea
-                                            placeholder="Mission critical deliverables..."
+                                            placeholder="What needs to be delivered"
                                             value={entry.description}
                                             onChange={(e) => updateEntry(entry.id, 'description', e.target.value)}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-none font-medium leading-relaxed min-h-[100px]"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-fg-muted focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-none font-medium leading-relaxed min-h-[100px]"
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Category</label>
+                                            <label className="text-sm font-medium text-slate-300">Category</label>
                                             <select
                                                 value={entry.category}
                                                 onChange={(e) => updateEntry(entry.id, 'category', e.target.value)}
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white transition-all appearance-none cursor-pointer text-sm font-medium"
                                             >
                                                 {MILESTONE_CATEGORIES.map(c => (
-                                                    <option key={c.value} value={c.value} className="bg-[#191919]">{c.label}</option>
+                                                    <option key={c.value} value={c.value} className="bg-[#07090D]">{c.label}</option>
                                                 ))}
                                             </select>
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Target Date</label>
+                                            <label className="text-sm font-medium text-slate-300">Target Date</label>
                                             <input
                                                 type="date"
                                                 value={entry.targetDate}
@@ -391,22 +391,22 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                     {/* Sub-selectors */}
                                     {entry.category === 'MOU' && (
                                         <div className="space-y-2 animate-in fade-in duration-300">
-                                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">MOU Type</label>
+                                            <label className="text-sm font-medium text-slate-300">MOU Type</label>
                                             <select
                                                 value={entry.mouType}
                                                 onChange={(e) => updateEntry(entry.id, 'mouType', e.target.value)}
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none cursor-pointer text-sm font-medium"
                                             >
-                                                <option value="" className="bg-[#191919]">Select MOU Type...</option>
-                                                {MOU_TYPES.map(type => <option key={type} value={type} className="bg-[#191919]">{type}</option>)}
+                                                <option value="" className="bg-[#07090D]">Select MOU Type...</option>
+                                                {MOU_TYPES.map(type => <option key={type} value={type} className="bg-[#07090D]">{type}</option>)}
                                             </select>
                                         </div>
                                     )}
 
                                     {entry.category === 'BUSINESS_ORDER' && (
-                                        <div className="grid grid-cols-2 gap-6 animate-in fade-in duration-300">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in duration-300">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">University Name</label>
+                                                <label className="text-sm font-medium text-slate-300">University Name</label>
                                                 <input
                                                     placeholder="Enter university..."
                                                     value={entry.universityName}
@@ -415,32 +415,32 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Order Type</label>
+                                                <label className="text-sm font-medium text-slate-300">Order Type</label>
                                                 <select
                                                     value={entry.orderType}
                                                     onChange={(e) => updateEntry(entry.id, 'orderType', e.target.value)}
                                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none cursor-pointer text-sm font-medium"
                                                 >
-                                                    <option value="" className="bg-[#191919]">Select Order Type...</option>
-                                                    {BUSINESS_ORDER_TYPES.map(type => <option key={type} value={type} className="bg-[#191919]">{type}</option>)}
+                                                    <option value="" className="bg-[#07090D]">Select Order Type...</option>
+                                                    {BUSINESS_ORDER_TYPES.map(type => <option key={type} value={type} className="bg-[#07090D]">{type}</option>)}
                                                 </select>
                                             </div>
                                         </div>
                                     )}
 
-                                    <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl">
+                                    <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white/5 border border-white/5 rounded-xl">
                                         <div className="flex items-center gap-6">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Priority</label>
+                                                <label className="text-sm font-medium text-slate-300 block mb-2">Priority</label>
                                                 <div className="flex gap-2">
                                                     {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map(p => (
                                                         <button
                                                             key={p}
                                                             type="button"
                                                             onClick={() => updateEntry(entry.id, 'priority', p)}
-                                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all border ${entry.priority === p
-                                                                ? 'bg-[#0052CC] border-blue-500 text-white shadow-lg shadow-blue-900/40 scale-105'
-                                                                : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10'
+                                                            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase transition-all border ${entry.priority === p
+                                                                ? 'bg-[#3B82F6] border-blue-500 text-white shadow-lg shadow-blue-900/40 scale-105'
+                                                                : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
                                                                 }`}
                                                         >
                                                             {p}
@@ -455,11 +455,11 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                             onClick={() => updateEntry(entry.id, 'isFlagged', !entry.isFlagged)}
                                             className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${entry.isFlagged
                                                 ? 'bg-red-500/20 border-red-500/30 text-red-400 shadow-lg shadow-red-900/20'
-                                                : 'bg-white/5 border-white/5 text-gray-500 hover:bg-white/10'
+                                                : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
                                                 }`}
                                         >
                                             <Flag className={`w-4 h-4 ${entry.isFlagged ? 'fill-red-400' : ''}`} />
-                                            <span className="text-[10px] font-bold uppercase tracking-widest">Attention</span>
+                                            <span className="text-[11px] font-bold">Attention</span>
                                         </button>
                                     </div>
 
@@ -469,7 +469,7 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                                 placeholder="Describe the critical concern..."
                                                 value={entry.remarks}
                                                 onChange={(e) => updateEntry(entry.id, 'remarks', e.target.value)}
-                                                className="w-full bg-red-500/5 border border-red-500/20 rounded-xl px-4 py-3 text-red-200 placeholder:text-red-900/50 text-sm italic"
+                                                className="w-full bg-red-500/5 border border-red-500/20 rounded-xl px-4 py-3 text-red-200 placeholder:text-red-300/50 text-sm italic"
                                             />
                                         </div>
                                     )}
@@ -481,25 +481,25 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                     <button
                         type="button"
                         onClick={addEntry}
-                        className="w-full py-6 bg-white/5 border-2 border-dashed border-white/10 rounded-2xl text-gray-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3 group"
+                        className="w-full py-6 bg-white/5 border-2 border-dashed border-white/10 rounded-2xl text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all font-bold text-xs flex items-center justify-center gap-3 group"
                     >
                         <Plus className="w-5 h-5 group-hover:scale-125 transition-transform" />
                         Add New Objective to Workspace
                     </button>
 
                     {/* Footer Actions */}
-                    <div className="flex justify-end gap-6 pt-8 border-t border-[rgba(255,255,255,0.06)] sticky bottom-0 bg-[#191919] pb-0 mt-8 z-10 box-content">
+                    <div className="flex justify-end gap-6 pt-8 border-t border-[rgba(255,255,255,0.06)] sticky bottom-0 bg-[#07090D] pb-0 mt-8 z-10 box-content">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-3 text-xs font-bold text-gray-400 hover:text-white transition-colors"
+                            className="px-6 py-3 text-xs font-bold text-slate-400 hover:text-white transition-colors"
                         >
-                            Abort Changes
+                            Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="relative group px-10 py-3 bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-bold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden"
+                            className="relative group px-5 sm:px-10 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-bold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden"
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                             <span className="relative z-10">

@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
 
         // Ensure user is actively logged in via OAuth or otherwise
         if (!session || !session.user || !session.user.email) {
-            return NextResponse.json({ error: "Unauthorized. Active session required." }, { status: 403 });
+            return NextResponse.json({ error: "Sign in first." }, { status: 403 });
         }
 
         const body = await req.json();
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (existingUser?.password) {
-            return NextResponse.json({ error: "Credentials already established. Use the Reset flow to change them." }, { status: 400 });
+            return NextResponse.json({ error: "A password is already set. Use reset password to change it." }, { status: 400 });
         }
 
         // Hash the new credential key
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
             data: { password: hashedPassword }
         });
 
-        return NextResponse.json({ message: "Tactical Credentials established successfully." });
+        return NextResponse.json({ message: "Password set." });
     } catch (error: any) {
         console.error("Failed to setup credentials:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

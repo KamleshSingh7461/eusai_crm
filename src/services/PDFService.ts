@@ -1,75 +1,111 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+const BRAND: [number, number, number] = [37, 99, 235];
+const INK: [number, number, number] = [15, 23, 42];
+const MUTED: [number, number, number] = [100, 116, 139];
+
+const fmtDate = (d?: string | Date | null) => (d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '-');
+const humanize = (v?: string | null) => (v ? v.replace(/_/g, ' ').toLowerCase().replace(/^./, c => c.toUpperCase()) : '-');
+// The default PDF font has no rupee glyph, so amounts are written as "INR".
+const inr = (n: unknown) => `INR ${Math.round(Number(n) || 0).toLocaleString('en-IN')}`;
+const PRIORITY: Record<number, string> = { 3: 'High', 2: 'Medium', 1: 'Low' };
+
 export class PDFService {
-    static generateProjectExecutiveSummary(project: any, metrics: any) {
+    /** Project summary built only from the project's real data (tasks, milestones, expenses, managers). */
+    static generateProjectExecutiveSummary(project: any) {
         const doc = new jsPDF();
+        const tasks: any[] = project.tasks || [];
+        const milestones: any[] = project.milestones || [];
+        const expenses: any[] = project.expenses || [];
+        const now = new Date();
 
-        // Header
-        doc.setFontSize(22);
-        doc.setTextColor(30, 41, 59);
-        doc.text('EUSAI Executive Project Summary', 14, 22);
+        const done = tasks.filter(t => t.status === 'DONE').length;
+        const overdue = tasks.filter(t => t.status !== 'DONE' && t.deadline && new Date(t.deadline) < now).length;
+        const msDone = milestones.filter(m => m.status === 'COMPLETED').length;
+        const approvedSpend = expenses.filter(e => e.status === 'APPROVED').reduce((s, e) => s + Number(e.amount || 0), 0);
+        const pendingSpend = expenses.filter(e => e.status === 'PENDING').reduce((s, e) => s + Number(e.amount || 0), 0);
+        const budget = Number(project.budget) || 0;
 
+        doc.setFillColor(...BRAND);
+        doc.rect(0, 0, 210, 6, 'F');
+        doc.setFontSize(20);
+        doc.setTextColor(...INK);
+        doc.text(project.name || 'Project summary', 14, 22);
         doc.setFontSize(10);
-        doc.setTextColor(148, 163, 184); // slate-400
-        doc.text(`Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 30);
+        doc.setTextColor(...MUTED);
+        doc.text(`Project summary · generated ${now.toLocaleString('en-IN')}`, 14, 29);
 
-        // Project Overview
-        doc.setFontSize(14);
-        doc.setTextColor(30, 41, 59);
-        doc.text('1. Project Identity', 14, 45);
+        const section = (title: string, y: number) => {
+            doc.setFontSize(13);
+            doc.setTextColor(...INK);
+            doc.text(title, 14, y);
+            return y + 4;
+        };
+        const nextY = () => (doc as any).lastAutoTable.finalY + 12;
 
         autoTable(doc, {
-            startY: 50,
-            head: [['Field', 'Value']],
+            startY: section('Overview', 42),
             body: [
-                ['Project Name', project.name],
-                ['Current Status', project.status],
-                ['Baseline Budget', `$${Number(project.budget).toLocaleString()}`],
-                ['Team Size', `${project.resources?.length || 0} Members`],
-                ['Start Date', new Date(project.startDate).toLocaleDateString()],
+                ['Status', humanize(project.status)],
+                ['Department', project.space?.name || 'Unassigned'],
+                ['Managers', (project.managers || []).map((m: any) => m.name).join(', ') || 'Unassigned'],
+                ['Timeline', `${fmtDate(project.startDate)} to ${fmtDate(project.endDate)}`],
+                ['Budget', budget ? inr(budget) : 'Not set'],
             ],
-            theme: 'striped',
-            headStyles: { fillColor: [59, 130, 246] } // primary blue
+            theme: 'plain',
+            styles: { fontSize: 10, cellPadding: 2 },
+            columnStyles: { 0: { textColor: MUTED, cellWidth: 40 } },
         });
 
-        // Health Metrics
-        const currentY = (doc as any).lastAutoTable.finalY + 15;
-        doc.text('2. Execution Health Metrics', 14, currentY);
-
         autoTable(doc, {
-            startY: currentY + 5,
-            head: [['Metric', 'Value', 'Status']],
+            startY: section('Delivery', nextY()),
+            head: [['Measure', 'Value']],
             body: [
-                ['Velocity', metrics.velocity || '85%', 'OPTIMAL'],
-                ['Budget Burn Rate', metrics.budgetUsed || 'N/A', 'ON TRACK'],
-                ['Tasks Remaining', metrics.tasksRemaining?.toString() || '12', 'MONITORED'],
-                ['Resource Load', '92%', 'HIGH'],
+                ['Tasks completed', `${done} of ${tasks.length}${tasks.length ? ` (${Math.round((done / tasks.length) * 100)}%)` : ''}`],
+                ['Overdue tasks', String(overdue)],
+                ['Milestones completed', `${msDone} of ${milestones.length}`],
+                ['Approved spend', `${inr(approvedSpend)}${budget ? ` (${Math.round((approvedSpend / budget) * 100)}% of budget)` : ''}`],
+                ['Spend awaiting approval', inr(pendingSpend)],
             ],
             theme: 'grid',
-            headStyles: { fillColor: [30, 41, 59] } // slate-800
+            headStyles: { fillColor: BRAND },
+            styles: { fontSize: 10 },
         });
 
-        // AI Assessment (Mocked for integration)
-        const assessmentY = (doc as any).lastAutoTable.finalY + 15;
-        doc.text('3. AI Assessment & Risk Analysis', 14, assessmentY);
-        doc.setFontSize(10);
-        doc.setTextColor(71, 85, 105); // slate-600
-        const splitText = doc.splitTextToSize(
-            "The EUSAI Intelligence Agent has analyzed current telemetry. Project is showing high execution velocity. Recommendation: Resource Alex Johnson is approaching burnout thresholds based on activity spikes in Mongo logs. Consider load balance redistribution in Sprint 4.",
-            180
-        );
-        doc.text(splitText, 14, assessmentY + 10);
+        if (milestones.length) {
+            autoTable(doc, {
+                startY: section('Milestones', nextY()),
+                head: [['Milestone', 'Status', 'Progress', 'Target']],
+                body: milestones.map(m => [m.title, humanize(m.status), `${m.progress ?? 0}%`, fmtDate(m.targetDate)]),
+                theme: 'striped',
+                headStyles: { fillColor: INK },
+                styles: { fontSize: 9 },
+            });
+        }
 
-        // Footer branding
+        if (tasks.length) {
+            autoTable(doc, {
+                startY: section('Tasks', nextY()),
+                head: [['Task', 'Status', 'Priority', 'Assignee', 'Deadline']],
+                body: tasks.map(t => [
+                    t.title, humanize(t.status), PRIORITY[t.priority] || '-', t.assignedTo?.name || 'Unassigned',
+                    `${fmtDate(t.deadline)}${t.status !== 'DONE' && t.deadline && new Date(t.deadline) < now ? ' (overdue)' : ''}`,
+                ]),
+                theme: 'striped',
+                headStyles: { fillColor: INK },
+                styles: { fontSize: 9 },
+            });
+        }
+
         const pageCount = (doc as any).internal.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             doc.setFontSize(8);
-            doc.setTextColor(148, 163, 184);
-            doc.text(`Page ${i} of ${pageCount} - Confidentially Generated by EUSAI BPM Intelligence Suite`, 14, 285);
+            doc.setTextColor(...MUTED);
+            doc.text(`EUSAI · ${project.name} · page ${i} of ${pageCount}`, 14, 290);
         }
 
-        doc.save(`${project.name.replace(/\s+/g, '_')}_Executive_Summary.pdf`);
+        doc.save(`${(project.name || 'project').replace(/[^\w-]+/g, '_')}_summary.pdf`);
     }
 }

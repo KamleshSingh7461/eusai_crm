@@ -4,11 +4,31 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { isLocal, isDevLoginEnabled } from "@/lib/env";
+
+// Local-only: sign in as any existing user by email, no password. See isDevLoginEnabled.
+const devLoginProviders = isDevLoginEnabled
+    ? [
+        CredentialsProvider({
+            id: "dev-login",
+            name: "Dev Login",
+            credentials: { email: { label: "Email", type: "email" } },
+            async authorize(credentials) {
+                if (!credentials?.email) return null;
+                const user = await prisma.user.findUnique({
+                    where: { email: credentials.email.toLowerCase() }
+                });
+                return (user as any) ?? null;
+            }
+        })
+    ]
+    : [];
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
     secret: process.env.NEXTAUTH_SECRET,
     providers: [
+        ...devLoginProviders,
         CredentialsProvider({
             name: "Credentials",
             credentials: {
@@ -36,7 +56,8 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 // Hardcoded fallback for initial admin
-                if (credentials.email === "admin@eusaiteam.com" && credentials.password === "admin123") {
+                // Test shortcut: local servers with a local database only.
+                if (isDevLoginEnabled && credentials.email === "admin@eusaiteam.com" && credentials.password === "admin123") {
                     const email = credentials.email;
                     // @ts-ignore
                     const adminUser = await prisma.user.upsert({
@@ -192,5 +213,5 @@ export const authOptions: NextAuthOptions = {
             return session;
         },
     },
-    debug: true,
+    debug: isLocal,
 };

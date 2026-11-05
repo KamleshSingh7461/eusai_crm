@@ -122,6 +122,21 @@ export default function SpaceDashboardPage() {
 
     const [space, setSpace] = useState<Space | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [creatingPage, setCreatingPage] = useState(false);
+
+    // Creates an empty knowledge page in this department and opens it in edit mode.
+    const createPage = async () => {
+        setCreatingPage(true);
+        try {
+            const res = await fetch('/api/wiki', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ spaceId: id, title: 'Untitled page' }) });
+            if (!res.ok) throw new Error();
+            const page = await res.json();
+            router.push(`/wiki/${page.id}`);
+        } catch {
+            setCreatingPage(false);
+            alert('Could not create the page. Try again.');
+        }
+    };
 
     // Modal States
     const [showManageMembersModal, setShowManageMembersModal] = useState(false);
@@ -168,8 +183,8 @@ export default function SpaceDashboardPage() {
         return (
             <div className="flex h-[calc(100vh-64px)] items-center justify-center bg-[var(--notion-bg-primary)]">
                 <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#2383e2]" />
-                    <p className="text-[var(--notion-text-tertiary)] font-bold text-xs uppercase tracking-widest">Loading Workspace...</p>
+                    <Loader2 className="w-8 h-8 animate-spin text-[#3B82F6]" />
+                    <p className="text-[var(--notion-text-tertiary)] font-bold text-xs uppercase tracking-wider">Loading Workspace...</p>
                 </div>
             </div>
         );
@@ -177,14 +192,14 @@ export default function SpaceDashboardPage() {
 
     if (!space) {
         return (
-            <div className="p-12 text-center bg-[var(--notion-bg-primary)] h-full min-h-screen flex items-center justify-center">
-                <div className="max-w-md w-full p-8 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm">
-                    <AlertTriangle className="w-12 h-12 text-[#FFAB00] mx-auto mb-4" />
+            <div className="p-6 sm:p-12 text-center bg-[var(--notion-bg-primary)] h-full min-h-screen flex items-center justify-center">
+                <div className="max-w-md w-full p-5 sm:p-8 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm">
+                    <AlertTriangle className="w-12 h-12 text-[#FBBF24] mx-auto mb-4" />
                     <h2 className="text-xl font-bold text-[var(--notion-text-primary)] mb-2">Space Not Found</h2>
                     <p className="text-[var(--notion-text-secondary)] mb-6 text-sm">The space you are looking for doesn't exist or has been decommissioned.</p>
                     <button
                         onClick={() => router.push('/spaces')}
-                        className="w-full px-4 py-2 bg-[#2383e2] text-white rounded-sm font-bold text-sm hover:bg-[#1a6fcc] transition-colors"
+                        className="w-full px-4 py-2 bg-[#3B82F6] text-white rounded-sm font-bold text-sm hover:bg-[#2563EB] transition-colors"
                     >
                         Return to Directory
                     </button>
@@ -219,21 +234,21 @@ export default function SpaceDashboardPage() {
                     </button>
 
                     <div className="flex flex-col md:flex-row md:items-end gap-6 w-full justify-between">
-                        <div className="flex items-end gap-6">
+                        <div className="flex min-w-0 items-end gap-4 sm:gap-6">
                             <div className="w-20 h-20 md:w-24 md:h-24 rounded-sm bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] flex items-center justify-center shadow-lg -mb-2 md:-mb-4 transform rotate-1 transition-transform group-hover:rotate-0">
-                                <span className="text-4xl" style={{ color: space.color }}>
+                                <span className="text-3xl sm:text-4xl" style={{ color: space.color }}>
                                     {space.name.charAt(0).toUpperCase()}
                                 </span>
                             </div>
-                            <div className="mb-2">
-                                <div className="flex items-center gap-3 mb-1">
+                            <div className="mb-2 min-w-0">
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
                                     <h1 className="text-3xl md:text-4xl font-bold text-[var(--notion-text-primary)] tracking-tight">{space.name}</h1>
-                                    <span className="px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-widest bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-secondary)] border border-[var(--notion-border-default)]">
+                                    <span className="px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-secondary)] border border-[var(--notion-border-default)]">
                                         {space.type}
                                     </span>
                                 </div>
                                 <p className="text-[var(--notion-text-secondary)] text-sm md:text-base max-w-2xl">
-                                    {space.description || "Mission workspace for EUSAI strategic initiatives."}
+                                    {space.description || "Every project across EUSAI, grouped by department."}
                                 </p>
                             </div>
                         </div>
@@ -243,7 +258,7 @@ export default function SpaceDashboardPage() {
                             {canManageSpace && (
                                 <button
                                     onClick={() => setShowCreateProjectModal(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2383e2] hover:bg-[#1a6fcc] text-white rounded-sm font-bold text-xs shadow-sm transition-colors"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-sm font-bold text-xs shadow-sm transition-colors"
                                 >
                                     <Plus className="w-3.5 h-3.5" /> New Operation
                                 </button>
@@ -256,7 +271,7 @@ export default function SpaceDashboardPage() {
                                     }}
                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--notion-bg-secondary)] hover:bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-primary)] border border-[var(--notion-border-default)] rounded-sm font-bold text-xs transition-colors"
                                 >
-                                    <Target className="w-3.5 h-3.5 text-[#36B37E]" /> + Milestone
+                                    <Target className="w-3.5 h-3.5 text-[#34D399]" /> + Milestone
                                 </button>
                             )}
                             {canCreateTasks && space.projects.length > 0 && (
@@ -267,7 +282,7 @@ export default function SpaceDashboardPage() {
                                     }}
                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--notion-bg-secondary)] hover:bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-primary)] border border-[var(--notion-border-default)] rounded-sm font-bold text-xs transition-colors"
                                 >
-                                    <CheckSquare className="w-3.5 h-3.5 text-[#FFAB00]" /> + Task
+                                    <CheckSquare className="w-3.5 h-3.5 text-[#FBBF24]" /> + Task
                                 </button>
                             )}
                         </div>
@@ -316,13 +331,13 @@ export default function SpaceDashboardPage() {
                         {/* Operations & Hierarchy Tree */}
                         <section>
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-sm font-bold text-[var(--notion-text-tertiary)] uppercase tracking-widest flex items-center gap-2">
+                                <h3 className="text-sm font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider flex items-center gap-2">
                                     <Layout className="w-4 h-4" /> Operations & Detailed Briefs
                                 </h3>
                                 {canManageSpace && (
                                     <button
                                         onClick={() => setShowCreateProjectModal(true)}
-                                        className="text-xs font-bold text-[#2383e2] hover:underline flex items-center gap-1"
+                                        className="text-xs font-bold text-[#3B82F6] hover:underline flex items-center gap-1"
                                     >
                                         <Plus className="w-3 h-3" /> Add Operation
                                     </button>
@@ -330,14 +345,14 @@ export default function SpaceDashboardPage() {
                             </div>
 
                             {space.projects.length === 0 ? (
-                                <div className="p-10 text-center bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm">
+                                <div className="p-5 sm:p-10 text-center bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm">
                                     <Briefcase className="w-10 h-10 text-[var(--notion-text-tertiary)] mx-auto mb-3 opacity-60" />
                                     <p className="text-sm font-bold text-[var(--notion-text-primary)]">No operations initialized in this space.</p>
                                     <p className="text-xs text-[var(--notion-text-tertiary)] mt-1 mb-4">Create a new operation to start managing milestones and tasks.</p>
                                     {canManageSpace && (
                                         <button
                                             onClick={() => setShowCreateProjectModal(true)}
-                                            className="px-4 py-2 bg-[#2383e2] text-white rounded-sm font-bold text-xs hover:bg-[#1a6fcc] transition-colors"
+                                            className="px-4 py-2 bg-[#3B82F6] text-white rounded-sm font-bold text-xs hover:bg-[#2563EB] transition-colors"
                                         >
                                             Initialize First Operation
                                         </button>
@@ -349,19 +364,19 @@ export default function SpaceDashboardPage() {
                                         <div key={project.id} className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm overflow-hidden shadow-sm">
                                             
                                             {/* Project Card Header */}
-                                            <div className="p-4 border-b border-[var(--notion-border-default)] bg-[var(--notion-bg-tertiary)]/40 flex items-start justify-between">
-                                                <div>
+                                            <div className="p-4 border-b border-[var(--notion-border-default)] bg-[var(--notion-bg-tertiary)]/40 flex flex-wrap items-start justify-between gap-3">
+                                                <div className="min-w-0">
                                                     <div className="flex items-center gap-3">
                                                         <h4
                                                             onClick={() => router.push(`/projects/${project.id}`)}
-                                                            className="text-base font-bold text-[var(--notion-text-primary)] hover:text-[#2383e2] transition-colors cursor-pointer"
+                                                            className="text-base font-bold text-[var(--notion-text-primary)] hover:text-[#3B82F6] transition-colors cursor-pointer"
                                                         >
                                                             {project.name}
                                                         </h4>
                                                         <span className={cn(
-                                                            "px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider",
-                                                            project.status === 'EXECUTION' ? "bg-[#36B37E]/20 text-[#36B37E]" :
-                                                                project.status === 'PLANNING' ? "bg-[#2383e2]/20 text-[#2383e2]" :
+                                                            "px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wider",
+                                                            project.status === 'EXECUTION' ? "bg-[#34D399]/20 text-[#34D399]" :
+                                                                project.status === 'PLANNING' ? "bg-[#3B82F6]/20 text-[#3B82F6]" :
                                                                     "bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-tertiary)]"
                                                         )}>
                                                             {project.status.replace('_', ' ')}
@@ -369,19 +384,19 @@ export default function SpaceDashboardPage() {
                                                     </div>
                                                     <p className="text-xs text-[var(--notion-text-secondary)] mt-1 font-medium">
                                                         <span className="font-bold text-[var(--notion-text-primary)]">Project Brief: </span>
-                                                        {project.description || "No mission brief provided."}
+                                                        {project.description || "No description yet."}
                                                     </p>
                                                 </div>
 
                                                 {/* Action Buttons for Project */}
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex shrink-0 flex-wrap items-center gap-2">
                                                     {canCreateMilestones && (
                                                         <button
                                                             onClick={() => {
                                                                 setSelectedProjectIdForCreation(project.id);
                                                                 setShowCreateMilestoneModal(true);
                                                             }}
-                                                            className="px-2.5 py-1 text-[11px] font-bold text-[#36B37E] bg-[#36B37E]/10 hover:bg-[#36B37E]/20 rounded-sm border border-[#36B37E]/30 transition-colors flex items-center gap-1"
+                                                            className="px-2.5 py-1 text-[11px] font-bold text-[#34D399] bg-[#34D399]/10 hover:bg-[#34D399]/20 rounded-sm border border-[#34D399]/30 transition-colors flex items-center gap-1"
                                                         >
                                                             <Plus className="w-3 h-3" /> Milestone
                                                         </button>
@@ -392,7 +407,7 @@ export default function SpaceDashboardPage() {
                                                                 setSelectedProjectIdForCreation(project.id);
                                                                 setShowNewTaskModal(true);
                                                             }}
-                                                            className="px-2.5 py-1 text-[11px] font-bold text-[#FFAB00] bg-[#FFAB00]/10 hover:bg-[#FFAB00]/20 rounded-sm border border-[#FFAB00]/30 transition-colors flex items-center gap-1"
+                                                            className="px-2.5 py-1 text-[11px] font-bold text-[#FBBF24] bg-[#FBBF24]/10 hover:bg-[#FBBF24]/20 rounded-sm border border-[#FBBF24]/30 transition-colors flex items-center gap-1"
                                                         >
                                                             <Plus className="w-3 h-3" /> Task
                                                         </button>
@@ -406,15 +421,15 @@ export default function SpaceDashboardPage() {
                                                 {/* Milestones Subsection */}
                                                 <div>
                                                     <div className="flex items-center justify-between mb-2">
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--notion-text-tertiary)] flex items-center gap-1.5">
-                                                            <Target className="w-3.5 h-3.5 text-[#36B37E]" /> Milestones ({project.milestones?.length || 0})
+                                                        <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--notion-text-tertiary)] flex items-center gap-1.5">
+                                                            <Target className="w-3.5 h-3.5 text-[#34D399]" /> Milestones ({project.milestones?.length || 0})
                                                         </span>
                                                     </div>
 
                                                     {!project.milestones || project.milestones.length === 0 ? (
                                                         <p className="text-xs text-[var(--notion-text-tertiary)] italic pl-5 py-1">No milestones created under this operation yet.</p>
                                                     ) : (
-                                                        <div className="space-y-2 pl-3 border-l-2 border-[#36B37E]/30">
+                                                        <div className="space-y-2 pl-3 border-l-2 border-[#34D399]/30">
                                                             {project.milestones.map(ms => (
                                                                 <div
                                                                     key={ms.id}
@@ -426,18 +441,18 @@ export default function SpaceDashboardPage() {
                                                                         });
                                                                         setShowMilestoneDetail(true);
                                                                     }}
-                                                                    className="p-3 rounded-sm bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] hover:border-[#36B37E]/60 transition-all cursor-pointer space-y-1.5 group"
+                                                                    className="p-3 rounded-sm bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] hover:border-[#34D399]/60 transition-all cursor-pointer space-y-1.5 group"
                                                                 >
                                                                     <div className="flex items-center justify-between text-xs">
                                                                         <div className="flex items-center gap-2">
-                                                                            <Target className="w-3.5 h-3.5 text-[#36B37E] shrink-0" />
-                                                                            <span className="font-bold text-[var(--notion-text-primary)] group-hover:text-[#36B37E] transition-colors">{ms.title}</span>
-                                                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-tertiary)] font-mono">{ms.category}</span>
+                                                                            <Target className="w-3.5 h-3.5 text-[#34D399] shrink-0" />
+                                                                            <span className="font-bold text-[var(--notion-text-primary)] group-hover:text-[#34D399] transition-colors">{ms.title}</span>
+                                                                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-tertiary)] font-mono">{ms.category}</span>
                                                                         </div>
-                                                                        <div className="flex items-center gap-3 text-[11px]">
+                                                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
                                                                             {ms.ownerUser && (
                                                                                 <span className="text-[var(--notion-text-secondary)] font-semibold flex items-center gap-1">
-                                                                                    <span className="w-4 h-4 rounded-full bg-[#36B37E]/20 text-[#36B37E] flex items-center justify-center text-[9px] font-bold">
+                                                                                    <span className="w-4 h-4 rounded-full bg-[#34D399]/20 text-[#34D399] flex items-center justify-center text-[11px] font-bold">
                                                                                         {ms.ownerUser.name?.charAt(0) || 'U'}
                                                                                     </span>
                                                                                     {ms.ownerUser.name || ms.ownerUser.email}
@@ -446,7 +461,7 @@ export default function SpaceDashboardPage() {
                                                                             <span className="text-[var(--notion-text-tertiary)]">
                                                                                 Target: {new Date(ms.targetDate).toLocaleDateString()}
                                                                             </span>
-                                                                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#36B37E]/10 text-[#36B37E]">
+                                                                            <span className="px-1.5 py-0.5 rounded text-[11px] font-bold bg-[#34D399]/10 text-[#34D399]">
                                                                                 {ms.status}
                                                                             </span>
                                                                         </div>
@@ -454,7 +469,7 @@ export default function SpaceDashboardPage() {
 
                                                                     {/* Milestone Brief / Description */}
                                                                     <div className="pl-5 text-xs text-[var(--notion-text-secondary)] bg-[var(--notion-bg-tertiary)]/30 p-2 rounded-sm border border-[var(--notion-border-default)]/40">
-                                                                        <span className="font-semibold text-[var(--notion-text-tertiary)] uppercase text-[9px] tracking-wider">Milestone Brief: </span>
+                                                                        <span className="font-semibold text-[var(--notion-text-tertiary)] uppercase text-[11px] tracking-wider">Milestone Brief: </span>
                                                                         <span>{ms.description || "No detailed brief provided for this milestone."}</span>
                                                                     </div>
                                                                 </div>
@@ -466,15 +481,15 @@ export default function SpaceDashboardPage() {
                                                 {/* Tasks Subsection */}
                                                 <div>
                                                     <div className="flex items-center justify-between mb-2">
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--notion-text-tertiary)] flex items-center gap-1.5">
-                                                            <CheckSquare className="w-3.5 h-3.5 text-[#FFAB00]" /> Tasks ({project.tasks?.length || 0})
+                                                        <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--notion-text-tertiary)] flex items-center gap-1.5">
+                                                            <CheckSquare className="w-3.5 h-3.5 text-[#FBBF24]" /> Tasks ({project.tasks?.length || 0})
                                                         </span>
                                                     </div>
 
                                                     {!project.tasks || project.tasks.length === 0 ? (
                                                         <p className="text-xs text-[var(--notion-text-tertiary)] italic pl-5 py-1">No tasks created under this operation yet.</p>
                                                     ) : (
-                                                        <div className="space-y-2 pl-3 border-l-2 border-[#FFAB00]/30">
+                                                        <div className="space-y-2 pl-3 border-l-2 border-[#FBBF24]/30">
                                                             {project.tasks.map(task => (
                                                                 <div
                                                                     key={task.id}
@@ -485,23 +500,23 @@ export default function SpaceDashboardPage() {
                                                                         });
                                                                         setShowTaskDetail(true);
                                                                     }}
-                                                                    className="p-3 rounded-sm bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] hover:border-[#FFAB00]/60 transition-all cursor-pointer space-y-1.5 group"
+                                                                    className="p-3 rounded-sm bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] hover:border-[#FBBF24]/60 transition-all cursor-pointer space-y-1.5 group"
                                                                 >
                                                                     <div className="flex items-center justify-between text-xs">
                                                                         <div className="flex items-center gap-2">
                                                                             <CheckCircle2 className={cn(
                                                                                 "w-3.5 h-3.5 shrink-0",
-                                                                                task.status === 'DONE' ? "text-[#36B37E]" : "text-[var(--notion-text-tertiary)]"
+                                                                                task.status === 'DONE' ? "text-[#34D399]" : "text-[var(--notion-text-tertiary)]"
                                                                             )} />
                                                                             <span className={cn(
                                                                                 "font-bold transition-colors",
-                                                                                task.status === 'DONE' ? "line-through text-[var(--notion-text-tertiary)]" : "text-[var(--notion-text-primary)] group-hover:text-[#FFAB00]"
+                                                                                task.status === 'DONE' ? "line-through text-[var(--notion-text-tertiary)]" : "text-[var(--notion-text-primary)] group-hover:text-[#FBBF24]"
                                                                             )}>{task.title}</span>
                                                                         </div>
-                                                                        <div className="flex items-center gap-3 text-[11px]">
+                                                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
                                                                             {task.assignedTo && (
                                                                                 <span className="text-[var(--notion-text-secondary)] font-semibold flex items-center gap-1">
-                                                                                    <span className="w-4 h-4 rounded-full bg-[#FFAB00]/20 text-[#FFAB00] flex items-center justify-center text-[9px] font-bold">
+                                                                                    <span className="w-4 h-4 rounded-full bg-[#FBBF24]/20 text-[#FBBF24] flex items-center justify-center text-[11px] font-bold">
                                                                                         {task.assignedTo.name?.charAt(0) || 'U'}
                                                                                     </span>
                                                                                     {task.assignedTo.name || task.assignedTo.email}
@@ -511,8 +526,8 @@ export default function SpaceDashboardPage() {
                                                                                 Deadline: {new Date(task.deadline).toLocaleDateString()}
                                                                             </span>
                                                                             <span className={cn(
-                                                                                "px-1.5 py-0.5 rounded text-[10px] font-bold",
-                                                                                task.status === 'DONE' ? "bg-[#36B37E]/20 text-[#36B37E]" : "bg-[#2383e2]/20 text-[#2383e2]"
+                                                                                "px-1.5 py-0.5 rounded text-[11px] font-bold",
+                                                                                task.status === 'DONE' ? "bg-[#34D399]/20 text-[#34D399]" : "bg-[#3B82F6]/20 text-[#3B82F6]"
                                                                             )}>
                                                                                 {task.status}
                                                                             </span>
@@ -521,7 +536,7 @@ export default function SpaceDashboardPage() {
 
                                                                     {/* Task Brief / Description */}
                                                                     <div className="pl-5 text-xs text-[var(--notion-text-secondary)] bg-[var(--notion-bg-tertiary)]/30 p-2 rounded-sm border border-[var(--notion-border-default)]/40">
-                                                                        <span className="font-semibold text-[var(--notion-text-tertiary)] uppercase text-[9px] tracking-wider">Task Brief: </span>
+                                                                        <span className="font-semibold text-[var(--notion-text-tertiary)] uppercase text-[11px] tracking-wider">Task Brief: </span>
                                                                         <span>{task.description || "No detailed brief provided for this task."}</span>
                                                                     </div>
                                                                 </div>
@@ -539,7 +554,7 @@ export default function SpaceDashboardPage() {
 
                         {/* Recent Space Activity */}
                         <section>
-                            <h3 className="text-sm font-bold text-[var(--notion-text-tertiary)] uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <h3 className="text-sm font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider mb-4 flex items-center gap-2">
                                 <Activity className="w-4 h-4" /> Activity Log
                             </h3>
                             <div className="space-y-3">
@@ -548,7 +563,7 @@ export default function SpaceDashboardPage() {
                                 ) : (
                                     space.recentActivities.map((activity: any) => (
                                         <div key={activity.id} className="flex gap-3 items-start p-3 rounded-sm hover:bg-[var(--notion-bg-secondary)] border border-transparent hover:border-[var(--notion-border-default)] transition-colors">
-                                            <div className="mt-0.5 w-6 h-6 rounded-full bg-[var(--notion-bg-tertiary)] flex items-center justify-center text-[10px] font-bold text-[var(--notion-text-secondary)] border border-[var(--notion-border-default)] shrink-0">
+                                            <div className="mt-0.5 w-6 h-6 rounded-full bg-[var(--notion-bg-tertiary)] flex items-center justify-center text-[11px] font-bold text-[var(--notion-text-secondary)] border border-[var(--notion-border-default)] shrink-0">
                                                 {activity.user?.name?.[0] || 'U'}
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -556,9 +571,9 @@ export default function SpaceDashboardPage() {
                                                     <span className="font-bold">{activity.user?.name || 'User'}</span>
                                                     <span className="text-[var(--notion-text-secondary)]"> {activity.action.replace(/_/g, ' ').toLowerCase()} </span>
                                                     <span className="text-[var(--notion-text-tertiary)]">in</span>
-                                                    <span className="font-bold text-[#2383e2]"> {activity.project?.name || 'Project'}</span>
+                                                    <span className="font-bold text-[#3B82F6]"> {activity.project?.name || 'Project'}</span>
                                                 </p>
-                                                <p className="text-[10px] text-[var(--notion-text-tertiary)] mt-1 flex items-center gap-1">
+                                                <p className="text-[11px] text-[var(--notion-text-tertiary)] mt-1 flex items-center gap-1">
                                                     <Clock className="w-2.5 h-2.5" />
                                                     {new Date(activity.timestamp).toLocaleDateString()} at {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </p>
@@ -576,13 +591,13 @@ export default function SpaceDashboardPage() {
                         {/* Space Personnel Section */}
                         <section className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] p-4 rounded-sm">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-widest flex items-center gap-2">
-                                    <Users className="w-3.5 h-3.5 text-[#0052CC]" /> Space Personnel ({space.members?.length || 0})
+                                <h3 className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider flex items-center gap-2">
+                                    <Users className="w-3.5 h-3.5 text-[#3B82F6]" /> Space Personnel ({space.members?.length || 0})
                                 </h3>
                                 {canManageSpace && (
                                     <button
                                         onClick={() => setShowManageMembersModal(true)}
-                                        className="text-xs font-bold text-[#0052CC] hover:underline flex items-center gap-1"
+                                        className="text-xs font-bold text-[#3B82F6] hover:underline flex items-center gap-1"
                                     >
                                         <UserPlus className="w-3.5 h-3.5" /> Manage
                                     </button>
@@ -594,7 +609,7 @@ export default function SpaceDashboardPage() {
                                     <div key={member.id} className="flex items-center justify-between p-2 hover:bg-[var(--notion-bg-tertiary)] rounded-sm transition-colors border border-transparent hover:border-[var(--notion-border-default)]">
                                         <div className="flex items-center gap-3 min-w-0">
                                             <div className="relative shrink-0">
-                                                <div className="w-7 h-7 rounded-full bg-[#0052CC]/20 flex items-center justify-center font-bold text-[#0052CC] text-xs border border-white/10 overflow-hidden shadow-sm">
+                                                <div className="w-7 h-7 rounded-full bg-[#3B82F6]/20 flex items-center justify-center font-bold text-[#3B82F6] text-xs border border-white/10 overflow-hidden shadow-sm">
                                                     {member.image ? (
                                                         <img src={member.image} alt={member.name || ''} className="w-full h-full object-cover" />
                                                     ) : (
@@ -607,7 +622,7 @@ export default function SpaceDashboardPage() {
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-xs font-bold text-[var(--notion-text-primary)] truncate">{member.name || member.email.split('@')[0]}</p>
-                                                <p className="text-[9px] text-[var(--notion-text-tertiary)] uppercase font-bold tracking-wider">{member.role.replace('_', ' ')}</p>
+                                                <p className="text-[11px] text-[var(--notion-text-tertiary)] uppercase font-bold tracking-wider">{member.role.replace('_', ' ')}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -619,7 +634,7 @@ export default function SpaceDashboardPage() {
                                         {canManageSpace && (
                                             <button
                                                 onClick={() => setShowManageMembersModal(true)}
-                                                className="mt-2 text-xs font-bold text-[#0052CC] hover:underline"
+                                                className="mt-2 text-xs font-bold text-[#3B82F6] hover:underline"
                                             >
                                                 + Assign Employees
                                             </button>
@@ -631,7 +646,7 @@ export default function SpaceDashboardPage() {
 
                         {/* Space Wiki / Knowledge Section */}
                         <section className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] p-4 rounded-sm">
-                            <h3 className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <h3 className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider mb-3 flex items-center gap-2">
                                 <FileText className="w-3.5 h-3.5" /> Documentation
                             </h3>
                             <div className="space-y-1">
@@ -642,12 +657,15 @@ export default function SpaceDashboardPage() {
                                         <Link
                                             key={page.id}
                                             href={`/wiki/${page.id}`}
-                                            className="block p-2 text-xs text-[var(--notion-text-secondary)] hover:bg-[var(--notion-bg-tertiary)] rounded-sm transition-colors truncate hover:text-[#2383e2]"
+                                            className="block p-2 text-xs text-[var(--notion-text-secondary)] hover:bg-[var(--notion-bg-tertiary)] rounded-sm transition-colors truncate hover:text-[#3B82F6]"
                                         >
                                             {page.title}
                                         </Link>
                                     ))
                                 )}
+                                <button onClick={createPage} disabled={creatingPage} className="mt-1 flex w-full items-center gap-2 rounded-lg p-2 text-left text-xs text-slate-400 transition hover:bg-white/[0.04] hover:text-white disabled:opacity-50">
+                                    <Plus className="h-3 w-3" /> {creatingPage ? 'Creating…' : 'New page'}
+                                </button>
                             </div>
                         </section>
 

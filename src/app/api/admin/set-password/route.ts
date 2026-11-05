@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
 
         // Ensure only Directors can set passwords for others
         if (!session || !session.user || (session.user as any).role !== "DIRECTOR") {
-            return NextResponse.json({ error: "Unauthorized. Only Directors can set core credentials." }, { status: 403 });
+            return NextResponse.json({ error: "Only directors can set passwords for other people." }, { status: 403 });
         }
 
         const body = await request.json();
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
             data: { password: hashedPassword }
         });
 
-        return NextResponse.json({ message: `Credentials established successfully for ${updatedUser.name || updatedUser.email}` });
+        return NextResponse.json({ message: `Password set for ${updatedUser.name || updatedUser.email}` });
     } catch (error: any) {
         console.error("Failed to set credentials:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

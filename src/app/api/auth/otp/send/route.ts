@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         });
 
         const subject = type === "SETUP" ? "Set Up Your EUSAI Account Password" : "Reset Your EUSAI Password";
-        const emailHeader = type === "SETUP" ? "EUSAI Terminal Setup" : "Security Credential Reset";
+        const emailHeader = type === "SETUP" ? "Set up your EUSAI password" : "Reset your EUSAI password";
 
         const mailOptions = {
             from: `"EUSAI Command Center" <${process.env.SMTP_USER}>`,
@@ -69,20 +69,20 @@ export async function POST(req: NextRequest) {
                         <h1 style="color: #fff; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 10px;">${emailHeader}</h1>
                     </div>
                     
-                    <p>Operator ${user.name || user.email},</p>
+                    <p>Hi ${user.name || user.email},</p>
                     
                     <p>A request was issued to ${type === "SETUP" ? "establish" : "reset"} the secure credentials for your command center profile.</p>
 
                     <div style="background-color: #1A1A1A; border: 1px solid #36B37E; padding: 20px; text-align: center; margin: 30px 0; border-radius: 4px;">
-                        <p style="margin: 0; color: #888; font-size: 12px; text-transform: uppercase; tracking: 2px;">Your One-Time Authentication Code</p>
+                        <p style="margin: 0; color: #888; font-size: 12px; text-transform: uppercase; tracking: 2px;">Your one-time code</p>
                         <h2 style="font-size: 32px; letter-spacing: 8px; color: #36B37E; margin: 10px 0 0 0;">${otp}</h2>
                     </div>
 
-                    <p style="color: #FF5630; font-size: 14px;"><strong>CRITICAL:</strong> This structural sequence will self-destruct in 15 minutes.</p>
+                    <p style="color: #FF5630; font-size: 14px;"><strong>CRITICAL:</strong> This code expires in 15 minutes.</p>
                     
                     <p style="color: #888; font-size: 12px; margin-top: 40px; border-top: 1px solid #333; padding-top: 20px;">
-                        If this operation was not initiated by you, ignore this transmission. Your current clearance remains secure.<br><br>
-                        <em>Transmission origin: EUSAI Auth Server</em>
+                        If you didn&#39;t request this, you can ignore this email. Your account is unchanged.<br><br>
+                        <em>Sent by EUSAI</em>
                     </p>
                 </div>
             `,
@@ -100,6 +100,6 @@ export async function POST(req: NextRequest) {
 
     } catch (error: any) {
         console.error("OTP Dispatch Error:", error);
-        return NextResponse.json({ error: "Failed to dispatch integrity check" }, { status: 500 });
+        return NextResponse.json({ error: "Could not send the code" }, { status: 500 });
     }
 }

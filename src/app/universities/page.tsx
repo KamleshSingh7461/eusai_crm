@@ -200,8 +200,8 @@ export default function UniversitiesPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-heading mb-2">Universities</h1>
-                    <p className="text-body">Manage university partnerships, agreements, and MOUs.</p>
+                    <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Universities</h1>
+                    <p className="mt-2 max-w-2xl text-base text-slate-400">Manage university partnerships, agreements, and MOUs.</p>
                 </div>
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
@@ -217,7 +217,7 @@ export default function UniversitiesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in slide-in-from-top-4 duration-500">
                     <div className="card-jira p-5 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm shadow-sm flex items-center gap-4">
                         <div className="p-3 bg-blue-500/10 rounded-sm">
-                            <GraduationCap className="w-6 h-6 text-[#0052CC]" />
+                            <GraduationCap className="w-6 h-6 text-[#3B82F6]" />
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-heading">{meta.partnerCount} / {meta.totalEntities}</div>
@@ -226,8 +226,8 @@ export default function UniversitiesPage() {
                     </div>
 
                     <div className="card-jira p-5 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm shadow-sm flex items-center gap-4">
-                        <div className="p-3 bg-green-50 rounded-sm">
-                            <CheckCircle2 className="w-6 h-6 text-[#36B37E]" />
+                        <div className="p-3 bg-green-500/10 rounded-sm">
+                            <CheckCircle2 className="w-6 h-6 text-[#34D399]" />
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-heading">{meta.conversionRate}%</div>
@@ -236,8 +236,8 @@ export default function UniversitiesPage() {
                     </div>
 
                     <div className="card-jira p-5 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm shadow-sm flex items-center gap-4">
-                        <div className="p-3 bg-indigo-50 rounded-sm">
-                            <TrendingUp className="w-6 h-6 text-[#403294]" />
+                        <div className="p-3 bg-indigo-500/10 rounded-sm">
+                            <TrendingUp className="w-6 h-6 text-[#8B5CF6]" />
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-heading">₹{(meta.totalValue / 100000).toFixed(1)}L</div>
@@ -246,8 +246,8 @@ export default function UniversitiesPage() {
                     </div>
 
                     <div className="card-jira p-5 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm shadow-sm flex items-center gap-4">
-                        <div className="p-3 bg-orange-50 rounded-sm">
-                            <FileText className="w-6 h-6 text-[#FF8B00]" />
+                        <div className="p-3 bg-orange-500/10 rounded-sm">
+                            <FileText className="w-6 h-6 text-[#F59E0B]" />
                         </div>
                         <div>
                             <div className="text-2xl font-bold text-heading">{meta.milestoneProgress}%</div>
@@ -265,14 +265,14 @@ export default function UniversitiesPage() {
                         placeholder="Search universities..."
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                        className="w-full pl-9 pr-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
                     />
                 </div>
                 <div className="w-full md:w-auto">
                     <select
                         value={filterStatus}
                         onChange={e => setFilterStatus(e.target.value)}
-                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
                     >
                         <option value="ALL">All Statuses</option>
                         <option value="PROSPECT">Prospect</option>
@@ -284,13 +284,13 @@ export default function UniversitiesPage() {
                     <div className="flex items-center gap-1 bg-[var(--notion-bg-tertiary)] p-1 rounded-sm">
                         <button
                             onClick={() => setTeamOnly(false)}
-                            className={`px-3 py-1 text-xs font-bold rounded-sm transition-all ${!teamOnly ? 'bg-[var(--notion-bg-primary)] text-[#0052CC] shadow-sm' : 'text-subheading hover:text-heading'}`}
+                            className={`px-3 py-1 text-xs font-bold rounded-sm transition-all ${!teamOnly ? 'bg-[var(--notion-bg-primary)] text-[#3B82F6] shadow-sm' : 'text-subheading hover:text-heading'}`}
                         >
                             All
                         </button>
                         <button
                             onClick={() => setTeamOnly(true)}
-                            className={`px-3 py-1 text-xs font-bold rounded-sm transition-all ${teamOnly ? 'bg-[var(--notion-bg-primary)] text-[#0052CC] shadow-sm' : 'text-subheading hover:text-heading'}`}
+                            className={`px-3 py-1 text-xs font-bold rounded-sm transition-all ${teamOnly ? 'bg-[var(--notion-bg-primary)] text-[#3B82F6] shadow-sm' : 'text-subheading hover:text-heading'}`}
                         >
                             My Team
                         </button>
@@ -300,12 +300,12 @@ export default function UniversitiesPage() {
 
             {/* Grid */}
             {isLoading ? (
-                <div className="p-12 flex flex-col items-center justify-center gap-3 text-body">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#0052CC]" />
+                <div className="p-6 sm:p-12 flex flex-col items-center justify-center gap-3 text-body">
+                    <Loader2 className="w-8 h-8 animate-spin text-[#3B82F6]" />
                     <p className="text-sm">Loading universities...</p>
                 </div>
             ) : filteredUniversities.length === 0 ? (
-                <div className="p-12 text-center border-2 border-dashed border-[var(--notion-border-default)] rounded-sm text-body">
+                <div className="p-6 sm:p-12 text-center border-2 border-dashed border-[var(--notion-border-default)] rounded-sm text-body">
                     <GraduationCap className="w-12 h-12 mx-auto mb-3 opacity-20" />
                     <h3 className="text-lg font-bold mb-1">No Universities Found</h3>
                     <p className="text-sm max-w-sm mx-auto">Add a new university to start tracking agreements and business orders.</p>
@@ -321,16 +321,16 @@ export default function UniversitiesPage() {
 
                             <div className="flex justify-between items-start mb-3 pl-2">
                                 <div className="p-2 bg-blue-500/10 rounded-sm">
-                                    <GraduationCap className="w-6 h-6 text-[#0052CC]" />
+                                    <GraduationCap className="w-6 h-6 text-[#3B82F6]" />
                                 </div>
                                 <div className="flex flex-col items-end gap-1">
                                     {['DIRECTOR', 'MANAGER'].includes(userRole) ? (
                                         <select
                                             value={uni.status}
                                             onChange={(e) => handleUpdateStatus(uni.id, e.target.value)}
-                                            className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wide border cursor-pointer outline-none focus:ring-1 focus:ring-[#0052CC] ${uni.status === 'PARTNER' ? 'bg-green-100 text-green-700 border-green-200' :
+                                            className={`px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wide border cursor-pointer outline-none focus:ring-1 focus:ring-[#3B82F6] ${uni.status === 'PARTNER' ? 'bg-green-500/15 text-green-300 border-green-400/25' :
                                                 uni.status === 'PROSPECT' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
-                                                    'bg-slate-100 text-slate-700 border-slate-200'
+                                                    'bg-white/[0.03] text-fg-muted border-line'
                                                 }`}
                                         >
                                             <option value="PROSPECT">PROSPECT</option>
@@ -338,9 +338,9 @@ export default function UniversitiesPage() {
                                             <option value="INACTIVE">INACTIVE</option>
                                         </select>
                                     ) : (
-                                        <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wide border ${uni.status === 'PARTNER' ? 'bg-green-100 text-green-700 border-green-200' :
+                                        <span className={`px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wide border ${uni.status === 'PARTNER' ? 'bg-green-500/15 text-green-300 border-green-400/25' :
                                             uni.status === 'PROSPECT' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
-                                                'bg-slate-100 text-slate-700 border-slate-200'
+                                                'bg-white/[0.03] text-fg-muted border-line'
                                             }`}>
                                             {uni.status}
                                         </span>
@@ -357,40 +357,40 @@ export default function UniversitiesPage() {
                                     <span className="truncate">{uni.location || 'Location not set'}</span>
                                 </div>
                                 {((uni as any).milestones || []).some((m: any) => m.owner === userId) ? (
-                                    <span className="flex items-center gap-1 text-[10px] font-bold text-[#0052CC] bg-blue-500/10 px-1.5 py-0.5 rounded-sm border border-blue-500/20">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#0052CC] animate-pulse" />
+                                    <span className="flex items-center gap-1 text-[11px] font-bold text-[#3B82F6] bg-blue-500/10 px-1.5 py-0.5 rounded-sm border border-blue-500/20">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] animate-pulse" />
                                         My Active
                                     </span>
                                 ) : ((uni as any).milestones || []).length > 0 && (
-                                    <span className="flex items-center gap-1 text-[10px] font-bold text-[#36B37E] bg-green-50 px-1.5 py-0.5 rounded-sm border border-green-100">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#36B37E]" />
+                                    <span className="flex items-center gap-1 text-[11px] font-bold text-[#34D399] bg-green-500/10 px-1.5 py-0.5 rounded-sm border border-green-400/25">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#34D399]" />
                                         Team Active
                                     </span>
                                 )}
                             </div>
 
-                            <div className="mt-auto pl-2 space-y-3 pt-3 border-t border-[#EBECF0]">
+                            <div className="mt-auto pl-2 space-y-3 pt-3 border-t border-[#FFFFFF0F]">
                                 <div className="grid grid-cols-2 gap-2 text-center">
                                     <button
                                         onClick={() => router.push(`/milestones?universityId=${uni.id}`)}
                                         className="p-2 bg-[var(--notion-bg-secondary)] hover:bg-[var(--notion-bg-tertiary)] rounded-sm transition-colors border border-transparent hover:border-[var(--notion-border-default)]"
                                     >
-                                        <div className="text-lg font-bold text-[#0052CC]">{uni._count.milestones}</div>
-                                        <div className="text-[10px] font-bold text-body uppercase">Agreements</div>
+                                        <div className="text-lg font-bold text-[#3B82F6]">{uni._count.milestones}</div>
+                                        <div className="text-[11px] font-bold text-body uppercase">Agreements</div>
                                     </button>
                                     <button
                                         onClick={() => router.push(`/projects?universityId=${uni.id}`)}
                                         className="p-2 bg-[var(--notion-bg-secondary)] hover:bg-[var(--notion-bg-tertiary)] rounded-sm transition-colors border border-transparent hover:border-[var(--notion-border-default)]"
                                     >
                                         <div className="text-lg font-bold text-heading">{uni._count.businessOrders}</div>
-                                        <div className="text-[10px] font-bold text-body uppercase">Orders</div>
+                                        <div className="text-[11px] font-bold text-body uppercase">Orders</div>
                                     </button>
                                 </div>
 
                                 {/* Milestone Progress Bar */}
                                 {uni.milestones.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="flex justify-between text-[10px] font-bold text-body uppercase">
+                                        <div className="flex justify-between text-[11px] font-bold text-body uppercase">
                                             <span>Milestone Progress</span>
                                             <span>
                                                 {Math.round(uni.milestones.reduce((acc, m) => acc + (m.progress || 0), 0) / uni.milestones.length)}%
@@ -398,7 +398,7 @@ export default function UniversitiesPage() {
                                         </div>
                                         <div className="w-full h-1.5 bg-[var(--notion-bg-tertiary)] rounded-full overflow-hidden">
                                             <div
-                                                className="h-full bg-[#0052CC] transition-all duration-500"
+                                                className="h-full bg-[#3B82F6] transition-all duration-500"
                                                 style={{ width: `${Math.round(uni.milestones.reduce((acc, m) => acc + (m.progress || 0), 0) / uni.milestones.length)}%` }}
                                             />
                                         </div>
@@ -407,9 +407,9 @@ export default function UniversitiesPage() {
 
                                 {/* Revenue Indicator */}
                                 {uni.businessOrders.length > 0 && (
-                                    <div className="flex items-center justify-between p-2 bg-green-50/50 border border-green-100 rounded-sm">
-                                        <span className="text-[10px] font-bold text-green-700 uppercase">Revenue Generated</span>
-                                        <span className="text-xs font-bold text-green-700">
+                                    <div className="flex items-center justify-between p-2 bg-green-500/10/50 border border-green-400/25 rounded-sm">
+                                        <span className="text-[11px] font-bold text-green-300 uppercase">Revenue Generated</span>
+                                        <span className="text-xs font-bold text-green-300">
                                             ₹{uni.businessOrders.reduce((acc, o) => acc + Number(o.amount), 0).toLocaleString()}
                                         </span>
                                     </div>
@@ -423,7 +423,7 @@ export default function UniversitiesPage() {
 
                                 <button
                                     onClick={() => handleOpenOrderModal(uni)}
-                                    className="w-full mt-2 py-1.5 text-xs font-medium text-[#0052CC] bg-blue-500/10 hover:bg-blue-500/20 rounded-sm transition-colors flex items-center justify-center gap-1"
+                                    className="w-full mt-2 py-1.5 text-xs font-medium text-[#3B82F6] bg-blue-500/10 hover:bg-blue-500/20 rounded-sm transition-colors flex items-center justify-center gap-1"
                                 >
                                     <Plus className="w-3 h-3" />
                                     Add Business Order
@@ -436,8 +436,8 @@ export default function UniversitiesPage() {
 
             {/* Create University Modal */}
             {isCreateModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="card-eusai w-full max-w-lg bg-[var(--notion-bg-primary)] rounded-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 h-[80vh] flex flex-col">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] w-full max-w-lg animate-in zoom-in-95 duration-300 h-[80vh] flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
                         <div className="p-6 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-secondary)] shrink-0">
                             <h3 className="text-lg font-bold text-heading">Add University</h3>
                             <button
@@ -456,18 +456,18 @@ export default function UniversitiesPage() {
                                         required
                                         value={formData.name}
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
                                         placeholder="e.g. Stanford University"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-bold text-body uppercase">Location</label>
                                         <input
                                             value={formData.location}
                                             onChange={e => setFormData({ ...formData, location: e.target.value })}
-                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
                                             placeholder="City, Country"
                                         />
                                     </div>
@@ -477,7 +477,7 @@ export default function UniversitiesPage() {
                                             value={formData.status}
                                             onChange={e => setFormData({ ...formData, status: e.target.value })}
                                             disabled={!['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes((session?.user as any)?.role || '')}
-                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none disabled:bg-gray-100 disabled:text-gray-500"
+                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none disabled:bg-white/[0.03] disabled:text-slate-400"
                                         >
                                             <option value="PROSPECT">Prospect</option>
                                             <option value="PARTNER">Partner</option>
@@ -491,19 +491,19 @@ export default function UniversitiesPage() {
                                     <input
                                         value={formData.contactPerson}
                                         onChange={e => setFormData({ ...formData, contactPerson: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
                                         placeholder="Name of key contact"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-bold text-body uppercase">Email</label>
                                         <input
                                             type="email"
                                             value={formData.email}
                                             onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
                                             placeholder="contact@university.edu"
                                         />
                                     </div>
@@ -512,7 +512,7 @@ export default function UniversitiesPage() {
                                         <input
                                             value={formData.phone}
                                             onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
                                             placeholder="+1 234 567 890"
                                         />
                                     </div>
@@ -523,7 +523,7 @@ export default function UniversitiesPage() {
                                     <input
                                         value={formData.website}
                                         onChange={e => setFormData({ ...formData, website: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
                                         placeholder="https://..."
                                     />
                                 </div>
@@ -534,7 +534,7 @@ export default function UniversitiesPage() {
                                         rows={3}
                                         value={formData.description}
                                         onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none resize-none"
+                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none resize-none"
                                         placeholder="Notes about this university..."
                                     />
                                 </div>
@@ -563,8 +563,8 @@ export default function UniversitiesPage() {
 
             {/* Create Order Modal */}
             {isOrderModalOpen && selectedUniversityForOrder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="card-eusai w-full max-w-lg bg-[var(--notion-bg-primary)] rounded-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] w-full max-w-lg animate-in zoom-in-95 duration-300 flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
                         <div className="p-6 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-secondary)] shrink-0">
                             <div>
                                 <h3 className="text-lg font-bold text-heading">New Business Order</h3>
@@ -586,12 +586,12 @@ export default function UniversitiesPage() {
                                         required
                                         value={orderFormData.title}
                                         onChange={e => setOrderFormData({ ...orderFormData, title: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
                                         placeholder="e.g. Merchandise Batch #1"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
                                         <label className="text-xs font-bold text-body uppercase">Amount (INR)</label>
                                         <input
@@ -599,7 +599,7 @@ export default function UniversitiesPage() {
                                             required
                                             value={orderFormData.amount}
                                             onChange={e => setOrderFormData({ ...orderFormData, amount: e.target.value })}
-                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
                                             placeholder="0.00"
                                         />
                                     </div>
@@ -610,7 +610,7 @@ export default function UniversitiesPage() {
                                             required
                                             value={orderFormData.date}
                                             onChange={e => setOrderFormData({ ...orderFormData, date: e.target.value })}
-                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
                                         />
                                     </div>
                                 </div>
@@ -620,7 +620,7 @@ export default function UniversitiesPage() {
                                     <select
                                         value={orderFormData.milestoneId}
                                         onChange={e => setOrderFormData({ ...orderFormData, milestoneId: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
                                     >
                                         <option value="">No specific MOU</option>
                                         {availableMOUs.map(mou => (
@@ -634,7 +634,7 @@ export default function UniversitiesPage() {
                                     <select
                                         value={orderFormData.status}
                                         onChange={e => setOrderFormData({ ...orderFormData, status: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none"
+                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
                                     >
                                         <option value="PENDING">Pending</option>
                                         <option value="PAID">Paid</option>
@@ -648,7 +648,7 @@ export default function UniversitiesPage() {
                                         rows={2}
                                         value={orderFormData.description}
                                         onChange={e => setOrderFormData({ ...orderFormData, description: e.target.value })}
-                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#0052CC] outline-none resize-none"
+                                        className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none resize-none"
                                         placeholder="Order details..."
                                     />
                                 </div>
