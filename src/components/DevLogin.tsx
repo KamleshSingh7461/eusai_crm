@@ -65,7 +65,7 @@ export default function DevLogin() {
                             <span className="block text-sm font-semibold text-white truncate">{user.name || user.email}</span>
                             <span className="block text-[11px] text-white/40 truncate">{user.email}</span>
                         </span>
-                        <span className="shrink-0 text-[11px] font-bold tracking-wider text-[#34D399]">
+                        <span className="shrink-0 text-[11px] font-semibold text-[#34D399]">
                             {pending === user.email ? '...' : user.role}
                         </span>
                     </button>

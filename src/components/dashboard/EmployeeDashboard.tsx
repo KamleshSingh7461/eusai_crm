@@ -88,8 +88,9 @@ export default function EmployeeDashboard() {
     return (
         <div className="space-y-6">
             <PageHeader
+                hideTitleOnPhone
                 eyebrow={todayLabel()}
-                title={<>{greeting()}, <span className="text-gradient-brand">{firstName(session?.user?.name)}</span></>}
+                title={<>{greeting()}, {firstName(session?.user?.name)}</>}
                 description="Your work, deadlines and progress at a glance."
                 actions={
                     <>
@@ -102,8 +103,8 @@ export default function EmployeeDashboard() {
             />
 
             <Card delay={0.05} padding="none" className={cn('flex flex-wrap items-center gap-4 px-5 py-4',
-                data.hasSubmittedReport ? 'border-emerald-400/20 bg-gradient-to-r from-emerald-500/[0.1] to-transparent'
-                    : isLate ? 'border-rose-400/20 bg-gradient-to-r from-rose-500/[0.12] to-transparent' : 'border-blue-400/20 bg-gradient-to-r from-blue-500/[0.12] to-transparent')}>
+                data.hasSubmittedReport ? 'border-emerald-400/20  bg-emerald-500/[0.1] '
+                    : isLate ? 'border-rose-400/20  bg-rose-500/[0.12] ' : 'border-blue-400/20  bg-blue-500/[0.12] ')}>
                 <span className={cn('flex h-10 w-10 items-center justify-center rounded-xl ring-1 ring-inset',
                     data.hasSubmittedReport ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-400/25' : isLate ? 'bg-rose-500/15 text-rose-300 ring-rose-400/25' : 'bg-blue-500/15 text-blue-300 ring-blue-400/25')}>
                     {data.hasSubmittedReport ? <CheckCircle2 className="h-5 w-5" /> : isLate ? <AlertCircle className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
@@ -112,7 +113,7 @@ export default function EmployeeDashboard() {
                     <p className="text-sm font-semibold text-white">
                         {data.hasSubmittedReport ? "Today's report is submitted" : isLate ? "Today's report is due now" : "Today's report is still pending"}
                     </p>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-zinc-400">
                         {data.hasSubmittedReport && data.reportSubmissionTime
                             ? `Sent at ${format(new Date(data.reportSubmissionTime), 'h:mm a')}. Keep your ${kpi.streak}-day streak going tomorrow.`
                             : 'Submit between 5:00 PM and 11:59 PM IST.'}
@@ -149,13 +150,13 @@ export default function EmployeeDashboard() {
                                             return (
                                                 <li key={task.id} className="group flex flex-wrap items-center gap-4 px-5 py-4 transition hover:bg-white/[0.025]">
                                                     <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset',
-                                                        task.status === 'IN_PROGRESS' ? 'bg-blue-500/15 text-blue-300 ring-blue-400/25' : 'bg-white/[0.04] text-slate-400 ring-white/10')}>
+                                                        task.status === 'IN_PROGRESS' ? 'bg-blue-500/15 text-blue-300 ring-blue-400/25' : 'bg-white/[0.04] text-zinc-400 ring-white/10')}>
                                                         {task.status === 'IN_PROGRESS' ? <PlayCircle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
                                                     </span>
                                                     <div className="min-w-0 flex-1">
-                                                        <p className="truncate font-semibold text-slate-100">{task.title}</p>
-                                                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                                                            {task.project?.name && <span className="rounded-md bg-white/[0.05] px-1.5 py-0.5 text-slate-300">{task.project.name}</span>}
+                                                        <p className="truncate font-semibold text-zinc-100">{task.title}</p>
+                                                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
+                                                            {task.project?.name && <span className="rounded-md bg-white/[0.05] px-1.5 py-0.5 text-zinc-300">{task.project.name}</span>}
                                                             <span className={cn('flex items-center gap-1', overdue && 'text-rose-300')}>
                                                                 <CalendarDays className="h-3.5 w-3.5" />
                                                                 {overdue ? 'Overdue ' : 'Due '}{formatDistanceToNow(new Date(task.deadline), { addSuffix: true })}
@@ -190,14 +191,14 @@ export default function EmployeeDashboard() {
                                                 <StatusPill status={m.status} />
                                             </div>
                                             <p className="mt-4 font-semibold text-white">{m.title}</p>
-                                            <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+                                            <p className="mt-1 flex items-center gap-1.5 text-xs text-zinc-500">
                                                 <GraduationCap className="h-3.5 w-3.5" />{m.university?.name || m.project?.name || 'General'}
                                                 <span>·</span>
                                                 <CalendarDays className="h-3.5 w-3.5" />{format(new Date(m.targetDate), 'd MMM yyyy')}
                                             </p>
                                             <div className="mt-4 flex items-center justify-between text-xs">
-                                                <span className="text-slate-400">Progress</span>
-                                                <span className="font-semibold text-slate-200 tabular-nums">{m.progress}%</span>
+                                                <span className="text-zinc-400">Progress</span>
+                                                <span className="font-semibold text-zinc-200 tabular-nums">{m.progress}%</span>
                                             </div>
                                             <ProgressBar value={m.progress} tone="blue" className="mt-2 h-2" glow />
                                         </Card>
@@ -219,15 +220,15 @@ export default function EmployeeDashboard() {
                         <CardHeader title="Expense requests" description="Waiting for approval"
                             action={<Button size="sm" variant="secondary" onClick={() => setExpenseOpen(true)}>New</Button>} />
                         {data.pendingExpenses.length === 0
-                            ? <p className="mt-4 text-sm text-slate-500">Nothing waiting for approval.</p>
+                            ? <p className="mt-4 text-sm text-zinc-500">Nothing waiting for approval.</p>
                             : (
                                 <ul className="mt-4 space-y-3">
                                     {data.pendingExpenses.map((e: any) => (
                                         <li key={e.id} className="flex items-center gap-3 rounded-xl bg-white/[0.03] p-3">
                                             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/15 text-amber-300"><IndianRupee className="h-4 w-4" /></span>
                                             <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-medium text-slate-100">{e.description || humanize(e.category)}</p>
-                                                <p className="truncate text-xs text-slate-500">{e.project?.name}</p>
+                                                <p className="truncate text-sm font-medium text-zinc-100">{e.description || humanize(e.category)}</p>
+                                                <p className="truncate text-xs text-zinc-500">{e.project?.name}</p>
                                             </div>
                                             <span className="text-sm font-semibold text-white tabular-nums">₹{Number(e.amount).toLocaleString('en-IN')}</span>
                                         </li>

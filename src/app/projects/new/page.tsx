@@ -142,7 +142,7 @@ export default function NewProjectPage() {
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
-                        <h1 className="font-display text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
+                        <h1 className="font-display text-3xl font-semibold tracking-tight text-white flex items-center gap-3">
                             <Rocket className="w-6 h-6 text-[#3B82F6]" />
                             New project
                         </h1>
@@ -152,14 +152,14 @@ export default function NewProjectPage() {
 
                 <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm shadow-sm overflow-hidden">
                     <div className="p-6 border-b border-[var(--notion-border-default)]">
-                        <h2 className="text-lg font-bold">Project brief</h2>
+                        <h2 className="text-lg font-semibold">Project brief</h2>
                         <p className="text-sm text-[var(--notion-text-tertiary)]">Core details and ownership assignment.</p>
                     </div>
 
                     <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
                         {/* Project Name */}
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider flex items-center gap-2">
+                            <label className="text-xs font-semibold text-[var(--notion-text-tertiary)] flex items-center gap-2">
                                 <Briefcase className="w-4 h-4" /> Project name
                             </label>
                             <input
@@ -172,7 +172,7 @@ export default function NewProjectPage() {
 
                         {/* Description */}
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider flex items-center gap-2">
+                            <label className="text-xs font-semibold text-[var(--notion-text-tertiary)] flex items-center gap-2">
                                 <FileText className="w-4 h-4" /> Objectives
                             </label>
                             <textarea
@@ -187,7 +187,7 @@ export default function NewProjectPage() {
                         {/* Space & Manager */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider flex items-center gap-2">
+                                <label className="text-xs font-semibold text-[var(--notion-text-tertiary)] flex items-center gap-2">
                                     <Layout className="w-4 h-4" /> Space / Department
                                 </label>
                                 <div className="relative">
@@ -209,7 +209,7 @@ export default function NewProjectPage() {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider flex items-center gap-2">
+                                <label className="text-xs font-semibold text-[var(--notion-text-tertiary)] flex items-center gap-2">
                                     <User className="w-4 h-4" /> Managers
                                 </label>
                                 <div className="p-3 bg-[var(--notion-bg-tertiary)] border border-[var(--notion-border-default)] rounded-sm max-h-48 overflow-y-auto space-y-2">
@@ -234,12 +234,12 @@ export default function NewProjectPage() {
                                                     }}
                                                 />
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-6 h-6 rounded-full bg-[var(--notion-bg-secondary)] flex items-center justify-center text-[11px] font-bold border border-[var(--notion-border-default)]">
+                                                    <div className="w-6 h-6 rounded-full bg-[var(--notion-bg-secondary)] flex items-center justify-center text-[11px] font-semibold border border-[var(--notion-border-default)]">
                                                         {manager.name?.charAt(0) || 'M'}
                                                     </div>
                                                     <div className="flex flex-col">
                                                         <span className="text-xs text-[var(--notion-text-primary)] font-medium">{manager.name}</span>
-                                                        <span className="text-[11px] text-[var(--notion-text-disabled)] uppercase">{manager.role}</span>
+                                                        <span className="text-[11px] text-[var(--notion-text-disabled)]">{manager.role}</span>
                                                     </div>
                                                 </div>
                                             </label>
@@ -252,12 +252,12 @@ export default function NewProjectPage() {
 
                         {/* Timeline */}
                         <div className="pt-4 border-t border-[var(--notion-border-default)]">
-                            <h3 className="text-sm font-bold text-[var(--notion-text-secondary)] mb-4 flex items-center gap-2">
+                            <h3 className="text-sm font-semibold text-[var(--notion-text-secondary)] mb-4 flex items-center gap-2">
                                 <Calendar className="w-4 h-4" /> Timeline
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider">Start Date</label>
+                                    <label className="text-xs font-semibold text-[var(--notion-text-tertiary)]">Start Date</label>
                                     <input
                                         {...register('startDate')}
                                         type="date"
@@ -267,7 +267,7 @@ export default function NewProjectPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-[var(--notion-text-tertiary)] uppercase tracking-wider">Target Completion</label>
+                                    <label className="text-xs font-semibold text-[var(--notion-text-tertiary)]">Target Completion</label>
                                     <input
                                         {...register('endDate')}
                                         type="date"
@@ -290,7 +290,7 @@ export default function NewProjectPage() {
                             <Button
                                 type="submit"
                                 isLoading={isSubmitting}
-                                className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+                                className="bg-[#1F1F23] hover:bg-[#1F1F23] text-white"
                             >
                                 Initiate Mission
                             </Button>

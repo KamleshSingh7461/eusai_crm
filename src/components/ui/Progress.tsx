@@ -10,13 +10,13 @@ export function ProgressBar({ value, tone, className, glow }: { value: number; t
     const pct = Math.max(0, Math.min(100, Math.round(value || 0)));
     const t = TONES[tone ?? (pct >= 75 ? 'emerald' : pct >= 40 ? 'amber' : 'rose')];
     return (
-        <div className={cn('h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]', className)}>
+        <div className={cn('h-1.5 w-full overflow-hidden rounded-full bg-zinc-800', className)}>
             <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${pct}%` }}
                 transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
                 className="h-full rounded-full"
-                style={{ background: `linear-gradient(90deg, ${t.stroke}99, ${t.stroke})`, boxShadow: glow ? `0 0 12px ${t.stroke}99` : undefined }}
+                style={{ background: t.stroke }}
             />
         </div>
     );
@@ -36,17 +36,16 @@ export function ProgressRing({ value, size = 160, stroke = 14, label, from = '#3
                 <defs>
                     <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={from} /><stop offset="100%" stopColor={to} /></linearGradient>
                 </defs>
-                <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={stroke} />
+                <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#27272A" strokeWidth={stroke} />
                 <motion.circle
-                    cx={size / 2} cy={size / 2} r={r} fill="none" stroke={`url(#${gid})`} strokeWidth={stroke} strokeLinecap="round"
+                    cx={size / 2} cy={size / 2} r={r} fill="none" stroke={from} strokeWidth={stroke} strokeLinecap="round"
                     strokeDasharray={c} initial={{ strokeDashoffset: c }} animate={{ strokeDashoffset: c * (1 - pct / 100) }}
                     transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ filter: `drop-shadow(0 0 8px ${from}73)` }}
                 />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="font-display text-4xl font-bold text-white tabular-nums">{pct}%</p>
-                {label && <p className="text-xs text-slate-400">{label}</p>}
+                <p className="font-display text-4xl font-semibold text-white tabular-nums">{pct}%</p>
+                {label && <p className="text-xs text-zinc-400">{label}</p>}
             </div>
         </div>
     );

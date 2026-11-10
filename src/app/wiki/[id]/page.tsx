@@ -102,7 +102,7 @@ export default function WikiPageView() {
     return (
         <div className="mx-auto max-w-3xl space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
-                <Link href={backHref} className="flex items-center gap-2 text-sm text-slate-400 transition hover:text-white">
+                <Link href={backHref} className="flex items-center gap-2 text-sm text-zinc-400 transition hover:text-white">
                     <ArrowLeft className="h-4 w-4" />{backLabel}
                 </Link>
                 {canEdit && (
@@ -124,9 +124,9 @@ export default function WikiPageView() {
 
             <Card padding="lg" className="sm:p-10">
                 <div className="flex items-center gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500/25 to-violet-500/5 text-violet-300 ring-1 ring-inset ring-violet-400/25"><BookOpen className="h-5 w-5" /></span>
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
-                        <Avatar alt={page.author?.name || ''} src={page.author?.image} fallback={initialsOf(page.author?.name)} className="h-6 w-6 text-[10px]" />
+                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-500/25 text-violet-300 ring-1 ring-inset ring-violet-400/25"><BookOpen className="h-5 w-5" /></span>
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-400">
+                        <Avatar alt={page.author?.name || ''} src={page.author?.image} fallback={initialsOf(page.author?.name)} className="h-6 w-6 text-xs" />
                         <span>{page.author?.name || 'Unknown author'}</span>
                         <span>·</span>
                         <span>Updated {format(new Date(page.updatedAt), 'd MMM yyyy, h:mm a')}</span>
@@ -140,7 +140,7 @@ export default function WikiPageView() {
                             onChange={e => setDraft({ ...draft, title: e.target.value })}
                             placeholder="Page title"
                             autoFocus
-                            className="w-full bg-transparent font-display text-3xl font-extrabold tracking-tight text-white outline-none placeholder:text-slate-300"
+                            className="w-full bg-transparent font-display text-3xl font-semibold tracking-tight text-white outline-none placeholder:text-zinc-300"
                         />
                         <textarea
                             value={draft.content}
@@ -148,14 +148,14 @@ export default function WikiPageView() {
                             placeholder="Write the process, contacts, decisions or anything the team should know."
                             className={cn(fieldClass, 'h-auto min-h-[420px] resize-y py-3 leading-relaxed')}
                         />
-                        <p className="flex items-center gap-1.5 text-xs text-slate-500"><Check className="h-3.5 w-3.5" />Line breaks are kept as you type them.</p>
+                        <p className="flex items-center gap-1.5 text-xs text-zinc-500"><Check className="h-3.5 w-3.5" />Line breaks are kept as you type them.</p>
                     </div>
                 ) : (
                     <>
-                        <h1 className="mt-6 font-display text-3xl font-extrabold tracking-tight text-white">{page.title}</h1>
+                        <h1 className="mt-6 font-display text-3xl font-semibold tracking-tight text-white">{page.title}</h1>
                         {page.content
-                            ? <div className="mt-6 whitespace-pre-wrap text-[15px] leading-7 text-slate-300">{page.content}</div>
-                            : <p className="mt-6 text-slate-500">This page is empty.</p>}
+                            ? <div className="mt-6 whitespace-pre-wrap text-[15px] leading-7 text-zinc-300">{page.content}</div>
+                            : <p className="mt-6 text-zinc-500">This page is empty.</p>}
                     </>
                 )}
             </Card>

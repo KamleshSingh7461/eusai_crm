@@ -41,23 +41,23 @@ interface ProjectCardProps {
 function ProjectCard({ project, userRole, onDelete, onEdit, onClick }: ProjectCardProps) {
     // Calculate progress color
     const getProgressColor = (progress: number) => {
-        if (progress >= 100) return 'bg-[#34D399]'; // Notion Green
-        if (progress > 50) return 'bg-[#3B82F6]';   // Notion Blue
-        return 'bg-[#FBBF24]';                       // Notion Yellow
+        if (progress >= 100) return 'bg-[#1F1F23]'; // Notion Green
+        if (progress > 50) return 'bg-[#1F1F23]';   // Notion Blue
+        return 'bg-[#1F1F23]';                       // Notion Yellow
     };
 
     return (
         <div
-            className="group bg-[#131720] border border-[rgba(255,255,255,0.09)] hover:bg-[#1A1F2A] rounded-lg p-5 transition-all duration-200 cursor-pointer relative flex flex-col h-full hover:shadow-lg"
+            className="group bg-[#18181B] border border-[rgba(255,255,255,0.09)] hover:bg-[#1F1F23] rounded-lg p-5 transition-all duration-200 cursor-pointer relative flex flex-col h-full hover:shadow-lg"
             onClick={onClick}
         >
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-md bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.09)] flex items-center justify-center text-[rgba(255,255,255,0.9)] font-bold text-lg">
+                    <div className="w-10 h-10 rounded-md bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.09)] flex items-center justify-center text-[rgba(255,255,255,0.9)] font-semibold text-lg">
                         {project.name.charAt(0)}
                     </div>
                     <div>
-                        <h3 className="text-base font-bold text-[rgba(255,255,255,0.9)] group-hover:text-[#3B82F6] transition-colors leading-tight mb-0.5">
+                        <h3 className="text-base font-semibold text-[rgba(255,255,255,0.9)] group-hover:text-[#3B82F6] transition-colors leading-tight mb-0.5">
                             {project.name}
                         </h3>
                         {project.space && (
@@ -111,7 +111,7 @@ function ProjectCard({ project, userRole, onDelete, onEdit, onClick }: ProjectCa
 
                 {/* Progress Bar */}
                 <div className="space-y-1.5">
-                    <div className="flex justify-between text-[11px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">
+                    <div className="flex justify-between text-[11px] font-semibold text-[rgba(255,255,255,0.5)]">
                         <span>Progress</span>
                         <span>{project.stats?.progress || 0}%</span>
                     </div>
@@ -125,7 +125,7 @@ function ProjectCard({ project, userRole, onDelete, onEdit, onClick }: ProjectCa
 
                 <div className="flex items-center justify-between pt-1">
                     <span className={cn(
-                        "px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider",
+                        "px-2 py-0.5 rounded-full text-[11px] font-semibold  ",
                         project.status === 'EXECUTION' ? "bg-emerald-500/20 text-emerald-400" :
                             project.status === 'PLANNING' ? "bg-blue-500/20 text-blue-400" :
                                 project.status === 'MONITORING' ? "bg-orange-500/20 text-orange-400" :
@@ -217,7 +217,7 @@ export default function ProjectsPage() {
                 <div>
                     <div className="flex items-center gap-3 mb-2">
                         <Briefcase className="w-8 h-8 text-[#3B82F6]" />
-                        <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Projects</h1>
+                        <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Projects</h1>
                     </div>
                     <p className="text-[rgba(255,255,255,0.7)] text-base max-w-2xl">
                         Manage your initiatives, track progress, and monitor team performance across all workspaces.
@@ -228,7 +228,7 @@ export default function ProjectsPage() {
                         onClick={() => router.push('/projects/new')}
                         leftIcon={<Plus className="w-5 h-5" />}
                         size="md"
-                        className="bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-blue-900/20"
+                        className="bg-[#1F1F23] hover:bg-[#1F1F23] text-white shadow-lg shadow-blue-900/20"
                     >
                         New Project
                     </Button>
@@ -246,7 +246,7 @@ export default function ProjectsPage() {
             )}
 
             {/* Controls */}
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between sticky top-0 z-10 bg-[#07090D]/95 backdrop-blur-sm py-4 border-b border-[rgba(255,255,255,0.05)]">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between sticky top-0 z-10 bg-[#09090B] py-4 border-b border-[rgba(255,255,255,0.05)]">
                 <Input
                     type="text"
                     placeholder="Search projects..."
@@ -254,14 +254,14 @@ export default function ProjectsPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     leftIcon={<Search className="w-4 h-4 text-[rgba(255,255,255,0.5)]" />}
                     containerClassName="w-full md:w-96"
-                    className="h-10 bg-[#131720] border-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.9)] placeholder-[rgba(255,255,255,0.5)] focus:border-[#3B82F6]"
+                    className="h-10 bg-[#18181B] border-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.9)] placeholder-[rgba(255,255,255,0.5)] focus:border-[#3B82F6]"
                 />
 
                 <div className="flex items-center gap-2 w-full md:w-auto">
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="h-10 px-3 bg-[#131720] border border-[rgba(255,255,255,0.09)] rounded-md text-sm text-[rgba(255,255,255,0.9)] focus:outline-none focus:border-[#3B82F6]"
+                        className="h-10 px-3 bg-[#18181B] border border-[rgba(255,255,255,0.09)] rounded-md text-sm text-[rgba(255,255,255,0.9)] focus:outline-none focus:border-[#3B82F6]"
                     >
                         <option value="ALL">All Status</option>
                         <option value="INITIATION">Initiation</option>
@@ -271,7 +271,7 @@ export default function ProjectsPage() {
                         <option value="CLOSED">Closed</option>
                     </select>
 
-                    <div className="flex bg-[#131720] border border-[rgba(255,255,255,0.09)] rounded-md p-1">
+                    <div className="flex bg-[#18181B] border border-[rgba(255,255,255,0.09)] rounded-md p-1">
                         <button
                             onClick={() => setViewMode('grid')}
                             className={cn(
@@ -298,7 +298,7 @@ export default function ProjectsPage() {
             {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <div key={i} className="bg-[#131720] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] space-y-4">
+                        <div key={i} className="bg-[#18181B] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] space-y-4">
                             <div className="flex justify-between">
                                 <Skeleton className="h-10 w-10 bg-[rgba(255,255,255,0.1)] rounded-md" />
                                 <Skeleton className="h-6 w-20 bg-[rgba(255,255,255,0.1)] rounded-sm" />
@@ -310,11 +310,11 @@ export default function ProjectsPage() {
                     ))}
                 </div>
             ) : filteredProjects.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-[#131720] border border-dashed border-[rgba(255,255,255,0.09)] rounded-lg text-center p-5 sm:p-8">
+                <div className="flex flex-col items-center justify-center py-20 bg-[#18181B] border border-dashed border-[rgba(255,255,255,0.09)] rounded-lg text-center p-5 sm:p-8">
                     <div className="w-16 h-16 bg-[rgba(255,255,255,0.05)] rounded-full flex items-center justify-center mb-4 text-[rgba(255,255,255,0.3)]">
                         <Briefcase className="w-8 h-8" />
                     </div>
-                    <h3 className="text-xl font-bold text-[rgba(255,255,255,0.9)] mb-2">No projects found</h3>
+                    <h3 className="text-xl font-semibold text-[rgba(255,255,255,0.9)] mb-2">No projects found</h3>
                     <p className="text-[rgba(255,255,255,0.5)] max-w-sm mb-6">
                         {searchQuery || statusFilter !== 'ALL'
                             ? "Try adjusting your search or filters to find what you're looking for."
@@ -343,8 +343,8 @@ export default function ProjectsPage() {
                             <div key={spaceName} className="space-y-4">
                                 <div className="flex items-center gap-3 border-b border-[rgba(255,255,255,0.09)] pb-2">
                                     <div className="w-2 h-8 rounded-r-md" style={{ backgroundColor: spaceColor }} />
-                                    <h2 className="text-sm font-bold text-[rgba(255,255,255,0.9)] uppercase tracking-wider">{spaceName}</h2>
-                                    <span className="text-[11px] font-bold text-[rgba(255,255,255,0.5)] bg-[rgba(255,255,255,0.1)] px-2 py-0.5 rounded-full">
+                                    <h2 className="text-sm font-semibold text-[rgba(255,255,255,0.9)]">{spaceName}</h2>
+                                    <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.5)] bg-[rgba(255,255,255,0.1)] px-2 py-0.5 rounded-full">
                                         {spaceProjects.length}
                                     </span>
                                 </div>
@@ -405,13 +405,13 @@ function MetricCard({ label, value, icon: Icon, color }: any) {
     };
 
     return (
-        <div className="bg-[#131720] border border-[rgba(255,255,255,0.09)] p-4 rounded-lg flex items-center gap-4">
+        <div className="bg-[#18181B] border border-[rgba(255,255,255,0.09)] p-4 rounded-lg flex items-center gap-4">
             <div className={cn("p-3 rounded-md", colorStyles[color])}>
                 <Icon className="w-5 h-5" />
             </div>
             <div>
-                <div className="text-2xl font-bold text-[rgba(255,255,255,0.9)]">{value}</div>
-                <div className="text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">{label}</div>
+                <div className="text-2xl font-semibold text-[rgba(255,255,255,0.9)]">{value}</div>
+                <div className="text-xs font-semibold text-[rgba(255,255,255,0.5)]">{label}</div>
             </div>
         </div>
     );

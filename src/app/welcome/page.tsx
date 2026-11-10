@@ -7,11 +7,11 @@ export default function WelcomePage() {
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Welcome Header */}
             <div className="text-center py-8 sm:py-12">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 mb-6">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-500 mb-6">
                     <Smile className="w-10 h-10 text-white" />
                 </div>
-                <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Welcome to EUSAI</h1>
-                <p className="mt-2 max-w-2xl text-base text-slate-400">
+                <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Welcome to EUSAI</h1>
+                <p className="mt-2 max-w-2xl text-base text-zinc-400">
                     Your enterprise platform for seamless project management, team collaboration, and business growth.
                 </p>
             </div>
@@ -40,7 +40,7 @@ export default function WelcomePage() {
 
             {/* Quick Start Guide */}
             <div className="bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm shadow-sm p-5 sm:p-8">
-                <h2 className="text-xl font-bold text-heading mb-6">Quick Start Guide</h2>
+                <h2 className="text-xl font-semibold text-heading mb-6">Quick Start Guide</h2>
                 <div className="space-y-4">
                     <QuickStartStep
                         number={1}
@@ -66,8 +66,8 @@ export default function WelcomePage() {
             </div>
 
             {/* Team Introduction */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-500/30 rounded-sm p-5 sm:p-8 text-center">
-                <h2 className="text-xl font-bold text-heading mb-3">Built for Teams, Powered by Innovation</h2>
+            <div className="bg-blue-50 border border-blue-500/30 rounded-sm p-5 sm:p-8 text-center">
+                <h2 className="text-xl font-semibold text-heading mb-3">Built for Teams, Powered by Innovation</h2>
                 <p className="text-sm text-body max-w-2xl mx-auto mb-6">
                     EUSAI CRM is designed to help teams of all sizes work smarter, collaborate better, and achieve more together.
                     Whether you're a director overseeing projects or an employee managing daily tasks, we've got you covered.
@@ -92,7 +92,7 @@ function FeatureCard({ icon, title, description, color }: any) {
             <div className={`inline-flex p-3 rounded-lg mb-4 ${colors[color]}`}>
                 {icon}
             </div>
-            <h3 className="text-lg font-bold text-heading mb-2">{title}</h3>
+            <h3 className="text-lg font-semibold text-heading mb-2">{title}</h3>
             <p className="text-sm text-body">{description}</p>
         </div>
     );
@@ -101,11 +101,11 @@ function FeatureCard({ icon, title, description, color }: any) {
 function QuickStartStep({ number, title, description }: any) {
     return (
         <div className="flex gap-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#3B82F6] text-white flex items-center justify-center font-bold text-sm">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#1F1F23] text-white flex items-center justify-center font-semibold text-sm">
                 {number}
             </div>
             <div>
-                <h3 className="font-bold text-heading mb-1">{title}</h3>
+                <h3 className="font-semibold text-heading mb-1">{title}</h3>
                 <p className="text-sm text-body">{description}</p>
             </div>
         </div>

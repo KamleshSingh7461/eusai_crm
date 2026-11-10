@@ -11,20 +11,20 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 export const buttonVariants = {
-    base: "inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] whitespace-nowrap",
+    base: "inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#09090B] disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-px whitespace-nowrap",
     variant: {
-        primary: "text-white bg-gradient-to-b from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 shadow-[0_8px_24px_-8px_rgba(59,130,246,0.8),inset_0_1px_0_rgba(255,255,255,0.25)]",
-        secondary: "text-slate-200 bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] hover:border-white/[0.14]",
-        outline: "text-slate-200 bg-transparent border border-white/[0.12] hover:bg-white/[0.05]",
-        ghost: "text-slate-400 hover:text-slate-100 hover:bg-white/[0.06]",
-        danger: "text-white bg-gradient-to-b from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500 shadow-[0_8px_24px_-10px_rgba(244,63,94,0.8),inset_0_1px_0_rgba(255,255,255,0.2)]",
-        success: "text-white bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-[0_8px_24px_-10px_rgba(16,185,129,0.8),inset_0_1px_0_rgba(255,255,255,0.2)]",
+        primary: "text-white bg-blue-600 hover:bg-blue-500",
+        secondary: "text-zinc-100 bg-[#18181B] border border-[#2F2F35] hover:bg-[#1F1F23] hover:border-[#3A3A41]",
+        outline: "text-zinc-100 bg-transparent border border-[#2F2F35] hover:bg-[#18181B]",
+        ghost: "text-zinc-400 hover:text-zinc-100 hover:bg-[#18181B]",
+        danger: "text-white bg-red-600 hover:bg-red-500",
+        success: "text-white bg-emerald-600 hover:bg-emerald-500",
     },
     size: {
-        sm: "h-8 px-3 text-xs rounded-lg",
-        md: "h-10 px-4 text-sm",
-        lg: "h-12 px-6 text-base",
-        icon: "h-10 w-10 p-0",
+        sm: "h-8 px-3 text-xs",
+        md: "h-9 px-3.5 text-sm",
+        lg: "h-11 px-5 text-[15px]",
+        icon: "h-9 w-9 p-0",
     },
 };
 

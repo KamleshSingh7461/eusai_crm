@@ -3,8 +3,8 @@ import React from 'react';
 export default function PrivacyPolicyPage() {
     return (
         <div className="max-w-4xl mx-auto py-8 sm:py-12 px-6 lg:px-8 text-fg dark:text-gray-200">
-            <h1 className="text-3xl sm:text-4xl font-bold mb-8 text-fg dark:text-white">Privacy Policy</h1>
-            <p className="mb-4 text-sm text-slate-400">Last Updated: {new Date().toLocaleDateString()}</p>
+            <h1 className="text-3xl sm:text-4xl font-semibold mb-8 text-fg dark:text-white">Privacy Policy</h1>
+            <p className="mb-4 text-sm text-zinc-400">Last Updated: {new Date().toLocaleDateString()}</p>
             
             <div className="space-y-6 text-base leading-relaxed">
                 <section>

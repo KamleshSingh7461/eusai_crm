@@ -92,7 +92,7 @@ export default function NewConversationModal({ open, onClose, users, meId, canCr
                     {([['direct', 'Direct message', MessageSquare], ['group', 'Private group', Lock]] as const).map(([key, label, Icon]) => (
                         <button key={key} onClick={() => setMode(key)}
                             className={cn('flex items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium transition',
-                                mode === key ? 'bg-blue-500/15 text-white ring-1 ring-inset ring-blue-400/25' : 'text-slate-400 hover:text-white')}>
+                                mode === key ? 'bg-blue-500/15 text-white ring-1 ring-inset ring-blue-400/25' : 'text-zinc-400 hover:text-white')}>
                             <Icon className="h-4 w-4" />{label}
                         </button>
                     ))}
@@ -101,21 +101,21 @@ export default function NewConversationModal({ open, onClose, users, meId, canCr
 
             {mode === 'group' && (
                 <div className="mb-3">
-                    <label className="mb-1.5 block text-xs font-medium text-slate-400">Group name</label>
+                    <label className="mb-1.5 block text-xs font-medium text-zinc-400">Group name</label>
                     <input value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={60} placeholder="e.g. Admissions sprint"
-                        className="h-10 w-full rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-400/50 focus:outline-none focus:ring-4 focus:ring-blue-500/15" />
+                        className="h-10 w-full rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-blue-400/50 focus:outline-none focus:ring-4 focus:ring-blue-500/15" />
                 </div>
             )}
 
             <div className="relative mb-2">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                 <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Search people by name, email or role"
-                    className="h-10 w-full rounded-xl border border-white/[0.07] bg-white/[0.03] pl-9 pr-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-blue-400/50 focus:outline-none focus:ring-4 focus:ring-blue-500/15" />
+                    className="h-10 w-full rounded-xl border border-white/[0.07] bg-white/[0.03] pl-9 pr-3 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-blue-400/50 focus:outline-none focus:ring-4 focus:ring-blue-500/15" />
             </div>
 
             <ul className="-mx-1 max-h-[45vh] space-y-0.5 overflow-y-auto">
                 {people.length === 0 && (
-                    <li className="py-8 text-center text-sm text-slate-400"><Users className="mx-auto mb-2 h-6 w-6 text-slate-600" />No one matches “{query}”</li>
+                    <li className="py-8 text-center text-sm text-zinc-400"><Users className="mx-auto mb-2 h-6 w-6 text-zinc-600" />No one matches “{query}”</li>
                 )}
                 {people.map(u => {
                     const picked = selected.includes(u.id);
@@ -125,8 +125,8 @@ export default function NewConversationModal({ open, onClose, users, meId, canCr
                                 className={cn('flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition disabled:opacity-50', picked ? 'bg-blue-500/10' : 'hover:bg-white/[0.04]')}>
                                 <Avatar src={u.image} alt={u.name} fallback={initialsOf(u.name)} className="h-9 w-9 text-xs" />
                                 <span className="min-w-0 flex-1">
-                                    <span className="block truncate text-sm font-medium text-slate-100">{u.name}</span>
-                                    <span className="block truncate text-xs text-slate-500">{humanize(u.role)}{u.email ? ` · ${u.email}` : ''}</span>
+                                    <span className="block truncate text-sm font-medium text-zinc-100">{u.name}</span>
+                                    <span className="block truncate text-xs text-zinc-500">{humanize(u.role)}{u.email ? ` · ${u.email}` : ''}</span>
                                 </span>
                                 {mode === 'group' && (
                                     <span className={cn('flex h-5 w-5 items-center justify-center rounded-md border transition', picked ? 'border-blue-400 bg-blue-500 text-white' : 'border-white/15')}>

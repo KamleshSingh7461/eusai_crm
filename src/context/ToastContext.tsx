@@ -51,8 +51,8 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                             {toast.type === 'info' && <Bell className="w-5 h-5" />}
                         </div>
                         <div className="flex-1 pr-4">
-                            <p className="text-sm font-bold text-white">{toast.message}</p>
-                            <p className="text-[11px] opacity-60 font-bold uppercase tracking-wider mt-0.5">
+                            <p className="text-sm font-semibold text-white">{toast.message}</p>
+                            <p className="text-[11px] opacity-60 font-semibold mt-0.5">
                                 {toast.type === 'info' ? 'System Notification' : toast.type === 'success' ? 'Action Successful' : 'Error Alert'}
                             </p>
                         </div>
@@ -60,7 +60,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                             onClick={() => removeToast(toast.id)}
                             className="p-1 hover:bg-white/10 rounded-lg transition-colors"
                         >
-                            <X className="w-4 h-4 text-slate-500" />
+                            <X className="w-4 h-4 text-zinc-500" />
                         </button>
                     </div>
                 ))}

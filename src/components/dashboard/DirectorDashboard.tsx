@@ -120,8 +120,9 @@ export default function DirectorDashboard() {
     return (
         <div className="space-y-6">
             <PageHeader
+                hideTitleOnPhone
                 eyebrow={`Director overview · ${todayLabel()}`}
-                title={<>{greeting()}, <span className="text-gradient-brand">{firstName(session?.user?.name)}</span></>}
+                title={<>{greeting()}, {firstName(session?.user?.name)}</>}
                 description="How your organization is performing today."
                 actions={
                     <>
@@ -132,11 +133,11 @@ export default function DirectorDashboard() {
             />
 
             {stats.missingReports > 0 && (
-                <Card delay={0.05} padding="none" className="flex flex-wrap items-center gap-4 border-rose-400/20 bg-gradient-to-r from-rose-500/[0.12] via-rose-500/[0.04] to-transparent px-5 py-4">
+                <Card delay={0.05} padding="none" className="flex flex-wrap items-center gap-4 border-rose-400/20 bg-rose-500/[0.12] px-5 py-4">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/15 text-rose-300 ring-1 ring-inset ring-rose-400/25"><FileWarning className="h-5 w-5" /></span>
                     <div className="min-w-[200px] flex-1">
                         <p className="text-sm font-semibold text-white">{stats.missingReports} of {stats.staffCount} team members haven't submitted today's report</p>
-                        <p className="text-sm text-slate-400">The submission window closes at 11:59 PM IST.</p>
+                        <p className="text-sm text-zinc-400">The submission window closes at 11:59 PM IST.</p>
                     </div>
                     <Button variant="secondary" size="sm" onClick={() => router.push('/reports?activeTab=TEAM')}>Review reports</Button>
                 </Card>
@@ -183,7 +184,7 @@ export default function DirectorDashboard() {
                         <Card delay={0.3} padding="lg" className="xl:col-span-2">
                             <CardHeader title="Delivery velocity" description="Tasks completed per month, last 6 months" />
                             <div className="mt-3 flex items-baseline gap-3">
-                                <p className="font-display text-3xl font-bold text-white tabular-nums">{monthTotal}</p>
+                                <p className="font-display text-3xl font-semibold text-white tabular-nums">{monthTotal}</p>
                                 {monthDelta !== null && <Badge tone={monthDelta >= 0 ? 'emerald' : 'rose'} icon={<ArrowUpRight className={cn(monthDelta < 0 && 'rotate-90')} />}>{monthDelta >= 0 ? '+' : ''}{monthDelta}% vs last month</Badge>}
                             </div>
                             <div className="mt-4">
@@ -194,8 +195,8 @@ export default function DirectorDashboard() {
                             <CardHeader title="Report compliance" description="Daily reports submitted today" />
                             <div className="mt-6 flex justify-center"><ProgressRing value={compliance} label="submitted" /></div>
                             <div className="mt-6 space-y-3 text-sm">
-                                <div className="flex items-center gap-3"><span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /><span className="flex-1 text-slate-300">Submitted</span><span className="font-semibold text-white tabular-nums">{submitted}</span></div>
-                                <div className="flex items-center gap-3"><span className="h-2.5 w-2.5 rounded-full bg-rose-400" /><span className="flex-1 text-slate-300">Missing</span><span className="font-semibold text-white tabular-nums">{stats.missingReports}</span></div>
+                                <div className="flex items-center gap-3"><span className="h-2.5 w-2.5 rounded-full bg-emerald-400" /><span className="flex-1 text-zinc-300">Submitted</span><span className="font-semibold text-white tabular-nums">{submitted}</span></div>
+                                <div className="flex items-center gap-3"><span className="h-2.5 w-2.5 rounded-full bg-rose-400" /><span className="flex-1 text-zinc-300">Missing</span><span className="font-semibold text-white tabular-nums">{stats.missingReports}</span></div>
                             </div>
                         </Card>
                     </section>
@@ -210,13 +211,13 @@ export default function DirectorDashboard() {
                                             <div className="relative">
                                                 <Avatar src={user.image} alt={user.name} fallback={initialsOf(user.name)} className="h-10 w-10 text-xs" />
                                                 {index < 3 && (
-                                                    <span className={cn('absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ring-2 ring-[#0B0E14]',
-                                                        index === 0 ? 'bg-amber-400 text-amber-950' : index === 1 ? 'bg-slate-300 text-slate-300' : 'bg-orange-700 text-orange-50')}>{index + 1}</span>
+                                                    <span className={cn('absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold ring-2 ring-[#0B0E14]',
+                                                        index === 0 ? 'bg-amber-400 text-amber-950' : index === 1 ? 'bg-zinc-300 text-zinc-300' : 'bg-orange-700 text-orange-50')}>{index + 1}</span>
                                                 )}
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-semibold text-slate-100">{user.name}</p>
-                                                <p className="text-xs text-slate-500">{humanize(user.role)}</p>
+                                                <p className="truncate text-sm font-semibold text-zinc-100">{user.name}</p>
+                                                <p className="text-xs text-zinc-500">{humanize(user.role)}</p>
                                             </div>
                                             <Badge tone="emerald">{user.score} done</Badge>
                                         </Link>
@@ -259,14 +260,14 @@ export default function DirectorDashboard() {
                             </Card>
                             <Card delay={0.65} padding="lg">
                                 <div className="flex items-center gap-4">
-                                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/25 to-cyan-500/5 text-cyan-300 ring-1 ring-inset ring-cyan-400/25"><GraduationCap className="h-5 w-5" /></span>
+                                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-500/25 text-cyan-300 ring-1 ring-inset ring-cyan-400/25"><GraduationCap className="h-5 w-5" /></span>
                                     <div className="flex-1">
-                                        <p className="text-sm text-slate-400">University partners</p>
-                                        <p className="font-display text-2xl font-bold text-white tabular-nums">{stats.partnerCount}</p>
+                                        <p className="text-sm text-zinc-400">University partners</p>
+                                        <p className="font-display text-2xl font-semibold text-white tabular-nums">{stats.partnerCount}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-sm text-slate-400">Coverage</p>
-                                        <p className="font-display text-2xl font-bold text-cyan-300 tabular-nums">{stats.marketCoverage}%</p>
+                                        <p className="text-sm text-zinc-400">Coverage</p>
+                                        <p className="font-display text-2xl font-semibold text-cyan-300 tabular-nums">{stats.marketCoverage}%</p>
                                     </div>
                                 </div>
                                 <ProgressBar value={stats.marketCoverage} tone="cyan" className="mt-4 h-2" glow />
@@ -283,8 +284,8 @@ export default function DirectorDashboard() {
                                     <Link key={m.id} href="/milestones" className="flex items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-3 transition hover:border-white/[0.1] hover:bg-white/[0.04]">
                                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-500/15 text-violet-300"><Target className="h-4 w-4" /></span>
                                         <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-medium text-slate-100">{m.title}</p>
-                                            <p className="truncate text-xs text-slate-500">{m.ownerName} · {m.projectName}</p>
+                                            <p className="truncate text-sm font-medium text-zinc-100">{m.title}</p>
+                                            <p className="truncate text-xs text-zinc-500">{m.ownerName} · {m.projectName}</p>
                                         </div>
                                         <StatusPill status={m.status} />
                                     </Link>
@@ -300,7 +301,7 @@ export default function DirectorDashboard() {
                     <div className="flex flex-wrap gap-2">
                         {['ALL', ...roles].map(r => (
                             <button key={r} onClick={() => setRoleFilter(r)} className={cn('rounded-full px-3 py-1.5 text-xs font-medium ring-1 ring-inset transition',
-                                roleFilter === r ? 'bg-blue-500/15 text-blue-200 ring-blue-400/30' : 'text-slate-400 ring-white/10 hover:text-slate-200')}>
+                                roleFilter === r ? 'bg-blue-500/15 text-blue-200 ring-blue-400/30' : 'text-zinc-400 ring-white/10 hover:text-zinc-200')}>
                                 {r === 'ALL' ? `Everyone (${data.employees.length})` : `${humanize(r)} (${data.employees.filter(e => e.role === r).length})`}
                             </button>
                         ))}
@@ -319,20 +320,20 @@ export default function DirectorDashboard() {
                                                     <p className="truncate font-semibold text-white group-hover:text-blue-200">{emp.name}</p>
                                                     <Badge tone={roleTone(emp.role)} className="mt-1">{humanize(emp.role)}</Badge>
                                                 </div>
-                                                <ArrowUpRight className="h-4 w-4 text-slate-600 transition group-hover:text-slate-300" />
+                                                <ArrowUpRight className="h-4 w-4 text-zinc-600 transition group-hover:text-zinc-300" />
                                             </div>
                                             <div className="mt-5 grid grid-cols-2 gap-3">
                                                 <div className="rounded-xl bg-white/[0.03] p-3">
-                                                    <p className="font-display text-2xl font-bold text-white tabular-nums">{emp.pendingTasks}</p>
-                                                    <p className="text-xs text-slate-500">Open tasks</p>
+                                                    <p className="font-display text-2xl font-semibold text-white tabular-nums">{emp.pendingTasks}</p>
+                                                    <p className="text-xs text-zinc-500">Open tasks</p>
                                                 </div>
                                                 <div className="rounded-xl bg-white/[0.03] p-3">
-                                                    <p className="font-display text-2xl font-bold text-violet-300 tabular-nums">{emp.pendingMilestones}</p>
-                                                    <p className="text-xs text-slate-500">Open milestones</p>
+                                                    <p className="font-display text-2xl font-semibold text-violet-300 tabular-nums">{emp.pendingMilestones}</p>
+                                                    <p className="text-xs text-zinc-500">Open milestones</p>
                                                 </div>
                                             </div>
                                             <div className="mt-4 flex items-center justify-between text-xs">
-                                                <span className="text-slate-500">Workload</span>
+                                                <span className="text-zinc-500">Workload</span>
                                                 <span className={cn('font-medium', load > 10 ? 'text-rose-300' : load > 5 ? 'text-amber-300' : 'text-emerald-300')}>
                                                     {load > 10 ? 'Heavy' : load > 5 ? 'Moderate' : 'Light'}
                                                 </span>
@@ -351,7 +352,7 @@ export default function DirectorDashboard() {
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[760px] text-sm">
                             <thead>
-                                <tr className="border-b border-white/[0.06] bg-white/[0.02] text-left text-xs font-medium text-slate-500">
+                                <tr className="border-b border-white/[0.06] bg-white/[0.02] text-left text-xs font-medium text-zinc-500">
                                     <th className="px-6 py-3 font-medium">Project</th>
                                     <th className="px-3 py-3 font-medium">Managers</th>
                                     <th className="px-3 py-3 font-medium">Status</th>
@@ -366,17 +367,17 @@ export default function DirectorDashboard() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/15 text-blue-300"><Briefcase className="h-4 w-4" /></span>
-                                                <span className="font-semibold text-slate-100">{p.name}</span>
+                                                <span className="font-semibold text-zinc-100">{p.name}</span>
                                             </div>
                                         </td>
-                                        <td className="px-3 py-4 text-slate-400">{p.managerName}</td>
+                                        <td className="px-3 py-4 text-zinc-400">{p.managerName}</td>
                                         <td className="px-3 py-4"><StatusPill status={p.status} /></td>
-                                        <td className="px-3 py-4 text-right font-semibold text-slate-200 tabular-nums">{p.taskCount}</td>
-                                        <td className="px-3 py-4 text-right text-slate-300 tabular-nums">{p.completedMilestones}/{p.milestoneCount}</td>
+                                        <td className="px-3 py-4 text-right font-semibold text-zinc-200 tabular-nums">{p.taskCount}</td>
+                                        <td className="px-3 py-4 text-right text-zinc-300 tabular-nums">{p.completedMilestones}/{p.milestoneCount}</td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <ProgressBar value={p.progress} className="w-28" />
-                                                <span className="w-9 text-xs font-semibold text-slate-300 tabular-nums">{p.progress}%</span>
+                                                <span className="w-9 text-xs font-semibold text-zinc-300 tabular-nums">{p.progress}%</span>
                                             </div>
                                         </td>
                                     </tr>
@@ -402,7 +403,7 @@ export default function DirectorDashboard() {
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[640px] text-sm">
                                 <thead>
-                                    <tr className="border-b border-white/[0.06] bg-white/[0.02] text-left text-xs font-medium text-slate-500">
+                                    <tr className="border-b border-white/[0.06] bg-white/[0.02] text-left text-xs font-medium text-zinc-500">
                                         <th className="px-6 py-3 font-medium">Person</th>
                                         <th className="px-3 py-3 font-medium">Role</th>
                                         <th className="px-3 py-3 font-medium">Status</th>
@@ -416,11 +417,11 @@ export default function DirectorDashboard() {
                                                 <Link href={`/team/${u.id}`} className="flex items-center gap-3">
                                                     <div className="relative">
                                                         <Avatar src={u.image} alt={u.name} fallback={initialsOf(u.name)} className="h-9 w-9 text-xs" />
-                                                        <span className={cn('absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-[#0B0E14]', u.isOnline ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]' : 'bg-slate-600')} />
+                                                        <span className={cn('absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-[#0B0E14]', u.isOnline ? 'bg-emerald-400 ' : 'bg-zinc-600')} />
                                                     </div>
                                                     <div>
-                                                        <p className="font-semibold text-slate-100 hover:text-blue-200">{u.name}</p>
-                                                        <p className="text-xs text-slate-500">{u.email}</p>
+                                                        <p className="font-semibold text-zinc-100 hover:text-blue-200">{u.name}</p>
+                                                        <p className="text-xs text-zinc-500">{u.email}</p>
                                                     </div>
                                                 </Link>
                                             </td>
@@ -428,7 +429,7 @@ export default function DirectorDashboard() {
                                             <td className="px-3 py-3.5">{u.isOnline ? <Badge tone="emerald" dot>Online</Badge> : <Badge tone="slate">Offline</Badge>}</td>
                                             <td className="px-6 py-3.5">
                                                 {u.lastLogin
-                                                    ? <div><p className="text-slate-200">{new Date(u.lastLogin).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p><p className="text-xs text-slate-500">{timeAgo(u.lastLogin)}</p></div>
+                                                    ? <div><p className="text-zinc-200">{new Date(u.lastLogin).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p><p className="text-xs text-zinc-500">{timeAgo(u.lastLogin)}</p></div>
                                                     : <Badge tone="amber">Never</Badge>}
                                             </td>
                                         </tr>

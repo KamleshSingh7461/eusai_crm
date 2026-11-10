@@ -133,12 +133,12 @@ export default function NotesPage() {
             )}>
                 {/* Header */}
                 <div className="flex items-center justify-between px-1">
-                    <h1 className="text-2xl font-bold text-[rgba(255,255,255,0.9)] tracking-tight flex items-center gap-2">
+                    <h1 className="text-2xl font-semibold text-[rgba(255,255,255,0.9)] tracking-tight flex items-center gap-2">
                         <Layout className="w-6 h-6 text-[#3B82F6]" /> Notes
                     </h1>
                     <button
                         onClick={createNote}
-                        className="p-2 bg-[#3B82F6] hover:bg-[#2563EB] rounded-lg text-white transition-all shadow-lg hover:shadow-[#3B82F6]/25"
+                        className="p-2 bg-[#1F1F23] hover:bg-[#1F1F23] rounded-lg text-white transition-all shadow-lg hover:shadow-[#3B82F6]/25"
                     >
                         <Plus className="w-5 h-5" />
                     </button>
@@ -152,7 +152,7 @@ export default function NotesPage() {
                         placeholder="Search notes..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-[#07090D]/60 backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-xl py-3 pl-10 pr-4 text-sm text-[rgba(255,255,255,0.9)] placeholder-[rgba(255,255,255,0.4)] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all shadow-inner"
+                        className="w-full bg-[#09090B] border border-[rgba(255,255,255,0.08)] rounded-xl py-3 pl-10 pr-4 text-sm text-[rgba(255,255,255,0.9)] placeholder-[rgba(255,255,255,0.4)] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all shadow-inner"
                     />
                 </div>
 
@@ -174,12 +174,12 @@ export default function NotesPage() {
                                 className={cn(
                                     "p-4 rounded-xl border border-transparent cursor-pointer transition-all group relative overflow-hidden",
                                     activeNote?.id === note.id
-                                        ? "bg-[#3B82F6]/10 border-[#3B82F6]/30 shadow-md"
-                                        : "bg-[#07090D]/40 hover:bg-[#07090D]/60 border-[rgba(255,255,255,0.05)]"
+                                        ? "bg-[#1F1F23] border-[#3B82F6]/30 shadow-md"
+                                        : "bg-[#09090B] hover:bg-[#09090B] border-[rgba(255,255,255,0.05)]"
                                 )}
                             >
                                 <h3 className={cn(
-                                    "font-bold mb-1 truncate pr-8",
+                                    "font-semibold mb-1 truncate pr-8",
                                     !note.title ? "text-[rgba(255,255,255,0.3)] italic" : "text-[rgba(255,255,255,0.9)]"
                                 )}>
                                     {note.title || 'Untitled Note'}
@@ -200,7 +200,7 @@ export default function NotesPage() {
                                     </button>
                                 </div>
                                 {activeNote?.id === note.id && (
-                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#3B82F6]" />
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#1F1F23]" />
                                 )}
                             </div>
                         ))
@@ -210,13 +210,13 @@ export default function NotesPage() {
 
             {/* Editor Area */}
             <div className={cn(
-                "flex-1 bg-[#07090D]/80 backdrop-blur-3xl rounded-2xl border border-[rgba(255,255,255,0.08)] shadow-2xl overflow-hidden flex flex-col transition-all duration-300",
+                "flex-1 bg-[#09090B]  rounded-2xl border border-[rgba(255,255,255,0.08)] shadow-2xl overflow-hidden flex flex-col transition-all duration-300",
                 !activeNote && isMobileListVisible ? "hidden md:flex opacity-50 pointer-events-none" : "flex"
             )}>
                 {activeNote ? (
                     <>
                         {/* Editor Header */}
-                        <div className="p-4 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between bg-[#07090D]/50">
+                        <div className="p-4 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between bg-[#09090B]">
                             <button
                                 onClick={() => setIsMobileListVisible(true)}
                                 className="md:hidden p-2 text-[rgba(255,255,255,0.6)] hover:text-white"
@@ -244,7 +244,7 @@ export default function NotesPage() {
                                 placeholder="Note Title"
                                 value={activeNote.title}
                                 onChange={(e) => updateNote(activeNote.id, { title: e.target.value })}
-                                className="w-full bg-transparent border-none text-3xl md:text-4xl font-bold text-[rgba(255,255,255,0.9)] placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0 mb-6"
+                                className="w-full bg-transparent border-none text-3xl md:text-4xl font-semibold text-[rgba(255,255,255,0.9)] placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-0 mb-6"
                             />
                             <textarea
                                 placeholder="Start typing..."
@@ -256,10 +256,10 @@ export default function NotesPage() {
                     </>
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center p-5 sm:p-8 text-center">
-                        <div className="w-20 h-20 rounded-2xl bg-[#07090D] border border-[rgba(255,255,255,0.05)] flex items-center justify-center mb-6 shadow-inner">
+                        <div className="w-20 h-20 rounded-2xl bg-[#09090B] border border-[rgba(255,255,255,0.05)] flex items-center justify-center mb-6 shadow-inner">
                             <Edit3 className="w-8 h-8 text-[rgba(255,255,255,0.2)]" />
                         </div>
-                        <h2 className="text-xl font-bold text-[rgba(255,255,255,0.8)] mb-2">Select a note to view</h2>
+                        <h2 className="text-xl font-semibold text-[rgba(255,255,255,0.8)] mb-2">Select a note to view</h2>
                         <p className="text-[rgba(255,255,255,0.4)] max-w-xs">
                             Choose a note from the sidebar or create a new one to get started.
                         </p>

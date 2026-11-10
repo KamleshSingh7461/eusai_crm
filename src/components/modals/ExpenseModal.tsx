@@ -66,7 +66,7 @@ export default function ExpenseModal({ open, onClose, onCreated }: { open: boole
             onClose={onClose}
             title="Expense request"
             description="Your manager will be asked to approve it."
-            icon={<span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/25 to-emerald-500/5 text-emerald-300 ring-1 ring-inset ring-emerald-400/25"><IndianRupee className="h-5 w-5" /></span>}
+            icon={<span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/25 text-emerald-300 ring-1 ring-inset ring-emerald-400/25"><IndianRupee className="h-5 w-5" /></span>}
             footer={
                 <>
                     <Button variant="ghost" onClick={onClose}>Cancel</Button>

@@ -2,13 +2,13 @@
 export type Tone = 'blue' | 'violet' | 'emerald' | 'amber' | 'rose' | 'cyan' | 'slate';
 
 export const TONES: Record<Tone, { text: string; tile: string; chip: string; stroke: string; dot: string; ring: string }> = {
-    blue: { text: 'text-blue-300', tile: 'from-blue-500/25 to-blue-500/5 ring-blue-400/25 text-blue-300', chip: 'bg-blue-500/12 text-blue-300 ring-blue-400/20', stroke: '#60A5FA', dot: 'bg-blue-400', ring: 'ring-blue-400/30' },
-    violet: { text: 'text-violet-300', tile: 'from-violet-500/25 to-violet-500/5 ring-violet-400/25 text-violet-300', chip: 'bg-violet-500/12 text-violet-300 ring-violet-400/20', stroke: '#A78BFA', dot: 'bg-violet-400', ring: 'ring-violet-400/30' },
-    emerald: { text: 'text-emerald-300', tile: 'from-emerald-500/25 to-emerald-500/5 ring-emerald-400/25 text-emerald-300', chip: 'bg-emerald-500/12 text-emerald-300 ring-emerald-400/20', stroke: '#34D399', dot: 'bg-emerald-400', ring: 'ring-emerald-400/30' },
-    amber: { text: 'text-amber-300', tile: 'from-amber-500/25 to-amber-500/5 ring-amber-400/25 text-amber-300', chip: 'bg-amber-500/12 text-amber-300 ring-amber-400/20', stroke: '#FBBF24', dot: 'bg-amber-400', ring: 'ring-amber-400/30' },
-    rose: { text: 'text-rose-300', tile: 'from-rose-500/25 to-rose-500/5 ring-rose-400/25 text-rose-300', chip: 'bg-rose-500/12 text-rose-300 ring-rose-400/20', stroke: '#FB7185', dot: 'bg-rose-400', ring: 'ring-rose-400/30' },
-    cyan: { text: 'text-cyan-300', tile: 'from-cyan-500/25 to-cyan-500/5 ring-cyan-400/25 text-cyan-300', chip: 'bg-cyan-500/12 text-cyan-300 ring-cyan-400/20', stroke: '#22D3EE', dot: 'bg-cyan-400', ring: 'ring-cyan-400/30' },
-    slate: { text: 'text-slate-300', tile: 'from-slate-400/20 to-slate-400/5 ring-white/10 text-slate-300', chip: 'bg-white/[0.06] text-slate-300 ring-white/10', stroke: '#94A3B8', dot: 'bg-slate-400', ring: 'ring-white/15' },
+    blue: { text: 'text-blue-400', tile: 'bg-blue-500/10 ring-blue-500/20 text-blue-400', chip: 'bg-blue-500/10 text-blue-400 ring-blue-500/20', stroke: '#3B82F6', dot: 'bg-blue-500', ring: 'ring-blue-500/30' },
+    violet: { text: 'text-violet-400', tile: 'bg-violet-500/10 ring-violet-500/20 text-violet-400', chip: 'bg-violet-500/10 text-violet-400 ring-violet-500/20', stroke: '#8B5CF6', dot: 'bg-violet-500', ring: 'ring-violet-500/30' },
+    emerald: { text: 'text-emerald-400', tile: 'bg-emerald-500/10 ring-emerald-500/20 text-emerald-400', chip: 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20', stroke: '#10B981', dot: 'bg-emerald-500', ring: 'ring-emerald-500/30' },
+    amber: { text: 'text-amber-400', tile: 'bg-amber-500/10 ring-amber-500/20 text-amber-400', chip: 'bg-amber-500/10 text-amber-400 ring-amber-500/20', stroke: '#F59E0B', dot: 'bg-amber-500', ring: 'ring-amber-500/30' },
+    rose: { text: 'text-rose-400', tile: 'bg-rose-500/10 ring-rose-500/20 text-rose-400', chip: 'bg-rose-500/10 text-rose-400 ring-rose-500/20', stroke: '#F43F5E', dot: 'bg-rose-500', ring: 'ring-rose-500/30' },
+    cyan: { text: 'text-cyan-400', tile: 'bg-cyan-500/10 ring-cyan-500/20 text-cyan-400', chip: 'bg-cyan-500/10 text-cyan-400 ring-cyan-500/20', stroke: '#06B6D4', dot: 'bg-cyan-500', ring: 'ring-cyan-500/30' },
+    slate: { text: 'text-zinc-300', tile: 'bg-zinc-800 ring-zinc-700/70 text-zinc-300', chip: 'bg-zinc-800 text-zinc-300 ring-zinc-700/70', stroke: '#71717A', dot: 'bg-zinc-400', ring: 'ring-zinc-600' },
 };
 
 // Domain values -> tone, so the same status looks the same on every page.

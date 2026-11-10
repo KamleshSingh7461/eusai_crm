@@ -74,8 +74,8 @@ export default function PlatformHealthPage() {
                             <ul className="mt-5 space-y-3">
                                 {Object.entries(health.configured).map(([key, ok]) => (
                                     <li key={key} className="flex items-center gap-3 rounded-xl bg-white/[0.03] p-3 text-sm">
-                                        {ok ? <CheckCircle2 className="h-5 w-5 text-emerald-300" /> : <XCircle className="h-5 w-5 text-slate-500" />}
-                                        <span className="flex-1 text-slate-200">{CONFIG_LABELS[key] || key}</span>
+                                        {ok ? <CheckCircle2 className="h-5 w-5 text-emerald-300" /> : <XCircle className="h-5 w-5 text-zinc-500" />}
+                                        <span className="flex-1 text-zinc-200">{CONFIG_LABELS[key] || key}</span>
                                         <Badge tone={ok ? 'emerald' : 'slate'}>{ok ? 'Configured' : 'Not set'}</Badge>
                                     </li>
                                 ))}
@@ -86,14 +86,14 @@ export default function PlatformHealthPage() {
                             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
                                 {Object.entries(health.counts).map(([key, value]) => (
                                     <div key={key} className="rounded-xl bg-white/[0.03] p-4">
-                                        <p className="font-display text-2xl font-bold text-white tabular-nums">{value.toLocaleString('en-IN')}</p>
-                                        <p className="text-xs text-slate-500">{humanize(key.replace(/([A-Z])/g, '_$1'))}</p>
+                                        <p className="font-display text-2xl font-semibold text-white tabular-nums">{value.toLocaleString('en-IN')}</p>
+                                        <p className="text-xs text-zinc-500">{humanize(key.replace(/([A-Z])/g, '_$1'))}</p>
                                     </div>
                                 ))}
                             </div>
                         </Card>
                     </section>
-                    <p className="flex items-center gap-2 text-xs text-slate-500"><Activity className="h-3.5 w-3.5" />Checked {new Date(health.checkedAt).toLocaleString('en-IN')}</p>
+                    <p className="flex items-center gap-2 text-xs text-zinc-500"><Activity className="h-3.5 w-3.5" />Checked {new Date(health.checkedAt).toLocaleString('en-IN')}</p>
                 </>
             )}
         </div>

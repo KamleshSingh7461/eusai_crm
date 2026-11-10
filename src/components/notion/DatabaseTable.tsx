@@ -121,7 +121,7 @@ export default function DatabaseTable({
                                 <th
                                     key={column.id}
                                     onClick={() => handleSort(column.id)}
-                                    className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider ${sortable ? 'cursor-pointer hover:bg-[var(--notion-bg-hover)]' : ''
+                                    className={`px-4 py-3 text-left text-xs font-semibold   ${sortable ? 'cursor-pointer hover:bg-[var(--notion-bg-hover)]' : ''
                                         }`}
                                     style={{
                                         color: 'var(--notion-text-tertiary)',

@@ -12,17 +12,6 @@ import { cn } from "@/lib/utils";
 
 const COLLAPSE_KEY = 'eusai-sidebar-collapsed';
 
-/** Soft brand glow behind every page. */
-function AmbientBackground() {
-    return (
-        <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-            <div className="absolute -top-40 left-1/4 h-[520px] w-[720px] rounded-full bg-blue-600/[0.12] blur-[140px]" />
-            <div className="absolute top-1/3 -right-40 h-[480px] w-[480px] rounded-full bg-violet-600/[0.08] blur-[140px]" />
-            <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-        </div>
-    );
-}
-
 export default function AppShell({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -66,8 +55,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <SpaceProvider>
             <ToastProvider>
                 <CommandCenter />
-                <AmbientBackground />
-                <div className="relative flex min-h-screen max-w-full overflow-x-hidden">
+                <div className="relative flex min-h-screen max-w-full overflow-x-clip">
                     <div className={cn(
                         "fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out",
                         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
@@ -81,7 +69,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
                     {isMobileMenuOpen && (
                         // above the tab bar (z-45), below the drawer (z-50)
-                        <div className="fixed inset-0 z-[48] bg-black/70 backdrop-blur-sm lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
+                        <div className="fixed inset-0 z-[48] bg-black/70 lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
                     )}
 
                     <div className={cn(

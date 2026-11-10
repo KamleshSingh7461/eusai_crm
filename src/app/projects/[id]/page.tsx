@@ -87,10 +87,10 @@ export default function ProjectDetailPage() {
 
     if (isLoading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-[#07090D]">
+            <div className="flex h-screen items-center justify-center bg-[#09090B]">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="w-12 h-12 animate-spin text-[#3B82F6]" />
-                    <p className="text-[rgba(255,255,255,0.7)] font-bold text-sm uppercase tracking-wider">Loading project…</p>
+                    <p className="text-[rgba(255,255,255,0.7)] font-semibold text-sm">Loading project…</p>
                 </div>
             </div>
         );
@@ -98,12 +98,12 @@ export default function ProjectDetailPage() {
 
     if (!project) {
         return (
-            <div className="h-screen flex items-center justify-center bg-[#07090D]">
-                <div className="text-center p-6 sm:p-12 bg-[#131720] border border-[rgba(255,255,255,0.09)] rounded-lg shadow-lg max-w-md">
+            <div className="h-screen flex items-center justify-center bg-[#09090B]">
+                <div className="text-center p-6 sm:p-12 bg-[#18181B] border border-[rgba(255,255,255,0.09)] rounded-lg shadow-lg max-w-md">
                     <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-6" />
-                    <h2 className="text-2xl font-bold text-[rgba(255,255,255,0.9)] mb-2">Project Not Found</h2>
+                    <h2 className="text-2xl font-semibold text-[rgba(255,255,255,0.9)] mb-2">Project Not Found</h2>
                     <p className="text-[rgba(255,255,255,0.7)] text-sm mb-8">This project doesn't exist or has been deleted.</p>
-                    <Button onClick={() => router.push('/projects')} variant="primary" className="w-full bg-[#3B82F6] hover:bg-[#2563EB]">
+                    <Button onClick={() => router.push('/projects')} variant="primary" className="w-full bg-[#1F1F23] hover:bg-[#1F1F23]">
                         Back to Portfolio
                     </Button>
                 </div>
@@ -114,9 +114,9 @@ export default function ProjectDetailPage() {
     const { stats, space, managers = [] } = project;
 
     return (
-        <div className="min-h-screen bg-[#07090D] pb-12">
+        <div className="min-h-screen bg-[#09090B] pb-12">
             {/* Header Banner */}
-            <div className="bg-[#0D1016] border-b border-[rgba(255,255,255,0.09)] p-5 sm:p-8 shadow-lg sticky top-0 z-50 backdrop-blur-sm">
+            <div className="bg-[#111113] border-b border-[rgba(255,255,255,0.09)] p-5 sm:p-8 shadow-lg sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex items-center gap-3 mb-6">
                         <button
@@ -125,7 +125,7 @@ export default function ProjectDetailPage() {
                         >
                             <ChevronLeft className="w-5 h-5 text-[rgba(255,255,255,0.7)] group-hover:text-[#3B82F6]" />
                         </button>
-                        <div className="flex items-center gap-2 text-xs font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-[rgba(255,255,255,0.5)]">
                             <Link href="/projects" className="hover:text-[#3B82F6] transition-colors">Projects</Link>
                             <ChevronRight className="w-3 h-3" />
                             {space && (
@@ -140,11 +140,11 @@ export default function ProjectDetailPage() {
 
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="flex items-start gap-5">
-                            <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center text-white text-3xl font-bold shadow-xl">
+                            <div className="w-16 h-16 rounded-lg bg-[#3B82F6] flex items-center justify-center text-white text-3xl font-semibold shadow-xl">
                                 {project.name.charAt(0)}
                             </div>
                             <div>
-                                <h1 className="text-3xl font-bold text-[rgba(255,255,255,0.9)] tracking-tight mb-2">{project.name}</h1>
+                                <h1 className="text-3xl font-semibold text-[rgba(255,255,255,0.9)] tracking-tight mb-2">{project.name}</h1>
                                 <div className="flex items-center gap-4 flex-wrap">
                                     <div className="flex items-center gap-2 text-sm text-[rgba(255,255,255,0.7)] font-medium">
                                         <Briefcase className="w-4 h-4" />
@@ -156,7 +156,7 @@ export default function ProjectDetailPage() {
                                         <span>Ends {new Date(project.endDate).toLocaleDateString()}</span>
                                     </div>
                                     <span className={cn(
-                                        "px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider",
+                                        "px-2.5 py-1 rounded-md text-[11px] font-semibold  ",
                                         project.status === 'EXECUTION' ? 'bg-emerald-500/20 text-emerald-400' :
                                             project.status === 'PLANNING' ? 'bg-blue-500/20 text-blue-400' :
                                                 project.status === 'MONITORING' ? 'bg-orange-500/20 text-orange-400' :
@@ -165,7 +165,7 @@ export default function ProjectDetailPage() {
                                         {project.status === 'CLOSED' ? 'COMPLETED' : project.status}
                                     </span>
                                     {project.isRestricted && (
-                                        <span className="px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-400 flex items-center gap-1.5 shadow-sm border border-amber-500/20">
+                                        <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-500/20 text-amber-400 flex items-center gap-1.5 shadow-sm border border-amber-500/20">
                                             <AlertCircle className="w-3 h-3" />
                                             Restricted View
                                         </span>
@@ -218,7 +218,7 @@ export default function ProjectDetailPage() {
                                     </Button>
                                     <Button
                                         onClick={() => setShowEditModal(true)}
-                                        className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+                                        className="bg-[#1F1F23] hover:bg-[#1F1F23] text-white"
                                     >
                                         Edit Details
                                     </Button>
@@ -254,31 +254,31 @@ export default function ProjectDetailPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-8">
                 {/* Stats Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div className="bg-[#131720] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] shadow-lg hover:shadow-xl transition-all">
+                    <div className="bg-[#18181B] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] shadow-lg hover:shadow-xl transition-all">
                         <div className="flex items-center justify-between mb-4">
                             <div className="p-2 bg-blue-500/10 rounded-lg">
                                 <Activity className="w-5 h-5 text-[#3B82F6]" />
                             </div>
-                            <span className="text-2xl font-bold text-[rgba(255,255,255,0.9)]">{stats.progress}%</span>
+                            <span className="text-2xl font-semibold text-[rgba(255,255,255,0.9)]">{stats.progress}%</span>
                         </div>
-                        <p className="text-[11px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">Overall progress</p>
+                        <p className="text-[11px] font-semibold text-[rgba(255,255,255,0.5)]">Overall progress</p>
                         <div className="h-2 w-full bg-[rgba(255,255,255,0.1)] rounded-full mt-3 overflow-hidden">
                             <div
-                                className="h-full bg-gradient-to-r from-[#3B82F6] to-[#3B82F6] transition-all duration-1000"
+                                className="h-full bg-[#3B82F6] transition-all duration-1000"
                                 style={{ width: `${stats.progress}%` }}
                             />
                         </div>
-                        <p className="text-[11px] text-[rgba(255,255,255,0.4)] mt-2 font-bold uppercase tracking-wider">Weighted: Tasks + Milestones</p>
+                        <p className="text-[11px] text-[rgba(255,255,255,0.4)] mt-2 font-semibold">Weighted: Tasks + Milestones</p>
                     </div>
 
-                    <div className="bg-[#131720] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] shadow-lg hover:shadow-xl transition-all">
+                    <div className="bg-[#18181B] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] shadow-lg hover:shadow-xl transition-all">
                         <div className="flex items-center justify-between mb-4">
                             <div className="p-2 bg-emerald-500/10 rounded-lg">
                                 <Target className="w-5 h-5 text-emerald-400" />
                             </div>
-                            <span className="text-2xl font-bold text-[rgba(255,255,255,0.9)]">{stats.milestones.total}</span>
+                            <span className="text-2xl font-semibold text-[rgba(255,255,255,0.9)]">{stats.milestones.total}</span>
                         </div>
-                        <p className="text-[11px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">Your milestones</p>
+                        <p className="text-[11px] font-semibold text-[rgba(255,255,255,0.5)]">Your milestones</p>
                         <div className="flex items-center gap-2 mt-2">
                             <div className="flex-1 h-1.5 bg-[rgba(255,255,255,0.1)] rounded-full overflow-hidden">
                                 <div
@@ -286,40 +286,40 @@ export default function ProjectDetailPage() {
                                     style={{ width: `${stats.milestones.total > 0 ? (stats.milestones.completed / stats.milestones.total) * 100 : 0}%` }}
                                 />
                             </div>
-                            <span className="text-xs text-[rgba(255,255,255,0.7)] font-bold whitespace-nowrap">{stats.milestones.completed}/{stats.milestones.total}</span>
+                            <span className="text-xs text-[rgba(255,255,255,0.7)] font-semibold whitespace-nowrap">{stats.milestones.completed}/{stats.milestones.total}</span>
                         </div>
                     </div>
 
-                    <div className="bg-[#131720] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] shadow-lg hover:shadow-xl transition-all">
+                    <div className="bg-[#18181B] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] shadow-lg hover:shadow-xl transition-all">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-[#3B82F6]/10 rounded-lg">
+                            <div className="p-2 bg-[#1F1F23] rounded-lg">
                                 <CheckCircle2 className="w-5 h-5 text-[#3B82F6]" />
                             </div>
-                            <span className="text-2xl font-bold text-[rgba(255,255,255,0.9)]">{stats.tasks.total}</span>
+                            <span className="text-2xl font-semibold text-[rgba(255,255,255,0.9)]">{stats.tasks.total}</span>
                         </div>
-                        <p className="text-[11px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">Your Task Scope</p>
+                        <p className="text-[11px] font-semibold text-[rgba(255,255,255,0.5)]">Your Task Scope</p>
                         <div className="flex items-center gap-2 mt-2">
                             <div className="flex-1 h-1.5 bg-[rgba(255,255,255,0.1)] rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-[#3B82F6] transition-all duration-1000"
+                                    className="h-full bg-[#1F1F23] transition-all duration-1000"
                                     style={{ width: `${stats.tasks.total > 0 ? (stats.tasks.completed / stats.tasks.total) * 100 : 0}%` }}
                                 />
                             </div>
-                            <span className="text-xs text-[rgba(255,255,255,0.7)] font-bold whitespace-nowrap">{stats.tasks.completed}/{stats.tasks.total}</span>
+                            <span className="text-xs text-[rgba(255,255,255,0.7)] font-semibold whitespace-nowrap">{stats.tasks.completed}/{stats.tasks.total}</span>
                         </div>
                     </div>
 
-                    <div className="bg-[#131720] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] shadow-lg hover:shadow-xl transition-all">
+                    <div className="bg-[#18181B] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] shadow-lg hover:shadow-xl transition-all">
                         <div className="flex items-center justify-between mb-4">
                             <div className="p-2 bg-orange-500/10 rounded-lg">
                                 <AlertCircle className="w-5 h-5 text-orange-400" />
                             </div>
                             <span className={cn(
-                                "text-2xl font-bold",
+                                "text-2xl font-semibold",
                                 (stats.tasks.overdue > 0 || stats.milestones.overdue > 0) ? "text-orange-400" : "text-[rgba(255,255,255,0.9)]"
                             )}>{stats.tasks.overdue + stats.milestones.overdue}</span>
                         </div>
-                        <p className="text-[11px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">Overdue items</p>
+                        <p className="text-[11px] font-semibold text-[rgba(255,255,255,0.5)]">Overdue items</p>
                         <p className="text-xs text-[rgba(255,255,255,0.7)] mt-2 font-medium">Need attention</p>
                     </div>
                 </div>
@@ -328,9 +328,9 @@ export default function ProjectDetailPage() {
                     {/* Left & Middle Column: Tasks and Milestones */}
                     <div className="lg:col-span-2 space-y-8">
                         {/* Milestones */}
-                        <section className="bg-[#131720] border border-[rgba(255,255,255,0.09)] rounded-lg overflow-hidden shadow-lg">
+                        <section className="bg-[#18181B] border border-[rgba(255,255,255,0.09)] rounded-lg overflow-hidden shadow-lg">
                             <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.09)] flex items-center justify-between bg-[rgba(0,0,0,0.2)]">
-                                <h3 className="font-bold text-[rgba(255,255,255,0.9)] flex items-center gap-2 uppercase tracking-tight text-sm">
+                                <h3 className="font-semibold text-[rgba(255,255,255,0.9)] flex items-center gap-2 tracking-tight text-sm">
                                     <TrendingUp className="w-4 h-4 text-[#3B82F6]" />
                                     {project.isRestricted ? 'Your milestones' : 'Milestones'}
                                 </h3>
@@ -339,7 +339,7 @@ export default function ProjectDetailPage() {
                                         onClick={() => setShowMilestoneModal(true)}
                                         variant="secondary"
                                         size="sm"
-                                        className="h-8 text-[11px] font-bold tracking-wider uppercase bg-[rgba(255,255,255,0.05)] border-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.1)]"
+                                        className="h-8 text-[11px] font-semibold bg-[rgba(255,255,255,0.05)] border-[rgba(255,255,255,0.09)] text-[rgba(255,255,255,0.9)] hover:bg-[rgba(255,255,255,0.1)]"
                                     >
                                         Add Milestone
                                     </Button>
@@ -369,11 +369,11 @@ export default function ProjectDetailPage() {
                                                     className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[rgba(255,255,255,0.03)] p-4 rounded-lg border border-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.06)] hover:border-[rgba(255,255,255,0.1)] transition-all cursor-pointer"
                                                 >
                                                     <div>
-                                                        <h4 className="font-bold text-[rgba(255,255,255,0.9)] group-hover:text-[#3B82F6] transition-colors">{milestone.title}</h4>
+                                                        <h4 className="font-semibold text-[rgba(255,255,255,0.9)] group-hover:text-[#3B82F6] transition-colors">{milestone.title}</h4>
                                                         <p className="text-xs text-[rgba(255,255,255,0.6)] mt-1">{milestone.description || "Critical project phase objective."}</p>
                                                     </div>
                                                     <div className="flex items-center gap-3">
-                                                        <span className="text-[11px] font-bold text-[rgba(255,255,255,0.7)] bg-[rgba(255,255,255,0.05)] px-2 py-1 rounded-md uppercase tracking-wider border border-[rgba(255,255,255,0.09)]">
+                                                        <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.7)] bg-[rgba(255,255,255,0.05)] px-2 py-1 rounded-md border border-[rgba(255,255,255,0.09)]">
                                                             {new Date(milestone.targetDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
                                                         </span>
                                                         <div className="w-32 h-2 bg-[rgba(255,255,255,0.1)] rounded-full overflow-hidden hidden md:block">
@@ -392,9 +392,9 @@ export default function ProjectDetailPage() {
                         </section>
 
                         {/* Task Backlog */}
-                        <section className="bg-[#131720] border border-[rgba(255,255,255,0.09)] rounded-lg overflow-hidden shadow-lg">
+                        <section className="bg-[#18181B] border border-[rgba(255,255,255,0.09)] rounded-lg overflow-hidden shadow-lg">
                             <div className="px-6 py-4 border-b border-[rgba(255,255,255,0.09)] flex items-center justify-between bg-[rgba(0,0,0,0.2)]">
-                                <h3 className="font-bold text-[rgba(255,255,255,0.9)] flex items-center gap-2 uppercase tracking-tight text-sm">
+                                <h3 className="font-semibold text-[rgba(255,255,255,0.9)] flex items-center gap-2 tracking-tight text-sm">
                                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                                     {project.isRestricted ? 'Your Assigned Tasks' : 'Tasks'}
                                 </h3>
@@ -402,7 +402,7 @@ export default function ProjectDetailPage() {
                                     <Button
                                         onClick={() => setShowTaskModal(true)}
                                         size="sm"
-                                        className="h-8 text-[11px] font-bold tracking-wider uppercase bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+                                        className="h-8 text-[11px] font-semibold bg-[#1F1F23] hover:bg-[#1F1F23] text-white"
                                     >
                                         New Task
                                     </Button>
@@ -433,13 +433,13 @@ export default function ProjectDetailPage() {
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center justify-between mb-1 gap-4">
-                                                    <h4 className={cn("text-sm font-bold transition-all flex-1", task.status === 'DONE' ? 'text-[rgba(255,255,255,0.5)] line-through' : 'text-[rgba(255,255,255,0.9)] group-hover:text-[#3B82F6]')}>
+                                                    <h4 className={cn("text-sm font-semibold transition-all flex-1", task.status === 'DONE' ? 'text-[rgba(255,255,255,0.5)] line-through' : 'text-[rgba(255,255,255,0.9)] group-hover:text-[#3B82F6]')}>
                                                         {task.title}
                                                     </h4>
                                                     <div className="flex gap-2 flex-wrap">
                                                         {task.category && (
                                                             <span className={cn(
-                                                                "text-[11px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider border",
+                                                                "text-[11px] font-semibold px-1.5 py-0.5 rounded-full   border",
                                                                 task.category === 'EUSAI_AGREEMENT' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
                                                                     task.category === 'SPORTS_LOGO' ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' :
                                                                         task.category === 'MOU' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
@@ -450,7 +450,7 @@ export default function ProjectDetailPage() {
                                                             </span>
                                                         )}
                                                         <span className={cn(
-                                                            "text-[11px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider border",
+                                                            "text-[11px] font-semibold px-1.5 py-0.5 rounded-full   border",
                                                             task.priority === 3 ? 'bg-red-500/20 text-red-400 border-red-500/30' :
                                                                 task.priority === 2 ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
                                                                     'bg-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.6)] border-[rgba(255,255,255,0.15)]'
@@ -459,7 +459,7 @@ export default function ProjectDetailPage() {
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-4 text-[11px] text-[rgba(255,255,255,0.6)] font-bold uppercase tracking-wider">
+                                                <div className="flex items-center gap-4 text-[11px] text-[rgba(255,255,255,0.6)] font-semibold">
                                                     <span className="flex items-center gap-1">
                                                         <Clock className="w-3 h-3" />
                                                         {new Date(task.deadline).toLocaleDateString()}
@@ -484,23 +484,23 @@ export default function ProjectDetailPage() {
 
 
                         {/* Governance & Context */}
-                        <section className="bg-[#131720] border border-[rgba(255,255,255,0.09)] rounded-lg p-6 shadow-lg">
-                            <h3 className="font-bold text-[rgba(255,255,255,0.9)] mb-6 flex items-center gap-2 uppercase tracking-tighter text-xs">
+                        <section className="bg-[#18181B] border border-[rgba(255,255,255,0.09)] rounded-lg p-6 shadow-lg">
+                            <h3 className="font-semibold text-[rgba(255,255,255,0.9)] mb-6 flex items-center gap-2 tracking-tighter text-xs">
                                 <Layout className="w-4 h-4 text-[rgba(255,255,255,0.7)]" />
                                 Project details
                             </h3>
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <span className="text-[11px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">Managers</span>
+                                    <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.5)]">Managers</span>
                                     <div className="space-y-2">
                                         {managers.length > 0 ? managers.map((m: any) => (
                                             <div key={m.id} className="flex items-center gap-3 p-3 bg-[rgba(255,255,255,0.05)] rounded-lg border border-[rgba(255,255,255,0.09)]">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center font-bold text-white shadow-lg">
+                                                <div className="w-10 h-10 rounded-full bg-[#3B82F6] flex items-center justify-center font-semibold text-white shadow-lg">
                                                     {m.name?.charAt(0) || 'L'}
                                                 </div>
                                                 <div className="overflow-hidden">
-                                                    <p className="text-xs font-bold text-[rgba(255,255,255,0.9)] truncate">{m.name}</p>
-                                                    <p className="text-[11px] text-[rgba(255,255,255,0.6)] font-bold uppercase tracking-wider">Manager</p>
+                                                    <p className="text-xs font-semibold text-[rgba(255,255,255,0.9)] truncate">{m.name}</p>
+                                                    <p className="text-[11px] text-[rgba(255,255,255,0.6)] font-semibold">Manager</p>
                                                 </div>
                                             </div>
                                         )) : (
@@ -512,7 +512,7 @@ export default function ProjectDetailPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <span className="text-[11px] font-bold text-[rgba(255,255,255,0.5)] uppercase tracking-wider">Project ID</span>
+                                    <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.5)]">Project ID</span>
                                     <div className="p-3 bg-[rgba(255,255,255,0.05)] rounded-lg border border-[rgba(255,255,255,0.09)] font-mono text-[11px] break-all text-[rgba(255,255,255,0.6)]">
                                         ID: {project.id}<br />
                                         HASH: {Buffer.from(project.id).toString('hex').substring(0, 16).toUpperCase()}

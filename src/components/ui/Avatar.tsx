@@ -31,7 +31,7 @@ export default function Avatar({ src, alt = "User", fallback, className = "", to
         const t = tone ?? toneFor(alt + fallback);
         return (
             <div
-                className={cn('flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-semibold uppercase ring-1 ring-inset', TONES[t].tile, className)}
+                className={cn('flex shrink-0 items-center justify-center rounded-full  font-semibold  ring-1 ring-inset', TONES[t].tile, className)}
                 title={alt}
             >
                 {fallback}

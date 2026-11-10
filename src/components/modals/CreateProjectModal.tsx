@@ -99,17 +99,17 @@ export default function CreateProjectModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] w-full max-w-lg flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
+            <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-lg flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
                 
                 {/* Header */}
                 <div className="p-5 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-primary)]">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-sm bg-[#3B82F6]/15 flex items-center justify-center text-[#3B82F6]">
+                        <div className="w-9 h-9 rounded-sm bg-[#1F1F23] flex items-center justify-center text-[#3B82F6]">
                             <Briefcase className="w-5 h-5" />
                         </div>
                         <div>
-                            <h2 className="text-base font-bold text-[var(--notion-text-primary)]">New Operation (Project)</h2>
+                            <h2 className="text-base font-semibold text-[var(--notion-text-primary)]">New Operation (Project)</h2>
                             <p className="text-xs text-[var(--notion-text-tertiary)]">Initialize a project under space <span className="font-semibold text-[#3B82F6]">{spaceName}</span></p>
                         </div>
                     </div>
@@ -124,7 +124,7 @@ export default function CreateProjectModal({
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="p-5 space-y-4">
                     <div>
-                        <label className="block text-xs font-bold uppercase text-[var(--notion-text-tertiary)] tracking-wider mb-1">
+                        <label className="block text-xs font-semibold text-[var(--notion-text-tertiary)] mb-1">
                             Operation Name *
                         </label>
                         <input
@@ -138,7 +138,7 @@ export default function CreateProjectModal({
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold uppercase text-[var(--notion-text-tertiary)] tracking-wider mb-1">
+                        <label className="block text-xs font-semibold text-[var(--notion-text-tertiary)] mb-1">
                             Description / Mission Brief
                         </label>
                         <textarea
@@ -152,7 +152,7 @@ export default function CreateProjectModal({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold uppercase text-[var(--notion-text-tertiary)] tracking-wider mb-1">
+                            <label className="block text-xs font-semibold text-[var(--notion-text-tertiary)] mb-1">
                                 Start Date
                             </label>
                             <input
@@ -163,7 +163,7 @@ export default function CreateProjectModal({
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase text-[var(--notion-text-tertiary)] tracking-wider mb-1">
+                            <label className="block text-xs font-semibold text-[var(--notion-text-tertiary)] mb-1">
                                 End Date
                             </label>
                             <input
@@ -177,7 +177,7 @@ export default function CreateProjectModal({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold uppercase text-[var(--notion-text-tertiary)] tracking-wider mb-1">
+                            <label className="block text-xs font-semibold text-[var(--notion-text-tertiary)] mb-1">
                                 Budget (INR)
                             </label>
                             <input
@@ -189,7 +189,7 @@ export default function CreateProjectModal({
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase text-[var(--notion-text-tertiary)] tracking-wider mb-1">
+                            <label className="block text-xs font-semibold text-[var(--notion-text-tertiary)] mb-1">
                                 Project Lead / Manager
                             </label>
                             <select
@@ -219,7 +219,7 @@ export default function CreateProjectModal({
                         <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+                            className="bg-[#1F1F23] hover:bg-[#1F1F23] text-white"
                         >
                             {isSubmitting ? (
                                 <span className="flex items-center gap-2">

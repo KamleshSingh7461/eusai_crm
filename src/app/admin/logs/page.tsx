@@ -70,11 +70,11 @@ export default function SystemLogsPage() {
                                     <li key={r.id} className="flex flex-wrap items-center gap-3 px-5 py-3.5 hover:bg-white/[0.02]">
                                         <Avatar alt={r.user?.name || ''} fallback={initialsOf(r.user?.name || r.user?.email)} className="h-9 w-9 text-xs" />
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-sm text-slate-200"><span className="font-semibold text-white">{r.user?.name || r.user?.email || 'System'}</span> · {humanize(r.action)}</p>
-                                            <p className="truncate text-xs text-slate-500">{describe(r.metadata) || 'No details'}</p>
+                                            <p className="text-sm text-zinc-200"><span className="font-semibold text-white">{r.user?.name || r.user?.email || 'System'}</span> · {humanize(r.action)}</p>
+                                            <p className="truncate text-xs text-zinc-500">{describe(r.metadata) || 'No details'}</p>
                                         </div>
                                         {r.project && <Link href={`/projects/${r.project.id}`}><Badge tone="blue">{r.project.name}</Badge></Link>}
-                                        <span className="w-24 text-right text-xs text-slate-500" title={new Date(r.timestamp).toLocaleString('en-IN')}>{timeAgo(r.timestamp)}</span>
+                                        <span className="w-24 text-right text-xs text-zinc-500" title={new Date(r.timestamp).toLocaleString('en-IN')}>{timeAgo(r.timestamp)}</span>
                                     </li>
                                 ))}
                             </ul>

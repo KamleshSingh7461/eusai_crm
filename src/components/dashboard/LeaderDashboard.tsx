@@ -21,6 +21,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import { ProgressBar } from '@/components/ui/Progress';
 import { humanize, roleTone } from '@/components/ui/tones';
 import DashboardAISummary from './DashboardAISummary';
+import ManagerFocus from './ManagerFocus';
 import { BarList, Card, CardHeader, DashboardError, DashboardSkeleton, SectionLink, firstName, greeting, timeAgo, todayLabel } from './widgets';
 
 type Variant = 'MANAGER' | 'TEAM_LEADER';
@@ -108,9 +109,10 @@ export default function LeaderDashboard({ variant }: { variant: Variant }) {
     return (
         <div className="space-y-6">
             <PageHeader
+                hideTitleOnPhone
                 eyebrow={`${isManager ? 'Manager' : 'Team leader'} overview · ${todayLabel()}`}
-                title={<>{greeting()}, <span className="text-gradient-brand">{firstName(session?.user?.name)}</span></>}
-                description={isManager ? 'Your departments, projects and team at a glance.' : 'Your team’s workload, performance and approvals.'}
+                title={<>{greeting()}, {firstName(session?.user?.name)}</>}
+                description={isManager ? 'Your departments, projects and team at a glance.' : 'Your team’s reports, deadlines and workload at a glance.'}
                 actions={
                     <>
                         <Button variant="secondary" leftIcon={<Download className="h-4 w-4" />} onClick={exportTeam} disabled={members.length === 0}>Export team</Button>
@@ -121,22 +123,7 @@ export default function LeaderDashboard({ variant }: { variant: Variant }) {
 
             <DashboardAISummary role={isManager ? 'Manager' : 'Team Leader'} contextData={stats} />
 
-            <section className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4">
-                <StatCard delay={0.1} label="Revenue from orders" value={inr(stats.revenue || 0)} icon={IndianRupee} tone="emerald" note="Business orders on your milestones" href="/milestones" />
-                {isManager ? (
-                    <>
-                        <StatCard delay={0.15} label="Active MOUs" value={stats.activeMOUs || 0} icon={Handshake} tone="blue" note="Agreements in progress" href="/milestones" />
-                        <StatCard delay={0.2} label="Pending signatures" value={stats.pendingSignatures || 0} icon={FileSignature} tone="amber" note="Waiting on the other party" href="/milestones" />
-                        <StatCard delay={0.25} label="Weekly reports" value={`${stats.reportsSubmitted || 0}/${stats.totalTeamSize || 0}`} icon={FileCheck2} tone="violet" note="Submitted this week" href="/reports?activeTab=TEAM" />
-                    </>
-                ) : (
-                    <>
-                        <StatCard delay={0.15} label="Agreements closed" value={stats.agreements || 0} icon={Handshake} tone="blue" note="Completed team milestones" href="/milestones" />
-                        <StatCard delay={0.2} label="Actions due" value={stats.actionsDue || 0} icon={ListTodo} tone={stats.actionsDue > 0 ? 'amber' : 'emerald'} note="Open tasks and milestones" href="/tasks" />
-                        <StatCard delay={0.25} label="Team size" value={members.length} icon={Users} tone="violet" note={`${totalOpenTasks} tasks assigned`} href="/team" />
-                    </>
-                )}
-            </section>
+            <ManagerFocus dash={dash} variant={variant} />
 
             <section className="grid gap-5 xl:grid-cols-3">
                 <Card delay={0.3} padding="none" className="overflow-hidden xl:col-span-2">
@@ -153,7 +140,7 @@ export default function LeaderDashboard({ variant }: { variant: Variant }) {
                             <div className="overflow-x-auto">
                                 <table className="w-full min-w-[620px] text-sm">
                                     <thead>
-                                        <tr className="border-y border-white/[0.06] bg-white/[0.02] text-left text-xs font-medium text-slate-500">
+                                        <tr className="border-y border-white/[0.06] bg-white/[0.02] text-left text-xs font-medium text-zinc-500">
                                             <th className="px-6 py-3 font-medium">Member</th>
                                             <th className="px-3 py-3 font-medium">Role</th>
                                             <th className="px-3 py-3 text-right font-medium">Tasks</th>
@@ -168,17 +155,17 @@ export default function LeaderDashboard({ variant }: { variant: Variant }) {
                                                     <div className="flex items-center gap-3">
                                                         <Avatar src={m.image} alt={m.name} fallback={initialsOf(m.name)} className="h-9 w-9 text-xs" />
                                                         <div className="min-w-0">
-                                                            <p className="truncate font-semibold text-slate-100">{m.name}</p>
-                                                            <p className="truncate text-xs text-slate-500">{m.memberSpaces?.map(s => s.name).join(', ') || m.email}</p>
+                                                            <p className="truncate font-semibold text-zinc-100">{m.name}</p>
+                                                            <p className="truncate text-xs text-zinc-500">{m.memberSpaces?.map(s => s.name).join(', ') || m.email}</p>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-3 py-3.5"><Badge tone={roleTone(m.role)}>{humanize(m.role)}</Badge></td>
-                                                <td className="px-3 py-3.5 text-right font-semibold text-slate-200 tabular-nums">{m.activeTasks}</td>
+                                                <td className="px-3 py-3.5 text-right font-semibold text-zinc-200 tabular-nums">{m.activeTasks}</td>
                                                 <td className="px-3 py-3.5">
                                                     <div className="flex items-center gap-3">
                                                         <ProgressBar value={m.performanceScore} className="w-24" />
-                                                        <span className="w-9 text-xs font-semibold text-slate-300 tabular-nums">{m.performanceScore || '–'}</span>
+                                                        <span className="w-9 text-xs font-semibold text-zinc-300 tabular-nums">{m.performanceScore || '–'}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-3.5">
@@ -204,10 +191,10 @@ export default function LeaderDashboard({ variant }: { variant: Variant }) {
                                     <li key={a.id} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="min-w-0">
-                                                <p className="truncate text-sm font-semibold text-slate-100">{a.title}</p>
-                                                <p className="text-xs text-slate-500">{a.submittedBy}</p>
+                                                <p className="truncate text-sm font-semibold text-zinc-100">{a.title}</p>
+                                                <p className="text-xs text-zinc-500">{a.submittedBy}</p>
                                             </div>
-                                            <span className="shrink-0 font-display text-base font-bold text-white">{a.amount}</span>
+                                            <span className="shrink-0 font-display text-base font-semibold text-white">{a.amount}</span>
                                         </div>
                                         {isManager ? (
                                             <div className="mt-3 flex gap-2">
@@ -234,7 +221,7 @@ export default function LeaderDashboard({ variant }: { variant: Variant }) {
 
                 {isManager ? (
                     <Card delay={0.45} padding="lg">
-                        <CardHeader title="Recently completed" description="Milestones your team closed" action={<SectionLink href="/milestones">All</SectionLink>} />
+                        <CardHeader title="Recently completed" description="Closed in the last 30 days" action={<SectionLink href="/milestones">All</SectionLink>} />
                         {(dash.recentMilestones || []).length === 0
                             ? <EmptyState icon={Target} title="No completed milestones" description="Closed milestones will be listed here." className="py-8" />
                             : (
@@ -243,10 +230,10 @@ export default function LeaderDashboard({ variant }: { variant: Variant }) {
                                         <li key={m.id} className="flex items-center gap-3 rounded-xl p-2 hover:bg-white/[0.03]">
                                             <Avatar src={m.ownerImage} alt={m.ownerName} fallback={initialsOf(m.ownerName)} className="h-9 w-9 text-xs" />
                                             <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-medium text-slate-100">{m.title}</p>
-                                                <p className="truncate text-xs text-slate-500">{m.ownerName} · {humanize(m.category)}</p>
+                                                <p className="truncate text-sm font-medium text-zinc-100">{m.title}</p>
+                                                <p className="truncate text-xs text-zinc-500">{m.ownerName} · {humanize(m.category)}</p>
                                             </div>
-                                            <span className="shrink-0 text-xs text-slate-500">{timeAgo(m.completedAt)}</span>
+                                            <span className="shrink-0 text-xs text-zinc-500">{timeAgo(m.completedAt)}</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -270,12 +257,12 @@ export default function LeaderDashboard({ variant }: { variant: Variant }) {
                             { label: 'Team reports', href: '/reports?activeTab=TEAM', icon: FileCheck2, tone: 'text-blue-300 bg-blue-500/15' },
                             { label: 'Performance', href: '/reports/performance', icon: BarChart3, tone: 'text-emerald-300 bg-emerald-500/15' },
                             isManager
-                                ? { label: 'Resources', href: '/resources', icon: Layers, tone: 'text-amber-300 bg-amber-500/15' }
+                                ? { label: 'Milestones', href: '/milestones', icon: Target, tone: 'text-amber-300 bg-amber-500/15' }
                                 : { label: 'Milestones', href: '/milestones', icon: Target, tone: 'text-amber-300 bg-amber-500/15' },
                         ].map(link => (
                             <Link key={link.href} href={link.href} className="flex items-center gap-2.5 rounded-xl border border-white/[0.05] bg-white/[0.02] p-2.5 transition hover:border-white/[0.1] hover:bg-white/[0.05]">
                                 <span className={cn('flex h-8 w-8 items-center justify-center rounded-lg', link.tone)}><link.icon className="h-4 w-4" /></span>
-                                <span className="truncate text-sm font-medium text-slate-200">{link.label}</span>
+                                <span className="truncate text-sm font-medium text-zinc-200">{link.label}</span>
                             </Link>
                         ))}
                     </div>

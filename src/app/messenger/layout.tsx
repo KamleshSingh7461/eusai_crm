@@ -7,7 +7,7 @@ export default function MessengerLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="fixed inset-0 bg-[#050505] text-white flex flex-col font-sans selection:bg-blue-500/30">
+        <div className="fixed inset-0 bg-[#09090B] text-white flex flex-col font-sans selection:bg-blue-500/30">
             <ToastProvider>
                 {children}
             </ToastProvider>

@@ -11,25 +11,24 @@ interface PageHeaderProps {
     eyebrow?: React.ReactNode;
     actions?: React.ReactNode;
     className?: string;
+    /** Hide the title block on phones (the mobile top bar already shows a greeting). */
+    hideTitleOnPhone?: boolean;
 }
 
-export default function PageHeader({ title, description, eyebrow, actions, className }: PageHeaderProps) {
+export default function PageHeader({ title, description, eyebrow, actions, className, hideTitleOnPhone }: PageHeaderProps) {
     return (
         <motion.header
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
             className={cn('flex flex-wrap items-end justify-between gap-x-6 gap-y-4', className)}
         >
-            <div className="min-w-0">
+            <div className={cn('min-w-0', hideTitleOnPhone && 'hidden md:block')}>
                 {eyebrow && (
-                    <p className="flex items-center gap-2 text-sm font-medium text-blue-300">
-                        <span className="h-1.5 w-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,1)]" />
-                        {eyebrow}
-                    </p>
+                    <p className="text-[13px] font-medium text-zinc-500">{eyebrow}</p>
                 )}
-                <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">{title}</h1>
-                {description && <p className="mt-2 max-w-2xl text-base text-slate-400">{description}</p>}
+                <h1 className="mt-1 font-display text-2xl font-semibold tracking-[-0.03em] text-white sm:text-[28px]">{title}</h1>
+                {description && <p className="mt-1.5 max-w-2xl text-sm text-zinc-400">{description}</p>}
             </div>
             {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </motion.header>

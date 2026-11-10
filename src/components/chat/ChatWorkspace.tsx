@@ -38,8 +38,8 @@ function HeaderIcon({ c, meId }: { c: ChatChannel; meId?: string }) {
         return <Avatar src={p?.image} alt={p?.name || ''} fallback={initialsOf(p?.name)} className="h-10 w-10 text-xs" />;
     }
     const Icon = kind === 'announcement' ? Megaphone : kind === 'department' ? Building2 : c.type === 'PRIVATE' ? Lock : Hash;
-    const tone = kind === 'announcement' ? 'text-amber-300 from-amber-500/25' : kind === 'department' ? 'text-emerald-300 from-emerald-500/25' : 'text-blue-300 from-blue-500/25';
-    return <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br to-transparent ring-1 ring-inset ring-white/10', tone)}><Icon className="h-[18px] w-[18px]" /></span>;
+    const tone = kind === 'announcement' ? 'text-amber-300 bg-amber-500/25' : kind === 'department' ? 'text-emerald-300 bg-emerald-500/25' : 'text-blue-300 bg-blue-500/25';
+    return <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl   ring-1 ring-inset ring-white/10', tone)}><Icon className="h-[18px] w-[18px]" /></span>;
 }
 
 export default function ChatWorkspace() {
@@ -333,9 +333,9 @@ export default function ChatWorkspace() {
 
     // ── render ──────────────────────────────────────────────────────────────
     return (
-        <div className="relative flex h-[calc(100dvh-64px-var(--tabbar-h))] overflow-hidden border-white/[0.06] lg:border-t">
+        <div className="relative flex h-[calc(100dvh-var(--topbar-h)-var(--tabbar-h))] overflow-hidden border-white/[0.06] lg:border-t">
             {/* conversations */}
-            <aside className={cn('w-full shrink-0 border-r border-white/[0.06] bg-[#0A0D13]/60 lg:block lg:w-[320px] xl:w-[340px]', mobileThread ? 'hidden' : 'block')}>
+            <aside className={cn('w-full shrink-0 border-r border-white/[0.06] bg-[#09090B] lg:block lg:w-[320px] xl:w-[340px]', mobileThread ? 'hidden' : 'block')}>
                 {loadingChannels ? (
                     <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-blue-300" /></div>
                 ) : (
@@ -348,14 +348,14 @@ export default function ChatWorkspace() {
                 {active ? (
                     <>
                         <header className="flex h-16 shrink-0 items-center gap-3 border-b border-white/[0.06] px-3 sm:px-5">
-                            <button onClick={() => setMobileThread(false)} className="-ml-1 rounded-lg p-2 text-slate-300 hover:bg-white/[0.06] lg:hidden" aria-label="Back to conversations"><ArrowLeft className="h-5 w-5" /></button>
+                            <button onClick={() => setMobileThread(false)} className="-ml-1 rounded-lg p-2 text-zinc-300 hover:bg-white/[0.06] lg:hidden" aria-label="Back to conversations"><ArrowLeft className="h-5 w-5" /></button>
                             <HeaderIcon c={active} meId={meId} />
                             <div className="min-w-0 flex-1">
-                                <h1 className="truncate font-display text-base font-bold text-white">{channelName(active, meId)}</h1>
-                                <p className="truncate text-xs text-slate-500">{subtitle}</p>
+                                <h1 className="truncate font-display text-base font-semibold text-white">{channelName(active, meId)}</h1>
+                                <p className="truncate text-xs text-zinc-500">{subtitle}</p>
                             </div>
                             <button onClick={() => setShowDetails(v => !v)} aria-label="Conversation details" aria-pressed={showDetails}
-                                className={cn('rounded-lg p-2 transition hover:bg-white/[0.06]', showDetails ? 'text-blue-300' : 'text-slate-400 hover:text-white')}><Info className="h-5 w-5" /></button>
+                                className={cn('rounded-lg p-2 transition hover:bg-white/[0.06]', showDetails ? 'text-blue-300' : 'text-zinc-400 hover:text-white')}><Info className="h-5 w-5" /></button>
                         </header>
 
                         {error && (
@@ -379,7 +379,7 @@ export default function ChatWorkspace() {
                         />
 
                         {readOnlyReason ? (
-                            <div className="m-3 flex items-center justify-center gap-2 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-slate-400 sm:m-5">
+                            <div className="m-3 flex items-center justify-center gap-2 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-zinc-400 sm:m-5">
                                 <Lock className="h-4 w-4" />{readOnlyReason}
                             </div>
                         ) : (
@@ -393,38 +393,38 @@ export default function ChatWorkspace() {
                     </>
                 ) : (
                     <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
-                        <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500/25 to-violet-500/10 ring-1 ring-inset ring-white/10"><MessageSquare className="h-7 w-7 text-blue-200" /></span>
-                        <h2 className="mt-4 font-display text-lg font-bold text-white">Your messages</h2>
-                        <p className="mt-1 max-w-sm text-sm text-slate-400">Pick a conversation on the left, or start a new one with a teammate.</p>
-                        <button onClick={() => setShowNew(true)} className="mt-5 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 px-4 py-2 text-sm font-semibold text-white">New conversation</button>
+                        <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/25 ring-1 ring-inset ring-white/10"><MessageSquare className="h-7 w-7 text-blue-200" /></span>
+                        <h2 className="mt-4 font-display text-lg font-semibold text-white">Your messages</h2>
+                        <p className="mt-1 max-w-sm text-sm text-zinc-400">Pick a conversation on the left, or start a new one with a teammate.</p>
+                        <button onClick={() => setShowNew(true)} className="mt-5 rounded-xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white">New conversation</button>
                     </div>
                 )}
             </section>
 
             {/* details */}
             {active && showDetails && (
-                <aside className="absolute inset-0 z-30 flex flex-col bg-[#0A0D13] lg:static lg:inset-auto lg:z-auto lg:w-[300px] lg:shrink-0 lg:border-l lg:border-white/[0.06]">
+                <aside className="absolute inset-0 z-30 flex flex-col bg-[#09090B] lg:static lg:inset-auto lg:z-auto lg:w-[300px] lg:shrink-0 lg:border-l lg:border-white/[0.06]">
                     <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/[0.06] px-5">
-                        <h2 className="font-display text-sm font-bold text-white">Details</h2>
-                        <button onClick={() => setShowDetails(false)} aria-label="Close details" className="rounded-lg p-1.5 text-slate-400 hover:bg-white/[0.06] hover:text-white"><X className="h-4 w-4" /></button>
+                        <h2 className="font-display text-sm font-semibold text-white">Details</h2>
+                        <button onClick={() => setShowDetails(false)} aria-label="Close details" className="rounded-lg p-1.5 text-zinc-400 hover:bg-white/[0.06] hover:text-white"><X className="h-4 w-4" /></button>
                     </div>
                     <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5">
                         <div className="flex flex-col items-center text-center">
                             <HeaderIcon c={active} meId={meId} />
-                            <p className="mt-3 font-display text-base font-bold text-white">{channelName(active, meId)}</p>
-                            <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
+                            <p className="mt-3 font-display text-base font-semibold text-white">{channelName(active, meId)}</p>
+                            <p className="mt-0.5 text-xs text-zinc-500">{subtitle}</p>
                         </div>
 
                         {members.length > 0 && (
                             <div>
-                                <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500"><Users className="h-3.5 w-3.5" />Members · {members.length}</p>
+                                <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-zinc-500"><Users className="h-3.5 w-3.5" />Members · {members.length}</p>
                                 <ul className="space-y-1">
                                     {members.map(u => (
                                         <li key={u.id} className="flex items-center gap-3 rounded-xl px-1.5 py-1.5">
-                                            <Avatar src={u.image} alt={u.name} fallback={initialsOf(u.name)} className="h-8 w-8 text-[10px]" />
+                                            <Avatar src={u.image} alt={u.name} fallback={initialsOf(u.name)} className="h-8 w-8 text-xs" />
                                             <span className="min-w-0 flex-1">
-                                                <span className="block truncate text-sm text-slate-200">{u.id === meId ? `${u.name} (you)` : u.name}</span>
-                                                <span className="block truncate text-[11px] text-slate-500">{humanize(u.role)}</span>
+                                                <span className="block truncate text-sm text-zinc-200">{u.id === meId ? `${u.name} (you)` : u.name}</span>
+                                                <span className="block truncate text-[11px] text-zinc-500">{humanize(u.role)}</span>
                                             </span>
                                             {u.id !== meId && channelKind(active) !== 'direct' && (
                                                 <button onClick={() => openDirect(u)} className="rounded-lg px-2 py-1 text-xs font-medium text-blue-300 hover:bg-blue-500/10">Message</button>
@@ -436,9 +436,9 @@ export default function ChatWorkspace() {
                         )}
 
                         <div>
-                            <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500"><FileText className="h-3.5 w-3.5" />Shared files · {sharedFiles.length}</p>
+                            <p className="mb-2 flex items-center gap-2 text-[11px] font-semibold text-zinc-500"><FileText className="h-3.5 w-3.5" />Shared files · {sharedFiles.length}</p>
                             {sharedFiles.length === 0 ? (
-                                <p className="text-xs text-slate-500">Files and images shared here will show up in this list.</p>
+                                <p className="text-xs text-zinc-500">Files and images shared here will show up in this list.</p>
                             ) : (
                                 <ul className="space-y-1.5">
                                     {sharedFiles.slice(0, 30).map((f, i) => (
@@ -448,10 +448,10 @@ export default function ChatWorkspace() {
                                                     ? <img src={f.url} alt="" className="h-9 w-9 rounded-lg object-cover" />
                                                     : <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/15 text-blue-300"><FileText className="h-4 w-4" /></span>}
                                                 <span className="min-w-0 flex-1">
-                                                    <span className="block truncate text-sm text-slate-200">{f.name || 'Attachment'}</span>
-                                                    <span className="block truncate text-[11px] text-slate-500">{f.from}</span>
+                                                    <span className="block truncate text-sm text-zinc-200">{f.name || 'Attachment'}</span>
+                                                    <span className="block truncate text-[11px] text-zinc-500">{f.from}</span>
                                                 </span>
-                                                <Download className="h-4 w-4 text-slate-500" />
+                                                <Download className="h-4 w-4 text-zinc-500" />
                                             </a>
                                         </li>
                                     ))}

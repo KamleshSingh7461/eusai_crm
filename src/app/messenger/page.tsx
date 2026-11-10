@@ -267,18 +267,18 @@ export default function MessengerPage() {
     const directMessages = channels.filter(c => c.type === 'DIRECT');
 
     return (
-        <div className="flex-1 flex overflow-hidden bg-[#050505]">
+        <div className="flex-1 flex overflow-hidden bg-[#09090B]">
             
             {/* Sidebar / List View */}
             <div className={cn(
-                "flex-col border-r border-white/5 bg-[#07090D] transition-all duration-300",
+                "flex-col border-r border-white/5 bg-[#09090B] transition-all duration-300",
                 view === 'CHAT' ? "hidden lg:flex w-80" : "flex w-full lg:w-80"
             )}>
                 <div className="p-6 border-b border-white/5">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-900/20">EU</div>
-                            <h1 className="text-lg font-bold tracking-tighter">MESSENGER</h1>
+                            <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-semibold shadow-lg shadow-blue-900/20">EU</div>
+                            <h1 className="text-lg font-semibold tracking-tighter">MESSENGER</h1>
                         </div>
                         <button onClick={() => setIsUserSearchOpen(true)} className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-all text-white/40 hover:text-white">
                             <Plus className="w-5 h-5" />
@@ -297,7 +297,7 @@ export default function MessengerPage() {
                 <div className="flex-1 overflow-y-auto p-4 space-y-6" style={{ scrollbarWidth: 'none' }}>
                     {/* Sections */}
                     <div>
-                        <p className="px-4 text-[11px] font-bold text-white/10 uppercase tracking-[0.12em] mb-3">Groups</p>
+                        <p className="px-4 text-[11px] font-semibold text-white/10 mb-3">Groups</p>
                         <div className="space-y-1">
                             {announcements.map(ch => (
                                 <ChannelItem key={ch.id} ch={ch} selected={selectedChannel?.id === ch.id} onClick={() => { setSelectedChannel(ch); setView('CHAT'); }} icon={Megaphone} />
@@ -309,7 +309,7 @@ export default function MessengerPage() {
                     </div>
 
                     <div>
-                        <p className="px-4 text-[11px] font-bold text-white/10 uppercase tracking-[0.12em] mb-3">Direct messages</p>
+                        <p className="px-4 text-[11px] font-semibold text-white/10 mb-3">Direct messages</p>
                         <div className="space-y-1">
                             {directMessages.map(dm => {
                                 const otherMember = dm.members?.find(m => 
@@ -321,10 +321,10 @@ export default function MessengerPage() {
                                         key={dm.id} onClick={() => { setSelectedChannel(dm); setView('CHAT'); }}
                                         className={cn(
                                             "w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm transition-all group mb-1 border border-transparent",
-                                            selectedChannel?.id === dm.id ? "bg-blue-600/10 text-blue-400 font-bold border-blue-500/10 shadow-lg shadow-blue-900/5" : "text-white/40 hover:bg-white/5"
+                                            selectedChannel?.id === dm.id ? "bg-blue-600/10 text-blue-400 font-semibold border-blue-500/10 shadow-lg shadow-blue-900/5" : "text-white/40 hover:bg-white/5"
                                         )}
                                     >
-                                        <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-[11px] font-bold overflow-hidden">
+                                        <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-[11px] font-semibold overflow-hidden">
                                             {otherMember?.image ? <img src={otherMember.image} className="w-full h-full object-cover" /> : (otherMember?.name?.charAt(0) || 'U')}
                                         </div>
                                         <span className="truncate flex-1 text-left tracking-tight">{otherMember?.name || 'Private Chat'}</span>
@@ -336,14 +336,14 @@ export default function MessengerPage() {
                 </div>
 
                 {/* Current User */}
-                <div className="p-4 border-t border-white/5 bg-[#0D0D0D]">
+                <div className="p-4 border-t border-white/5 bg-[#111113]">
                     <div className="flex items-center gap-3 p-2">
-                        <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center font-bold text-blue-500 overflow-hidden">
+                        <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center font-semibold text-blue-500 overflow-hidden">
                             {(session?.user as any)?.image ? <img src={(session?.user as any).image} className="w-full h-full object-cover" /> : session?.user?.name?.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-white truncate">{session?.user?.name}</p>
-                            <p className="text-[11px] font-bold text-white/20 uppercase tracking-wider">{userRole}</p>
+                            <p className="text-sm font-semibold text-white truncate">{session?.user?.name}</p>
+                            <p className="text-[11px] font-semibold text-white/20">{userRole}</p>
                         </div>
                         <button className="p-2 text-white/20 hover:text-white"><Settings className="w-4 h-4" /></button>
                     </div>
@@ -357,7 +357,7 @@ export default function MessengerPage() {
             )}>
                 {selectedChannel ? (
                     <>
-                        <header className="h-20 border-b border-white/5 px-6 flex items-center justify-between bg-[#050505]/80 backdrop-blur-xl z-20">
+                        <header className="h-20 border-b border-white/5 px-6 flex items-center justify-between bg-[#09090B] z-20">
                             <div className="flex items-center gap-4">
                                 <button onClick={() => setView('LIST')} className="lg:hidden p-2 -ml-2 text-white/40 hover:text-white"><ChevronLeft className="w-6 h-6" /></button>
                                 <div className="w-11 h-11 rounded-2xl bg-blue-600/10 flex items-center justify-center border border-blue-600/20 shadow-lg shadow-blue-900/5 overflow-hidden">
@@ -374,7 +374,7 @@ export default function MessengerPage() {
                                     )}
                                 </div>
                                 <div className="min-w-0">
-                                    <h2 className="text-base font-bold text-white tracking-tight truncate">
+                                    <h2 className="text-base font-semibold text-white tracking-tight truncate">
                                         {selectedChannel.type === 'DIRECT' 
                                             ? (selectedChannel.members?.find(m => 
                                                 m.id !== currentUserId && 
@@ -385,7 +385,7 @@ export default function MessengerPage() {
                                     </h2>
                                     <div className="flex items-center gap-2">
                                         <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                        <span className="text-[11px] font-bold text-white/20 uppercase tracking-wider">Active Secure Link</span>
+                                        <span className="text-[11px] font-semibold text-white/20">Active Secure Link</span>
                                     </div>
                                 </div>
                             </div>
@@ -402,11 +402,11 @@ export default function MessengerPage() {
 
                         <div className="flex-1 overflow-y-auto px-6 py-6 sm:py-8 space-y-8" style={{ scrollbarWidth: 'thin' }}>
                             {isLoadingMessages ? (
-                                <div className="flex flex-col items-center justify-center h-full opacity-20"><Loader2 className="w-6 h-6 animate-spin mb-4" /><span className="text-[11px] font-bold uppercase tracking-wider">Encrypting...</span></div>
+                                <div className="flex flex-col items-center justify-center h-full opacity-20"><Loader2 className="w-6 h-6 animate-spin mb-4" /><span className="text-[11px] font-semibold">Encrypting...</span></div>
                             ) : messages.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-full opacity-10">
                                     <Bot className="w-12 h-12 mb-4" />
-                                    <p className="text-xs font-bold uppercase tracking-[0.12em]">Channel Cleared</p>
+                                    <p className="text-xs font-semibold">Channel Cleared</p>
                                 </div>
                             ) : (
                                 messages.map((msg, idx) => {
@@ -420,16 +420,16 @@ export default function MessengerPage() {
                                             <div className={cn("flex items-end gap-3 max-w-[85%] lg:max-w-[70%]", isMe ? "flex-row-reverse" : "flex-row")}>
                                                 {!isMe && !isSameSenderAsNext && (
                                                     <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center shrink-0 overflow-hidden shadow-lg shadow-black/40">
-                                                        {msg.sender.image ? <img src={msg.sender.image} className="w-full h-full object-cover" /> : <span className="text-xs font-bold text-white/20">{msg.sender.name.charAt(0)}</span>}
+                                                        {msg.sender.image ? <img src={msg.sender.image} className="w-full h-full object-cover" /> : <span className="text-xs font-semibold text-white/20">{msg.sender.name.charAt(0)}</span>}
                                                     </div>
                                                 )}
                                                 <div className={cn("flex flex-col gap-1", isMe ? "items-end" : "items-start", !isMe && isSameSenderAsNext ? "ml-11" : "")}>
                                                     {!isMe && !isSameSenderAsNext && selectedChannel.type !== 'DIRECT' && (
-                                                        <span className="text-[11px] font-bold text-white/20 uppercase tracking-wider ml-1 mb-1">{msg.sender.name}</span>
+                                                        <span className="text-[11px] font-semibold text-white/20 ml-1 mb-1">{msg.sender.name}</span>
                                                     )}
                                                     <div className={cn(
-                                                        "group/msg relative px-5 py-3.5 rounded-3xl text-[13px] font-medium leading-relaxed shadow-xl",
-                                                        isMe ? "bg-blue-600 text-white rounded-br-none" : "bg-[#1A1A1A] text-white/90 border border-white/5 rounded-bl-none"
+                                                        "group/msg relative px-5 py-3.5 rounded-2xl text-[13px] font-medium leading-relaxed shadow-xl",
+                                                        isMe ? "bg-blue-600 text-white rounded-br-none" : "bg-[#1F1F23] text-white/90 border border-white/5 rounded-bl-none"
                                                     )}>
                                                         {editingMessage?.id === msg.id ? (
                                                             <div className="flex flex-col gap-2 min-w-[200px]">
@@ -472,9 +472,9 @@ export default function MessengerPage() {
                                                         {msg.attachments && msg.attachments.length > 0 && (
                                                             <div className="mt-3 space-y-2">
                                                                 {msg.attachments.map((file, fi) => (
-                                                                    <div key={fi} className="flex items-center gap-3 p-3 rounded-2xl bg-black/40 border border-white/5 backdrop-blur-md">
+                                                                    <div key={fi} className="flex items-center gap-3 p-3 rounded-2xl bg-black/40 border border-white/5">
                                                                         {file.type?.startsWith('image/') ? <img src={file.url} className="w-12 h-12 rounded-xl object-cover" /> : <FileText className="w-5 h-5 text-blue-400" />}
-                                                                        <div className="flex-1 min-w-0"><p className="text-[11px] font-bold truncate text-white/60">{file.name}</p></div>
+                                                                        <div className="flex-1 min-w-0"><p className="text-[11px] font-semibold truncate text-white/60">{file.name}</p></div>
                                                                         <a href={file.url} download className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-all"><Download className="w-4 h-4" /></a>
                                                                     </div>
                                                                 ))}
@@ -482,7 +482,7 @@ export default function MessengerPage() {
                                                         )}
                                                     </div>
                                                     {!isSameSenderAsNext && (
-                                                        <span className="text-[11px] font-bold text-white/10 uppercase tracking-wider mt-1 px-1 flex items-center gap-2">
+                                                        <span className="text-[11px] font-semibold text-white/10 mt-1 px-1 flex items-center gap-2">
                                                             {new Date(msg.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                                                             {msg.updatedAt && new Date(msg.updatedAt).getTime() > new Date(msg.createdAt).getTime() && (
                                                                 <span className="text-blue-500/40">Edited</span>
@@ -500,7 +500,7 @@ export default function MessengerPage() {
 
                         {/* Input Area */}
                         <div className="px-6 pb-8">
-                            <div className="max-w-4xl mx-auto bg-[#111111] border border-white/5 rounded-[2.5rem] p-2 lg:p-3 shadow-2xl shadow-black ring-1 ring-white/5">
+                            <div className="max-w-4xl mx-auto bg-[#18181B] border border-white/5 rounded-[2.5rem] p-2 lg:p-3 shadow-2xl shadow-black ring-1 ring-white/5">
                                 <div className="flex items-center gap-1 lg:gap-2">
                                     <button onClick={() => fileInputRef.current?.click()} className="p-3.5 text-white/20 hover:text-white/60 transition-all rounded-full hover:bg-white/5"><Paperclip className="w-5 h-5" /></button>
                                     <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
@@ -529,12 +529,11 @@ export default function MessengerPage() {
                     </>
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center bg-grid-white/[0.02]">
-                        <div className="w-24 h-24 rounded-[3rem] bg-gradient-to-br from-blue-600/20 to-purple-600/20 flex items-center justify-center border border-white/5 mb-8 shadow-2xl relative overflow-hidden group">
-                            <div className="absolute inset-0 bg-blue-600/10 blur-2xl group-hover:scale-150 transition-all duration-700" />
+                        <div className="w-24 h-24 rounded-[3rem] bg-blue-600/20 flex items-center justify-center border border-white/5 mb-8 shadow-2xl relative overflow-hidden group">
                             <Zap className="w-10 h-10 text-blue-500 relative z-10 animate-pulse" />
                         </div>
-                        <h2 className="text-lg lg:text-2xl font-bold uppercase tracking-[0.5em] text-white/20">Secure Nexus</h2>
-                        <p className="text-[11px] font-bold text-white/5 uppercase tracking-[0.12em] mt-4">Select a frequency to initialize transmission</p>
+                        <h2 className="text-lg lg:text-2xl font-semibold text-white/20">Secure Nexus</h2>
+                        <p className="text-[11px] font-semibold text-white/5 mt-4">Select a frequency to initialize transmission</p>
                     </div>
                 )}
             </div>
@@ -543,28 +542,28 @@ export default function MessengerPage() {
             <AnimatePresence>
                 {isUserSearchOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-black/90 backdrop-blur-2xl" onClick={() => setIsUserSearchOpen(false)} />
-                        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="relative w-full max-w-xl bg-[#0D0D0D] border border-white/10 rounded-[3rem] p-5 sm:p-8 lg:p-12 shadow-2xl">
+                        <div className="absolute inset-0 bg-black/90" onClick={() => setIsUserSearchOpen(false)} />
+                        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="relative w-full max-w-xl bg-[#111113] border border-white/10 rounded-[3rem] p-5 sm:p-8 lg:p-12 shadow-2xl">
                             <div className="flex items-center justify-between mb-8">
-                                <h3 className="text-xl lg:text-2xl font-bold text-white uppercase tracking-tighter">Initialize Link</h3>
+                                <h3 className="text-xl lg:text-2xl font-semibold text-white tracking-tighter">Initialize Link</h3>
                                 <button onClick={() => setIsUserSearchOpen(false)} className="p-2 text-white/20 hover:text-white"><X className="w-6 h-6" /></button>
                             </div>
                             <div className="relative mb-8">
                                 <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
                                 <input 
                                     autoFocus type="text" placeholder="Search personnel..." value={userSearchQuery} onChange={(e) => setUserSearchQuery(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/5 rounded-3xl py-4 pl-12 pr-6 text-white outline-none focus:border-blue-500/50"
+                                    className="w-full bg-white/5 border border-white/5 rounded-2xl py-4 pl-12 pr-6 text-white outline-none focus:border-blue-500/50"
                                 />
                             </div>
                             <div className="max-h-[40vh] overflow-y-auto space-y-2 pr-2" style={{ scrollbarWidth: 'none' }}>
                                 {users.filter(u => u.name.toLowerCase().includes(userSearchQuery.toLowerCase())).map(user => (
                                     <button key={user.id} onClick={() => handleStartDM(user.id)} className="w-full flex items-center gap-4 p-5 rounded-[2rem] bg-white/[0.02] border border-white/5 hover:bg-blue-600/10 hover:border-blue-500/30 transition-all group">
-                                        <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center font-bold text-white/40 group-hover:text-blue-400 group-hover:bg-blue-600/20 transition-all">
+                                        <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center font-semibold text-white/40 group-hover:text-blue-400 group-hover:bg-blue-600/20 transition-all">
                                             {user.name.charAt(0)}
                                         </div>
                                         <div className="text-left">
-                                            <p className="text-base font-bold text-white group-hover:text-blue-400 transition-all">{user.name}</p>
-                                            <p className="text-[11px] text-white/20 uppercase font-bold tracking-wider">{user.role}</p>
+                                            <p className="text-base font-semibold text-white group-hover:text-blue-400 transition-all">{user.name}</p>
+                                            <p className="text-[11px] text-white/20 font-semibold">{user.role}</p>
                                         </div>
                                     </button>
                                 ))}

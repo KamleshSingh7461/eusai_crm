@@ -117,8 +117,8 @@ export default function UserManagement() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">User Management</h1>
-                    <p className="mt-2 max-w-2xl text-base text-slate-400">Manage accounts, roles and access</p>
+                    <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">User Management</h1>
+                    <p className="mt-2 max-w-2xl text-base text-zinc-400">Manage accounts, roles and access</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="relative">
@@ -139,11 +139,11 @@ export default function UserManagement() {
                 <table className="w-full min-w-[860px] text-left border-collapse">
                     <thead>
                         <tr className="bg-[#FFFFFF08] border-b border-[#FFFFFF14]">
-                            <th className="px-6 py-4 text-xs font-bold text-[#8B94A5] uppercase tracking-wider">User</th>
-                            <th className="px-6 py-4 text-xs font-bold text-[#8B94A5] uppercase tracking-wider">Role</th>
-                            <th className="px-6 py-4 text-xs font-bold text-[#8B94A5] uppercase tracking-wider">Department</th>
-                            <th className="px-6 py-4 text-xs font-bold text-[#8B94A5] uppercase tracking-wider text-center">Activity</th>
-                            <th className="px-6 py-4 text-xs font-bold text-[#8B94A5] uppercase tracking-wider text-right">Actions</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-[#8B94A5]">User</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-[#8B94A5]">Role</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-[#8B94A5]">Department</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-[#8B94A5] text-center">Activity</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-[#8B94A5] text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-[#FFFFFF14]">
@@ -162,11 +162,11 @@ export default function UserManagement() {
                                 <tr key={user.id} className="hover:bg-white/[0.03]/50 transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-[#3B82F6] font-bold text-sm">
+                                            <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-[#3B82F6] font-semibold text-sm">
                                                 {user.name?.charAt(0) || 'U'}
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-[#E6EAF0]">{user.name || 'No Name'}</span>
+                                                <span className="text-sm font-semibold text-[#E6EAF0]">{user.name || 'No Name'}</span>
                                                 <span className="text-xs text-[#8B94A5]">{user.email}</span>
                                             </div>
                                         </div>
@@ -177,7 +177,7 @@ export default function UserManagement() {
                                             onChange={(e) => handleUpdateRole(user.id, e.target.value)}
                                             disabled={user.email === 'admin@eusaiteam.com'}
                                             className={cn(
-                                                "text-[11px] font-bold uppercase tracking-wider px-2 py-1 rounded border border-transparent focus:border-[#3B82F6] bg-transparent hover:bg-white/[0.03] cursor-pointer transition-all",
+                                                "text-[11px] font-semibold   px-2 py-1 rounded border border-transparent focus:border-[#3B82F6] bg-transparent hover:bg-white/[0.03] cursor-pointer transition-all",
                                                 user.role === 'DIRECTOR' ? "bg-amber-500/10 text-amber-300" :
                                                     user.role === 'MANAGER' ? "bg-blue-500/10 text-blue-300" :
                                                         "bg-white/[0.03] text-fg-muted"
@@ -200,12 +200,12 @@ export default function UserManagement() {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-center gap-4 text-xs font-medium text-[#8B94A5]">
                                             <div className="flex flex-col items-center" title="Projects">
-                                                <span className="text-[#E6EAF0] font-bold">{user._count?.projects || 0}</span>
-                                                <span className="scale-75 uppercase">PRJ</span>
+                                                <span className="text-[#E6EAF0] font-semibold">{user._count?.projects || 0}</span>
+                                                <span className="scale-75">PRJ</span>
                                             </div>
                                             <div className="flex flex-col items-center" title="Tasks">
-                                                <span className="text-[#E6EAF0] font-bold">{user._count?.tasks || 0}</span>
-                                                <span className="scale-75 uppercase">TSK</span>
+                                                <span className="text-[#E6EAF0] font-semibold">{user._count?.tasks || 0}</span>
+                                                <span className="scale-75">TSK</span>
                                             </div>
                                         </div>
                                     </td>
@@ -241,19 +241,19 @@ export default function UserManagement() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gradient-to-br from-blue-600 to-[#2563EB] p-6 rounded-xl text-white shadow-lg shadow-blue-200">
+                <div className="bg-blue-600 p-6 rounded-xl text-white shadow-lg">
                     <div className="flex items-center gap-4 mb-4">
                         <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center">
                             <Mail className="w-6 h-6 text-blue-100" />
                         </div>
-                        <h3 className="text-xl font-bold">Invite New Team Member</h3>
+                        <h3 className="text-xl font-semibold">Invite New Team Member</h3>
                     </div>
                     <p className="text-blue-100/80 text-sm mb-6 leading-relaxed">
                         Send a secure invitation link to new employees. They can then sign in and automatically join the workspace.
                     </p>
                     <button
                         onClick={generateInviteLink}
-                        className="bg-white text-[#3B82F6] px-6 py-2 rounded-md font-bold text-sm hover:bg-blue-50 transition-colors shadow-sm"
+                        className="bg-white text-[#3B82F6] px-6 py-2 rounded-md font-semibold text-sm hover:bg-blue-50 transition-colors shadow-sm"
                     >
                         Generate Invite Link
                     </button>
@@ -264,13 +264,13 @@ export default function UserManagement() {
                         <div className="w-12 h-12 rounded-lg bg-amber-500/10 flex items-center justify-center">
                             <Shield className="w-6 h-6 text-amber-300" />
                         </div>
-                        <h3 className="text-xl font-bold text-[#E6EAF0]">Platform Security Role</h3>
+                        <h3 className="text-xl font-semibold text-[#E6EAF0]">Platform Security Role</h3>
                     </div>
                     <p className="text-[#8B94A5] text-sm mb-6 leading-relaxed">
                         The <strong>Director</strong> role is the highest privilege. It can delete any data on the platform.
                         Ensure that only trusted executive members are ever assigned to this role.
                     </p>
-                    <div className="flex items-center gap-2 text-xs font-bold text-amber-300 bg-amber-500/10 px-3 py-1.5 rounded-md w-fit">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-amber-300 bg-amber-500/10 px-3 py-1.5 rounded-md w-fit">
                         <CheckCircle2 className="w-4 h-4" />
                         ENFORCED SYSTEM-WIDE
                     </div>
@@ -279,23 +279,23 @@ export default function UserManagement() {
 
             {/* User Details Modal */}
             {isDetailModalOpen && selectedUser && (
-                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] w-full max-w-lg animate-in zoom-in duration-200 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
+                    <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-lg animate-in zoom-in duration-200 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
                         <div className="px-6 py-4 flex items-center justify-between border-b border-[#FFFFFF14]">
-                            <h2 className="text-lg font-bold text-[#E6EAF0]">User Details</h2>
+                            <h2 className="text-lg font-semibold text-[#E6EAF0]">User Details</h2>
                             <button onClick={() => setIsDetailModalOpen(false)} className="text-[#8B94A5] hover:text-[#E6EAF0]">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                         <div className="p-6 space-y-6">
                             <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center text-[#3B82F6] font-bold text-xl">
+                                <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center text-[#3B82F6] font-semibold text-xl">
                                     {selectedUser.name?.charAt(0) || 'U'}
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold text-[#E6EAF0]">{selectedUser.name || 'No Name'}</h3>
+                                    <h3 className="text-xl font-semibold text-[#E6EAF0]">{selectedUser.name || 'No Name'}</h3>
                                     <p className="text-sm text-[#8B94A5]">{selectedUser.email}</p>
-                                    <div className="mt-1 inline-flex items-center px-2 py-0.5 roundedElement bg-[#A78BFA1F] text-[#8B5CF6] text-[11px] font-bold uppercase tracking-wider">
+                                    <div className="mt-1 inline-flex items-center px-2 py-0.5 roundedElement bg-[#A78BFA1F] text-[#8B5CF6] text-[11px] font-semibold">
                                         {selectedUser.role}
                                     </div>
                                 </div>
@@ -303,11 +303,11 @@ export default function UserManagement() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="space-y-1">
-                                    <span className="text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider">Reports To</span>
+                                    <span className="text-[11px] font-semibold text-[#8B94A5]">Reports To</span>
                                     <div className="text-sm text-[#E6EAF0] flex items-center gap-2">
                                         {selectedUser.manager ? (
                                             <>
-                                                <div className="w-5 h-5 rounded-full bg-white/[0.03] flex items-center justify-center text-[11px] font-bold">
+                                                <div className="w-5 h-5 rounded-full bg-white/[0.03] flex items-center justify-center text-[11px] font-semibold">
                                                     {selectedUser.manager.name?.charAt(0)}
                                                 </div>
                                                 {selectedUser.manager.name}
@@ -318,7 +318,7 @@ export default function UserManagement() {
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <span className="text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider">Department</span>
+                                    <span className="text-[11px] font-semibold text-[#8B94A5]">Department</span>
                                     <div className="text-sm text-[#E6EAF0]">
                                         {selectedUser.department || <span className="text-[#8B94A5] italic">Unassigned</span>}
                                     </div>
@@ -326,12 +326,12 @@ export default function UserManagement() {
                             </div>
 
                             <div className="space-y-2">
-                                <span className="text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider">Subordinates</span>
+                                <span className="text-[11px] font-semibold text-[#8B94A5]">Subordinates</span>
                                 <div className="flex flex-wrap gap-2">
                                     {selectedUser.subordinates && selectedUser.subordinates.length > 0 ? (
                                         selectedUser.subordinates.map((sub: any) => (
                                             <div key={sub.id} className="flex items-center gap-2 px-2 py-1 bg-[#FFFFFF0A] rounded text-xs text-[#E6EAF0] border border-[#FFFFFF14]">
-                                                <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center text-[11px] font-bold border border-[#FFFFFF14]">
+                                                <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center text-[11px] font-semibold border border-[#FFFFFF14]">
                                                     {sub.name?.charAt(0)}
                                                 </div>
                                                 {sub.name}
@@ -347,16 +347,16 @@ export default function UserManagement() {
                             <div className="pt-4 border-t border-[#FFFFFF14]">
                                 <div className="grid grid-cols-3 gap-4 text-center">
                                     <div className="p-3 bg-white/[0.03] rounded-lg border border-[#FFFFFF14]">
-                                        <div className="text-xl font-bold text-[#3B82F6]">{selectedUser._count?.projects || 0}</div>
-                                        <div className="text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider">Projects</div>
+                                        <div className="text-xl font-semibold text-[#3B82F6]">{selectedUser._count?.projects || 0}</div>
+                                        <div className="text-[11px] font-semibold text-[#8B94A5]">Projects</div>
                                     </div>
                                     <div className="p-3 bg-white/[0.03] rounded-lg border border-[#FFFFFF14]">
-                                        <div className="text-xl font-bold text-[#34D399]">{selectedUser._count?.tasks || 0}</div>
-                                        <div className="text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider">Tasks</div>
+                                        <div className="text-xl font-semibold text-[#34D399]">{selectedUser._count?.tasks || 0}</div>
+                                        <div className="text-[11px] font-semibold text-[#8B94A5]">Tasks</div>
                                     </div>
                                     <div className="p-3 bg-white/[0.03] rounded-lg border border-[#FFFFFF14]">
-                                        <div className="text-xl font-bold text-[#FB7185]">{selectedUser._count?.dailyReports || 0}</div>
-                                        <div className="text-[11px] font-bold text-[#8B94A5] uppercase tracking-wider">Reports</div>
+                                        <div className="text-xl font-semibold text-[#FB7185]">{selectedUser._count?.dailyReports || 0}</div>
+                                        <div className="text-[11px] font-semibold text-[#8B94A5]">Reports</div>
                                     </div>
                                 </div>
                             </div>

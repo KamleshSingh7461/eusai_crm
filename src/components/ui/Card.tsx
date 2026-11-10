@@ -21,9 +21,9 @@ export function Card({ className, interactive, delay, padding = 'md', children, 
     }
     return (
         <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25, delay: Math.min(delay, 0.2) }}
             className={classes}
             {...(props as any)}
         >
@@ -44,8 +44,8 @@ export function CardHeader({ title, description, action, icon, className }: {
             <div className="flex min-w-0 items-start gap-3">
                 {icon}
                 <div className="min-w-0">
-                    <h3 className="font-display text-lg font-bold text-white">{title}</h3>
-                    {description && <p className="mt-1 text-sm text-slate-400">{description}</p>}
+                    <h3 className="font-display text-[15px] font-semibold text-white">{title}</h3>
+                    {description && <p className="mt-0.5 text-[13px] text-zinc-500">{description}</p>}
                 </div>
             </div>
             {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}

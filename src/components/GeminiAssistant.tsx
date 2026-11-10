@@ -80,7 +80,7 @@ export default function GeminiAssistant({ onClose }: { onClose: () => void }) {
     return (
         <div className="fixed bottom-20 right-4 w-96 h-[500px] bg-white/[0.03] rounded-2xl shadow-2xl border border-line flex flex-col overflow-hidden z-[50] animate-in slide-in-from-bottom-10 fade-in duration-300">
             {/* Header */}
-            <div className="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between">
+            <div className="p-4 bg-blue-600 text-white flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="p-1.5 bg-white/20 rounded-lg">
                         <Sparkles className="w-4 h-4 text-yellow-300" />
@@ -114,7 +114,7 @@ export default function GeminiAssistant({ onClose }: { onClose: () => void }) {
                     </div>
                 ))}
                 {isLoading && (
-                    <div className="mr-auto bg-white/[0.03] border border-line text-slate-400 rounded-2xl rounded-bl-none p-3 text-sm shadow-sm flex items-center gap-2">
+                    <div className="mr-auto bg-white/[0.03] border border-line text-zinc-400 rounded-2xl rounded-bl-none p-3 text-sm shadow-sm flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Thinking...
                     </div>

@@ -18,7 +18,7 @@ export default function ChannelItem({ ch, selected, onClick, icon: Icon = Hash, 
             className={cn(
                 "w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm transition-all group mb-1 border border-transparent",
                 selected 
-                    ? "bg-blue-600/10 text-blue-400 font-bold border-blue-500/10 shadow-lg shadow-blue-900/5" 
+                    ? "bg-blue-600/10 text-blue-400 font-semibold border-blue-500/10 shadow-lg shadow-blue-900/5" 
                     : "text-white/40 hover:bg-white/5 hover:text-white/60"
             )}
         >
@@ -30,7 +30,7 @@ export default function ChannelItem({ ch, selected, onClick, icon: Icon = Hash, 
             </div>
             <span className="truncate flex-1 text-left tracking-tight font-medium">{ch.name}</span>
             {badge && badge > 0 && (
-                <span className="w-5 h-5 rounded-full bg-blue-600 text-[11px] font-bold text-white flex items-center justify-center animate-pulse">
+                <span className="w-5 h-5 rounded-full bg-blue-600 text-[11px] font-semibold text-white flex items-center justify-center animate-pulse">
                     {badge}
                 </span>
             )}

@@ -67,19 +67,19 @@ export default function SpacesPage() {
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                     {filteredSpaces.map((space: any, i: number) => (
                         <Card key={space.id} delay={i * 0.04} interactive padding="none" onClick={() => router.push(`/spaces/${space.id}`)} className="group overflow-hidden">
-                            <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${space.color}, ${space.color}33)` }} />
+                            <div className="h-1.5" style={{ background: space.color }} />
                             <div className="p-5">
                                 <div className="flex items-start justify-between">
-                                    <span className="flex h-12 w-12 items-center justify-center rounded-xl text-base font-bold text-white" style={{ backgroundColor: space.color, boxShadow: `0 10px 30px -10px ${space.color}` }}>
+                                    <span className="flex h-12 w-12 items-center justify-center rounded-xl text-base font-semibold text-white" style={{ backgroundColor: space.color, boxShadow: `0 10px 30px -10px ${space.color}` }}>
                                         {space.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
                                     </span>
-                                    <ArrowUpRight className="h-5 w-5 text-slate-600 transition group-hover:text-slate-200" />
+                                    <ArrowUpRight className="h-5 w-5 text-zinc-600 transition group-hover:text-zinc-200" />
                                 </div>
-                                <h3 className="mt-4 truncate font-display text-lg font-bold text-white">{space.name}</h3>
-                                <p className="mt-1 line-clamp-2 min-h-[40px] text-sm text-slate-400">{space.description || 'No description yet.'}</p>
+                                <h3 className="mt-4 truncate font-display text-lg font-semibold text-white">{space.name}</h3>
+                                <p className="mt-1 line-clamp-2 min-h-[40px] text-sm text-zinc-400">{space.description || 'No description yet.'}</p>
                                 <div className="mt-5 flex items-center gap-4 border-t border-white/[0.06] pt-4 text-sm">
-                                    <span className="flex items-center gap-1.5 text-slate-300"><Briefcase className="h-4 w-4 text-blue-300" />{space._count?.projects || 0} projects</span>
-                                    <span className="flex items-center gap-1.5 text-slate-300"><Layers className="h-4 w-4 text-amber-300" />{space._count?.resources || 0} resources</span>
+                                    <span className="flex items-center gap-1.5 text-zinc-300"><Briefcase className="h-4 w-4 text-blue-300" />{space._count?.projects || 0} projects</span>
+                                    <span className="flex items-center gap-1.5 text-zinc-300"><Layers className="h-4 w-4 text-amber-300" />{space._count?.resources || 0} resources</span>
                                     <Badge tone={space.type === 'DEPARTMENT' ? 'violet' : 'slate'} className="ml-auto">{space.type === 'DEPARTMENT' ? 'Department' : 'Space'}</Badge>
                                 </div>
                             </div>
@@ -88,11 +88,11 @@ export default function SpacesPage() {
                 </div>
             )}
 
-            <Card padding="lg" className="flex flex-col items-start gap-4 border-violet-400/20 bg-gradient-to-r from-violet-500/[0.1] to-transparent sm:flex-row sm:items-center">
+            <Card padding="lg" className="flex flex-col items-start gap-4 border-violet-400/20 bg-violet-500/[0.1] sm:flex-row sm:items-center">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-500/15 text-violet-300 ring-1 ring-inset ring-violet-400/25"><BookOpen className="h-5 w-5" /></span>
                 <div className="flex-1">
                     <p className="font-semibold text-white">How departments work</p>
-                    <p className="mt-0.5 text-sm text-slate-400">Each department has a manager, members, projects and its own knowledge pages. Members see the work of the departments they belong to.</p>
+                    <p className="mt-0.5 text-sm text-zinc-400">Each department has a manager, members, projects and its own knowledge pages. Members see the work of the departments they belong to.</p>
                 </div>
                 <Button variant="secondary" onClick={() => router.push('/welcome')}>Read the guide</Button>
             </Card>

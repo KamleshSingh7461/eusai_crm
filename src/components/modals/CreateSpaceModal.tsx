@@ -45,7 +45,7 @@ export default function CreateSpaceModal({ open, onClose, onCreated }: { open: b
             onClose={onClose}
             title="Create department"
             description="Departments group projects, milestones and people."
-            icon={<span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/25 to-blue-500/5 text-blue-300 ring-1 ring-inset ring-blue-400/25"><Building2 className="h-5 w-5" /></span>}
+            icon={<span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-500/25 text-blue-300 ring-1 ring-inset ring-blue-400/25"><Building2 className="h-5 w-5" /></span>}
             footer={
                 <>
                     <Button variant="ghost" onClick={onClose}>Cancel</Button>
@@ -60,7 +60,7 @@ export default function CreateSpaceModal({ open, onClose, onCreated }: { open: b
                     <Select label="Type" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}
                         options={[{ value: 'DEPARTMENT', label: 'Department' }, { value: 'STANDARD', label: 'Standard space' }]} />
                     <div>
-                        <p className="mb-1.5 text-sm font-medium text-slate-300">Color</p>
+                        <p className="mb-1.5 text-sm font-medium text-zinc-300">Color</p>
                         <div className="flex h-10 flex-wrap items-center gap-2">
                             {SPACE_COLORS.map(color => (
                                 <button

@@ -271,8 +271,8 @@ export default function MeetingsPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--notion-border-default)] pb-6">
                 <div>
-                    <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Meetings</h1>
-                    <p className="mt-2 max-w-2xl text-base text-slate-400">
+                    <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Meetings</h1>
+                    <p className="mt-2 max-w-2xl text-base text-zinc-400">
                         Schedule video calls, invite CRM guests, and synchronize team reviews.
                     </p>
                 </div>
@@ -281,7 +281,7 @@ export default function MeetingsPage() {
                 <div className="relative">
                     <button
                         onClick={() => setIsNewMenuOpen(!isNewMenuOpen)}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg font-bold text-sm shadow-md transition-all active:scale-95"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[#1F1F23] hover:bg-[#1F1F23] text-white rounded-lg font-semibold text-sm shadow-md transition-all active:scale-95"
                     >
                         <Video className="w-4 h-4" />
                         <span>New Meeting</span>
@@ -295,33 +295,33 @@ export default function MeetingsPage() {
                         >
                             <button
                                 onClick={handleCreateForLater}
-                                className="w-full flex items-center gap-3 px-3.5 py-3 hover:bg-[var(--notion-bg-tertiary)] text-heading text-xs font-bold rounded-lg transition-colors text-left group"
+                                className="w-full flex items-center gap-3 px-3.5 py-3 hover:bg-[var(--notion-bg-tertiary)] text-heading text-xs font-semibold rounded-lg transition-colors text-left group"
                             >
                                 <LinkIcon className="w-4 h-4 text-[#3B82F6] group-hover:scale-110 transition-transform" />
                                 <div>
-                                    <div className="font-bold">Create a meeting for later</div>
+                                    <div className="font-semibold">Create a meeting for later</div>
                                     <div className="text-[11px] text-subheading font-normal">Generate shareable Google Meet link</div>
                                 </div>
                             </button>
 
                             <button
                                 onClick={handleStartInstantMeeting}
-                                className="w-full flex items-center gap-3 px-3.5 py-3 hover:bg-[var(--notion-bg-tertiary)] text-heading text-xs font-bold rounded-lg transition-colors text-left group"
+                                className="w-full flex items-center gap-3 px-3.5 py-3 hover:bg-[var(--notion-bg-tertiary)] text-heading text-xs font-semibold rounded-lg transition-colors text-left group"
                             >
                                 <Plus className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" />
                                 <div>
-                                    <div className="font-bold">Start an instant meeting</div>
+                                    <div className="font-semibold">Start an instant meeting</div>
                                     <div className="text-[11px] text-subheading font-normal">Launch meeting room immediately</div>
                                 </div>
                             </button>
 
                             <button
                                 onClick={handleOpenScheduleModal}
-                                className="w-full flex items-center gap-3 px-3.5 py-3 hover:bg-[var(--notion-bg-tertiary)] text-heading text-xs font-bold rounded-lg transition-colors text-left group"
+                                className="w-full flex items-center gap-3 px-3.5 py-3 hover:bg-[var(--notion-bg-tertiary)] text-heading text-xs font-semibold rounded-lg transition-colors text-left group"
                             >
                                 <Calendar className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
                                 <div>
-                                    <div className="font-bold">Schedule with Full Details</div>
+                                    <div className="font-semibold">Schedule with Full Details</div>
                                     <div className="text-[11px] text-subheading font-normal">Set guests, permissions & protocols</div>
                                 </div>
                             </button>
@@ -335,10 +335,10 @@ export default function MeetingsPage() {
                 {/* Left Schedule Feed (2 Cols) */}
                 <div className="lg:col-span-2 space-y-6">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-xs font-bold text-subheading uppercase tracking-wider flex items-center gap-2">
+                        <h2 className="text-xs font-semibold text-subheading flex items-center gap-2">
                             <Clock className="w-4 h-4 text-[#3B82F6]" /> Upcoming Meetings ({meetings.length})
                         </h2>
-                        <button onClick={fetchMeetings} className="text-xs text-body hover:text-heading transition-colors font-bold">Refresh</button>
+                        <button onClick={fetchMeetings} className="text-xs text-body hover:text-heading transition-colors font-semibold">Refresh</button>
                     </div>
 
                     {isLoading ? (
@@ -351,16 +351,16 @@ export default function MeetingsPage() {
                                 <div key={meeting.id} className="p-5 hover:bg-[var(--notion-bg-tertiary)]/50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4 group">
                                     <div className="flex items-start gap-4">
                                         <div className="flex flex-col items-center min-w-[55px] p-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-lg text-center shadow-inner">
-                                            <span className="text-[11px] font-bold text-subheading uppercase">
+                                            <span className="text-[11px] font-semibold text-subheading">
                                                 {new Date(meeting.startTime).toLocaleDateString('en-US', { weekday: 'short' })}
                                             </span>
-                                            <span className="text-xl font-bold text-heading">
+                                            <span className="text-xl font-semibold text-heading">
                                                 {new Date(meeting.startTime).getDate()}
                                             </span>
                                         </div>
 
                                         <div className="space-y-1.5">
-                                            <h3 className="font-bold text-base text-heading group-hover:text-[#3B82F6] transition-colors">{meeting.title}</h3>
+                                            <h3 className="font-semibold text-base text-heading group-hover:text-[#3B82F6] transition-colors">{meeting.title}</h3>
                                             <div className="flex flex-wrap items-center gap-3 text-xs text-subheading">
                                                 <span className="flex items-center gap-1 font-medium">
                                                     <Clock className="w-3.5 h-3.5 text-blue-400" />
@@ -374,7 +374,7 @@ export default function MeetingsPage() {
                                                     </span>
                                                 )}
                                                 {meeting.source === 'GOOGLE' && (
-                                                    <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded-sm text-[11px] font-bold">Google Calendar</span>
+                                                    <span className="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded-sm text-[11px] font-semibold">Google Calendar</span>
                                                 )}
                                             </div>
 
@@ -387,12 +387,12 @@ export default function MeetingsPage() {
                                             {/* Attendees List */}
                                             {meeting.attendees && meeting.attendees.length > 0 && (
                                                 <div className="flex items-center gap-1.5 pt-1">
-                                                    <span className="text-[11px] font-bold text-subheading uppercase">Guests:</span>
+                                                    <span className="text-[11px] font-semibold text-subheading">Guests:</span>
                                                     <div className="flex -space-x-1.5 overflow-hidden">
                                                         {meeting.attendees.slice(0, 5).map((guest, idx) => (
                                                             <div
                                                                 key={idx}
-                                                                className="w-5 h-5 rounded-full bg-[#3B82F6]/20 text-[#3B82F6] flex items-center justify-center text-[11px] font-bold border border-white/20"
+                                                                className="w-5 h-5 rounded-full bg-[#1F1F23] text-[#3B82F6] flex items-center justify-center text-[11px] font-semibold border border-white/20"
                                                                 title={guest.name || guest.email}
                                                             >
                                                                 {guest.name?.charAt(0) || 'G'}
@@ -400,7 +400,7 @@ export default function MeetingsPage() {
                                                         ))}
                                                     </div>
                                                     {meeting.attendees.length > 5 && (
-                                                        <span className="text-[11px] font-bold text-subheading">+{meeting.attendees.length - 5}</span>
+                                                        <span className="text-[11px] font-semibold text-subheading">+{meeting.attendees.length - 5}</span>
                                                     )}
                                                 </div>
                                             )}
@@ -420,7 +420,7 @@ export default function MeetingsPage() {
                                                 href={meeting.meetingLink}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-md font-bold text-xs transition-colors border border-blue-500/20"
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-md font-semibold text-xs transition-colors border border-blue-500/20"
                                             >
                                                 <Video className="w-3.5 h-3.5" />
                                                 Join Meeting
@@ -433,7 +433,7 @@ export default function MeetingsPage() {
                     ) : (
                         <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-xl p-6 sm:p-12 text-center">
                             <Video className="w-10 h-10 text-subheading mx-auto mb-3 opacity-40" />
-                            <h3 className="text-heading font-bold mb-1">No meetings scheduled</h3>
+                            <h3 className="text-heading font-semibold mb-1">No meetings scheduled</h3>
                             <p className="text-subheading text-xs mb-4">Start an instant meeting or schedule a session with team guests.</p>
                             <Button variant="primary" size="sm" onClick={handleOpenScheduleModal}>
                                 Schedule First Meeting
@@ -444,7 +444,7 @@ export default function MeetingsPage() {
 
                 {/* Right Sidebar Quick Actions (1 Col) */}
                 <div className="space-y-6">
-                    <h2 className="text-xs font-bold text-subheading uppercase tracking-wider">Templates & Shortcuts</h2>
+                    <h2 className="text-xs font-semibold text-subheading">Templates & Shortcuts</h2>
                     <div className="space-y-3">
                         <button
                             onClick={handleStartInstantMeeting}
@@ -453,7 +453,7 @@ export default function MeetingsPage() {
                             <div className="flex items-center gap-3">
                                 <Video className="w-5 h-5 text-emerald-400" />
                                 <div>
-                                    <div className="font-bold text-sm text-heading">Instant Google Meet</div>
+                                    <div className="font-semibold text-sm text-heading">Instant Google Meet</div>
                                     <div className="text-xs text-subheading">Launch video room right now</div>
                                 </div>
                             </div>
@@ -467,7 +467,7 @@ export default function MeetingsPage() {
                             <div className="flex items-center gap-3">
                                 <LinkIcon className="w-5 h-5 text-blue-400" />
                                 <div>
-                                    <div className="font-bold text-sm text-heading">Shareable Link for Later</div>
+                                    <div className="font-semibold text-sm text-heading">Shareable Link for Later</div>
                                     <div className="text-xs text-subheading">Generate & copy Meet link</div>
                                 </div>
                             </div>
@@ -479,10 +479,10 @@ export default function MeetingsPage() {
 
             {/* Modal 1: Shareable Meeting Link Modal ("Create a meeting for later") */}
             {isInstantMeetingModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] max-w-md w-full p-6 space-y-6 animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
+                    <div className="bg-[#111113] border border-white/[0.08] rounded-2xl max-w-md w-full p-6 space-y-6 animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-heading flex items-center gap-2">
+                            <h3 className="text-lg font-semibold text-heading flex items-center gap-2">
                                 <Video className="w-5 h-5 text-[#3B82F6]" /> Here's your joining information
                             </h3>
                             <button onClick={() => setIsInstantMeetingModalOpen(false)} className="text-subheading hover:text-heading">
@@ -503,7 +503,7 @@ export default function MeetingsPage() {
                             />
                             <button
                                 onClick={() => copyToClipboard(createdInstantLink)}
-                                className="p-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg transition-colors flex items-center gap-1 text-xs font-bold shrink-0"
+                                className="p-2 bg-[#1F1F23] hover:bg-[#1F1F23] text-white rounded-lg transition-colors flex items-center gap-1 text-xs font-semibold shrink-0"
                             >
                                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                                 {copied ? 'Copied' : 'Copy'}
@@ -513,7 +513,7 @@ export default function MeetingsPage() {
                         <div className="flex justify-end gap-3 pt-2">
                             <button
                                 onClick={() => window.open(createdInstantLink, '_blank')}
-                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs transition-colors flex items-center gap-1.5"
+                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-xs transition-colors flex items-center gap-1.5"
                             >
                                 <Video className="w-4 h-4" /> Join Room Now
                             </button>
@@ -524,13 +524,13 @@ export default function MeetingsPage() {
 
             {/* Modal 2: Comprehensive Google Calendar / Google Meet Schedule Modal */}
             {isScheduleModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/80 animate-in fade-in duration-200 overflow-y-auto">
                     <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden my-8 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
                         {/* Header */}
                         <div className="px-6 py-4 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-tertiary)]/50 shrink-0">
                             <div className="flex items-center gap-2">
                                 <Calendar className="w-5 h-5 text-[#3B82F6]" />
-                                <h2 className="text-base font-bold text-heading">Schedule Event & Meeting Protocol</h2>
+                                <h2 className="text-base font-semibold text-heading">Schedule Event & Meeting Protocol</h2>
                             </div>
                             <button onClick={() => setIsScheduleModalOpen(false)} className="text-subheading hover:text-heading transition-colors">
                                 <X className="w-5 h-5" />
@@ -545,7 +545,7 @@ export default function MeetingsPage() {
                                     required
                                     value={formData.title}
                                     onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-xl px-4 py-3 text-lg font-bold text-heading focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                                    className="w-full bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-xl px-4 py-3 text-lg font-semibold text-heading focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
                                     placeholder="Add title..."
                                 />
                             </div>
@@ -553,10 +553,10 @@ export default function MeetingsPage() {
                             {/* Date, Time & All Day */}
                             <div className="space-y-3 bg-[var(--notion-bg-primary)] p-4 rounded-xl border border-[var(--notion-border-default)]">
                                 <div className="flex items-center justify-between mb-1">
-                                    <span className="text-xs font-bold text-subheading uppercase tracking-wider flex items-center gap-1.5">
+                                    <span className="text-xs font-semibold text-subheading flex items-center gap-1.5">
                                         <Clock className="w-3.5 h-3.5 text-[#3B82F6]" /> Date & Time Protocol
                                     </span>
-                                    <label className="flex items-center gap-2 text-xs font-bold text-subheading cursor-pointer">
+                                    <label className="flex items-center gap-2 text-xs font-semibold text-subheading cursor-pointer">
                                         <input
                                             type="checkbox"
                                             checked={formData.isAllDay}
@@ -586,7 +586,7 @@ export default function MeetingsPage() {
                                             />
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs text-subheading font-bold">to</span>
+                                            <span className="text-xs text-subheading font-semibold">to</span>
                                             <input
                                                 type="time"
                                                 value={formData.endTime}
@@ -599,7 +599,7 @@ export default function MeetingsPage() {
 
                                 {/* Recurrence */}
                                 <div className="pt-2 flex items-center gap-3">
-                                    <span className="text-xs text-subheading font-bold">Repeat:</span>
+                                    <span className="text-xs text-subheading font-semibold">Repeat:</span>
                                     <select
                                         value={formData.recurrence}
                                         onChange={e => setFormData({ ...formData, recurrence: e.target.value })}
@@ -615,7 +615,7 @@ export default function MeetingsPage() {
 
                             {/* Guests & Guest Permissions */}
                             <div className="space-y-3 bg-[var(--notion-bg-primary)] p-4 rounded-xl border border-[var(--notion-border-default)]">
-                                <span className="text-xs font-bold text-subheading uppercase tracking-wider flex items-center gap-1.5">
+                                <span className="text-xs font-semibold text-subheading flex items-center gap-1.5">
                                     <Users className="w-3.5 h-3.5 text-emerald-400" /> Guests & Attendees ({formData.selectedGuestIds.length})
                                 </span>
 
@@ -645,10 +645,10 @@ export default function MeetingsPage() {
                                                     onChange={() => handleToggleGuest(user.id)}
                                                     className="rounded text-[#3B82F6]"
                                                 />
-                                                <div className="w-5 h-5 rounded-full bg-[#3B82F6]/20 text-[#3B82F6] flex items-center justify-center font-bold text-[11px]">
+                                                <div className="w-5 h-5 rounded-full bg-[#1F1F23] text-[#3B82F6] flex items-center justify-center font-semibold text-[11px]">
                                                     {user.name?.charAt(0) || 'U'}
                                                 </div>
-                                                <span className="font-bold text-heading">{user.name}</span>
+                                                <span className="font-semibold text-heading">{user.name}</span>
                                                 <span className="text-[11px] text-subheading">({user.role})</span>
                                             </div>
                                             <span className="text-[11px] text-subheading">{user.email}</span>
@@ -658,7 +658,7 @@ export default function MeetingsPage() {
 
                                 {/* Guest Permissions */}
                                 <div className="pt-2 border-t border-[var(--notion-border-default)]/40 space-y-2">
-                                    <span className="text-[11px] font-bold text-subheading uppercase tracking-wider">Guest Permissions</span>
+                                    <span className="text-[11px] font-semibold text-subheading">Guest Permissions</span>
                                     <div className="flex flex-wrap gap-4 text-xs text-subheading font-medium">
                                         <label className="flex items-center gap-1.5 cursor-pointer">
                                             <input
@@ -694,7 +694,7 @@ export default function MeetingsPage() {
                             {/* Google Meet Link & Location */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-subheading uppercase mb-1.5 flex items-center gap-1.5">
+                                    <label className="block text-xs font-semibold text-subheading mb-1.5 flex items-center gap-1.5">
                                         <Video className="w-3.5 h-3.5 text-[#3B82F6]" /> Google Meet Link
                                     </label>
                                     <div className="flex items-center gap-2">
@@ -708,7 +708,7 @@ export default function MeetingsPage() {
                                         <button
                                             type="button"
                                             onClick={() => setFormData({ ...formData, meetingLink: generateMeetLink() })}
-                                            className="p-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-lg text-xs font-bold text-[#3B82F6] hover:bg-[var(--notion-bg-tertiary)]"
+                                            className="p-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-lg text-xs font-semibold text-[#3B82F6] hover:bg-[var(--notion-bg-tertiary)]"
                                             title="Generate New Meet Link"
                                         >
                                             Generate
@@ -717,7 +717,7 @@ export default function MeetingsPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-subheading uppercase mb-1.5 flex items-center gap-1.5">
+                                    <label className="block text-xs font-semibold text-subheading mb-1.5 flex items-center gap-1.5">
                                         <MapPin className="w-3.5 h-3.5 text-emerald-400" /> Location
                                     </label>
                                     <input
@@ -733,7 +733,7 @@ export default function MeetingsPage() {
                             {/* Notifications, Status & Visibility */}
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[var(--notion-bg-primary)] p-4 rounded-xl border border-[var(--notion-border-default)]">
                                 <div>
-                                    <label className="block text-[11px] font-bold text-subheading uppercase mb-1 flex items-center gap-1">
+                                    <label className="block text-[11px] font-semibold text-subheading mb-1 flex items-center gap-1">
                                         <Bell className="w-3 h-3 text-amber-400" /> Notification
                                     </label>
                                     <select
@@ -749,7 +749,7 @@ export default function MeetingsPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-subheading uppercase mb-1 flex items-center gap-1">
+                                    <label className="block text-[11px] font-semibold text-subheading mb-1 flex items-center gap-1">
                                         <UserCheck className="w-3 h-3 text-purple-400" /> Availability
                                     </label>
                                     <select
@@ -763,7 +763,7 @@ export default function MeetingsPage() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-subheading uppercase mb-1 flex items-center gap-1">
+                                    <label className="block text-[11px] font-semibold text-subheading mb-1 flex items-center gap-1">
                                         <Eye className="w-3 h-3 text-blue-400" /> Visibility
                                     </label>
                                     <select
@@ -780,18 +780,18 @@ export default function MeetingsPage() {
 
                             {/* Organizer Notice */}
                             <div className="flex items-center gap-3 p-3 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-xl">
-                                <div className="w-8 h-8 rounded-full bg-[#3B82F6] text-white flex items-center justify-center font-bold text-xs">
+                                <div className="w-8 h-8 rounded-full bg-[#1F1F23] text-white flex items-center justify-center font-semibold text-xs">
                                     {currentUser?.name?.charAt(0) || 'O'}
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-xs font-bold text-heading">{currentUser?.name || 'Organizer'} (Organizer)</span>
+                                    <span className="text-xs font-semibold text-heading">{currentUser?.name || 'Organizer'} (Organizer)</span>
                                     <span className="text-[11px] text-subheading">{currentUser?.email}</span>
                                 </div>
                             </div>
 
                             {/* Description / Operational Briefing */}
                             <div>
-                                <label className="block text-xs font-bold text-subheading uppercase mb-1.5">Operational Briefing & Description</label>
+                                <label className="block text-xs font-semibold text-subheading mb-1.5">Operational Briefing & Description</label>
                                 <textarea
                                     rows={3}
                                     value={formData.description}

@@ -116,6 +116,10 @@ export default function MilestonesPage() {
             if (res.ok) {
                 const data = await res.json();
                 setMilestones(data);
+                // ?milestoneId=<id> (from the dashboards) opens that milestone
+                const wanted = new URLSearchParams(window.location.search).get('milestoneId');
+                const match = wanted && Array.isArray(data) ? data.find((m: any) => m.id === wanted) : null;
+                if (match) setSelectedMilestoneForDetail(match);
             } else {
                 showToast('Failed to load milestones', 'error');
             }
@@ -372,49 +376,49 @@ export default function MilestonesPage() {
                     <div className="space-y-6">
                         <div className="flex items-center gap-3 px-1">
                             <Activity className="w-4 h-4 text-[#3B82F6]" />
-                            <h2 className="text-[11px] font-bold text-white uppercase tracking-[0.12em]">Team output</h2>
+                            <h2 className="text-[11px] font-semibold text-white">Team output</h2>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             {teamPerformance.map((member: any) => (
                                 <div
                                     key={member.id}
                                     onClick={() => handleQuickFilter('PERSONNEL', member.id)}
-                                    className="bg-[#131720] border border-[rgba(255,255,255,0.08)] p-5 rounded-lg hover:border-[rgba(255,255,255,0.2)] transition-all group cursor-pointer active:scale-[0.98]"
+                                    className="bg-[#18181B] border border-[rgba(255,255,255,0.08)] p-5 rounded-lg hover:border-[rgba(255,255,255,0.2)] transition-all group cursor-pointer active:scale-[0.98]"
                                 >
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded bg-[#0D1016] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-bold text-[#3B82F6] text-sm shadow-inner group-hover:scale-110 transition-transform">
+                                            <div className="w-10 h-10 rounded bg-[#111113] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-semibold text-[#3B82F6] text-sm shadow-inner group-hover:scale-110 transition-transform">
                                                 {member.name?.charAt(0) || 'U'}
                                             </div>
                                             <div>
-                                                <h4 className="text-sm font-bold text-white tracking-tight">{member.name}</h4>
-                                                <p className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] mt-0.5">Milestone owner</p>
+                                                <h4 className="text-sm font-semibold text-white tracking-tight">{member.name}</h4>
+                                                <p className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] mt-0.5">Milestone owner</p>
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-end">
-                                            <span className="text-[11px] font-bold text-white">{Math.round((member.completed / member.total) * 100) || 0}%</span>
-                                            <span className="text-[11px] font-bold text-[rgba(255,255,255,0.2)] uppercase">Yield</span>
+                                            <span className="text-[11px] font-semibold text-white">{Math.round((member.completed / member.total) * 100) || 0}%</span>
+                                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.2)]">Yield</span>
                                         </div>
                                     </div>
                                     <div className="space-y-3">
-                                        <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-tighter">
+                                        <div className="flex items-center justify-between text-[11px] font-semibold tracking-tighter">
                                             <span className="text-[rgba(255,255,255,0.4)]">Objectives</span>
                                             <span className="text-white">{member.completed}/{member.total}</span>
                                         </div>
-                                        <div className="h-1 w-full bg-[#0D1016] rounded-full overflow-hidden">
+                                        <div className="h-1 w-full bg-[#111113] rounded-full overflow-hidden">
                                             <div
-                                                className="h-full bg-[#3B82F6] transition-all duration-1000"
+                                                className="h-full bg-[#1F1F23] transition-all duration-1000"
                                                 style={{ width: `${(member.completed / member.total) * 100 || 0}%` }}
                                             />
                                         </div>
                                         <div className="flex items-center justify-between pt-1">
                                             <div className="flex items-center gap-1.5">
                                                 <Clock className={cn("w-3 h-3", member.overdue > 0 ? "text-red-500" : "text-[rgba(255,255,255,0.1)]")} />
-                                                <span className={cn("text-[11px] font-bold", member.overdue > 0 ? "text-red-400" : "text-[rgba(255,255,255,0.2)]")}>{member.overdue} Delayed</span>
+                                                <span className={cn("text-[11px] font-semibold", member.overdue > 0 ? "text-red-400" : "text-[rgba(255,255,255,0.2)]")}>{member.overdue} Delayed</span>
                                             </div>
                                             <div className="flex items-center gap-1.5">
                                                 <Flag className={cn("w-3 h-3", member.flagged > 0 ? "text-orange-500" : "text-[rgba(255,255,255,0.1)]")} />
-                                                <span className={cn("text-[11px] font-bold", member.flagged > 0 ? "text-orange-400" : "text-[rgba(255,255,255,0.2)]")}>{member.flagged} Flagged</span>
+                                                <span className={cn("text-[11px] font-semibold", member.flagged > 0 ? "text-orange-400" : "text-[rgba(255,255,255,0.2)]")}>{member.flagged} Flagged</span>
                                             </div>
                                         </div>
                                     </div>
@@ -425,24 +429,24 @@ export default function MilestonesPage() {
                 )}
 
                 {/* Filters & Control Deck */}
-                <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 bg-[#131720] p-4 lg:p-3 rounded-lg border border-[rgba(255,255,255,0.08)] shadow-lg sticky top-0 z-30 backdrop-blur-md bg-opacity-95">
+                <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 bg-[#18181B] p-4 lg:p-3 rounded-lg border border-[rgba(255,255,255,0.08)] shadow-lg sticky top-0 z-30 bg-opacity-95">
                     <div className="flex-1 relative group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgba(255,255,255,0.3)] group-focus-within:text-[#3B82F6] transition-colors" />
                         <input
                             placeholder="Search by name, project or ID"
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full bg-transparent border-none text-sm pl-12 focus:ring-0 placeholder-[rgba(255,255,255,0.3)] text-[rgba(255,255,255,0.8)] font-bold tracking-tight py-2 sm:py-1"
+                            className="w-full bg-transparent border-none text-sm pl-12 focus:ring-0 placeholder-[rgba(255,255,255,0.3)] text-[rgba(255,255,255,0.8)] font-semibold tracking-tight py-2 sm:py-1"
                         />
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:flex lg:items-center gap-3 lg:gap-4 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
                         <div className="flex flex-col lg:flex-row lg:items-center gap-1.5 lg:gap-3">
-                            <span className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.15em] lg:tracking-wider">Category:</span>
+                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] lg:tracking-wider">Category:</span>
                             <select
                                 value={filters.category}
                                 onChange={e => setFilters({ ...filters, category: e.target.value })}
-                                className="bg-[#07090D] border border-[rgba(255,255,255,0.1)] text-[11px] font-bold uppercase tracking-wider text-[rgba(255,255,255,0.7)] focus:ring-1 focus:ring-[#3B82F6] cursor-pointer hover:bg-[#1A1F2A] rounded-md px-2 py-1.5 transition-all outline-none h-8 lg:h-9 w-full lg:w-36"
+                                className="bg-[#09090B] border border-[rgba(255,255,255,0.1)] text-[11px] font-semibold text-[rgba(255,255,255,0.7)] focus:ring-1 focus:ring-[#3B82F6] cursor-pointer hover:bg-[#1F1F23] rounded-md px-2 py-1.5 transition-all outline-none h-8 lg:h-9 w-full lg:w-36"
                             >
                                 <option value="ALL">All Categories</option>
                                 {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
@@ -451,12 +455,12 @@ export default function MilestonesPage() {
 
                         {isManagement && (
                             <div className="flex flex-col lg:flex-row lg:items-center gap-1.5 lg:gap-3">
-                                <span className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.15em] lg:tracking-wider">Assignee:</span>
+                                <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] lg:tracking-wider">Assignee:</span>
                                 <input
                                     placeholder="ID..."
                                     value={filters.employeeId}
                                     onChange={e => setFilters({ ...filters, employeeId: e.target.value })}
-                                    className="bg-[#07090D] border border-[rgba(255,255,255,0.1)] text-[11px] font-bold text-[rgba(255,255,255,0.8)] py-1.5 px-3 focus:ring-1 focus:ring-[#3B82F6] w-full lg:w-32 rounded-md outline-none h-8 lg:h-9 shadow-inner"
+                                    className="bg-[#09090B] border border-[rgba(255,255,255,0.1)] text-[11px] font-semibold text-[rgba(255,255,255,0.8)] py-1.5 px-3 focus:ring-1 focus:ring-[#3B82F6] w-full lg:w-32 rounded-md outline-none h-8 lg:h-9 shadow-inner"
                                 />
                             </div>
                         )}
@@ -471,50 +475,50 @@ export default function MilestonesPage() {
                                 <div className="w-16 h-16 rounded-full border-4 border-t-[#3B82F6] border-[rgba(255,255,255,0.05)] animate-spin" />
                                 <Target className="absolute inset-0 m-auto w-6 h-6 text-[#3B82F6] animate-pulse" />
                             </div>
-                            <p className="text-[rgba(255,255,255,0.4)] text-[11px] font-bold uppercase tracking-[0.12em] animate-pulse">Loading…</p>
+                            <p className="text-[rgba(255,255,255,0.4)] text-[11px] font-semibold animate-pulse">Loading…</p>
                         </div>
                     ) : filteredMilestones.length === 0 ? (
-                        <div className="bg-[#131720] border-2 border-dashed border-[rgba(255,255,255,0.08)] rounded-xl py-32 flex flex-col items-center justify-center text-center px-4 sm:px-8">
+                        <div className="bg-[#18181B] border-2 border-dashed border-[rgba(255,255,255,0.08)] rounded-xl py-32 flex flex-col items-center justify-center text-center px-4 sm:px-8">
                             <SearchX className="w-16 h-16 text-[rgba(255,255,255,0.1)] mb-6" />
-                            <h3 className="text-xl font-bold text-[rgba(255,255,255,0.9)] tracking-tight">Zero Objectives Found</h3>
+                            <h3 className="text-xl font-semibold text-[rgba(255,255,255,0.9)] tracking-tight">Zero Objectives Found</h3>
                             <p className="text-[rgba(255,255,255,0.4)] text-sm mt-3 max-w-sm font-medium">No results match your current scope or filters. Reset parameters to re-scan the registry.</p>
                             <NotionButton
                                 variant="default"
-                                className="mt-8 bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] border-[rgba(255,255,255,0.08)] text-[11px] font-bold uppercase tracking-wider"
+                                className="mt-8 bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] border-[rgba(255,255,255,0.08)] text-[11px] font-semibold"
                                 onClick={() => handleQuickFilter('ALL')}
                             >
                                 Reset Registry
                             </NotionButton>
                         </div>
                     ) : (
-                        <div className="bg-[#131720] border border-[rgba(255,255,255,0.09)] rounded-lg overflow-hidden shadow-2xl">
+                        <div className="bg-[#18181B] border border-[rgba(255,255,255,0.09)] rounded-lg overflow-hidden shadow-2xl">
                             <div className="hidden md:block overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-[rgba(0,0,0,0.2)] border-b border-[rgba(255,255,255,0.08)]">
-                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] w-12 hidden sm:table-cell">REF</th>
-                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] min-w-[200px] sm:min-w-[300px]">Project</th>
-                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em]">Status</th>
-                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] hidden md:table-cell">Priority</th>
-                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em]">Deadline</th>
-                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] hidden lg:table-cell">Core Entity</th>
-                                            {isManagement && <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] hidden md:table-cell">Owner</th>}
-                                            <th className="px-5 py-4 text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] text-right">Actions</th>
+                                            <th className="px-5 py-4 text-[11px] font-semibold text-[rgba(255,255,255,0.3)] w-12 hidden sm:table-cell">REF</th>
+                                            <th className="px-5 py-4 text-[11px] font-semibold text-[rgba(255,255,255,0.3)] min-w-[200px] sm:min-w-[300px]">Project</th>
+                                            <th className="px-5 py-4 text-[11px] font-semibold text-[rgba(255,255,255,0.3)]">Status</th>
+                                            <th className="px-5 py-4 text-[11px] font-semibold text-[rgba(255,255,255,0.3)] hidden md:table-cell">Priority</th>
+                                            <th className="px-5 py-4 text-[11px] font-semibold text-[rgba(255,255,255,0.3)]">Deadline</th>
+                                            <th className="px-5 py-4 text-[11px] font-semibold text-[rgba(255,255,255,0.3)] hidden lg:table-cell">Core Entity</th>
+                                            {isManagement && <th className="px-5 py-4 text-[11px] font-semibold text-[rgba(255,255,255,0.3)] hidden md:table-cell">Owner</th>}
+                                            <th className="px-5 py-4 text-[11px] font-semibold text-[rgba(255,255,255,0.3)] text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-[rgba(255,255,255,0.03)]">
                                         {filteredMilestones.map((m, idx) => (
                                             <tr key={m.id} className="hover:bg-[rgba(255,255,255,0.04)] transition-all duration-300 group relative">
-                                                <td className="px-5 py-5 text-[11px] font-bold font-mono text-[rgba(255,255,255,0.15)] group-hover:text-[#3B82F6] transition-colors hidden sm:table-cell">
+                                                <td className="px-5 py-5 text-[11px] font-semibold font-mono text-[rgba(255,255,255,0.15)] group-hover:text-[#3B82F6] transition-colors hidden sm:table-cell">
                                                     {String(idx + 1).padStart(3, '0')}
                                                 </td>
                                                 <td className="px-5 py-5 cursor-pointer" onClick={() => setSelectedMilestoneForDetail(m)}>
                                                     <div className="flex flex-col gap-1.5">
                                                         <div className="flex items-center gap-2">
-                                                            {m.isFlagged && <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" />}
-                                                            <span className="text-[13px] font-bold tracking-tight text-[rgba(255,255,255,0.9)] group-hover:text-[#3B82F6] transition-colors">{m.title}</span>
+                                                            {m.isFlagged && <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
+                                                            <span className="text-[13px] font-semibold tracking-tight text-[rgba(255,255,255,0.9)] group-hover:text-[#3B82F6] transition-colors">{m.title}</span>
                                                         </div>
-                                                        <span className="text-[11px] text-[rgba(255,255,255,0.4)] font-bold uppercase tracking-wider line-clamp-1 max-w-[150px] sm:max-w-sm">{m.description || "Track every milestone and its progress."}</span>
+                                                        <span className="text-[11px] text-[rgba(255,255,255,0.4)] font-semibold line-clamp-1 max-w-[150px] sm:max-w-sm">{m.description || "Track every milestone and its progress."}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-5 py-5">
@@ -522,7 +526,7 @@ export default function MilestonesPage() {
                                                 </td>
                                                 <td className="px-5 py-5 hidden md:table-cell">
                                                     <div className={cn(
-                                                        "text-[11px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-[0.1em] border inline-flex items-center gap-1.5 shadow-sm",
+                                                        "text-[11px] font-semibold px-2 py-0.5 rounded-sm   border inline-flex items-center gap-1.5 shadow-sm",
                                                         m.priority === 'CRITICAL' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
                                                             m.priority === 'HIGH' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
                                                                 'bg-blue-500/10 text-blue-400 border-blue-500/20'
@@ -537,12 +541,12 @@ export default function MilestonesPage() {
                                                 </td>
                                                 <td className="px-5 py-5">
                                                     <div className="flex flex-col gap-0.5">
-                                                        <div className="flex items-center gap-1.5 text-xs text-[rgba(255,255,255,0.7)] font-bold tracking-tight">
+                                                        <div className="flex items-center gap-1.5 text-xs text-[rgba(255,255,255,0.7)] font-semibold tracking-tight">
                                                             <Clock className="w-3.5 h-3.5 text-[rgba(255,255,255,0.2)]" />
                                                             {new Date(m.targetDate).toLocaleDateString()}
                                                         </div>
                                                         {new Date(m.targetDate) < new Date() && m.status !== 'COMPLETED' && (
-                                                            <span className="text-[11px] font-bold text-red-500/80 uppercase tracking-tighter">Overdue</span>
+                                                            <span className="text-[11px] font-semibold text-red-500/80 tracking-tighter">Overdue</span>
                                                         )}
                                                     </div>
                                                 </td>
@@ -552,28 +556,28 @@ export default function MilestonesPage() {
                                                             <div className="p-1.5 bg-blue-500/10 rounded-md border border-blue-500/20 group-hover/link:bg-blue-500/20 transition-all">
                                                                 <Briefcase className="w-3 h-3 text-[#3B82F6]" />
                                                             </div>
-                                                            <span className="text-xs font-bold text-[#3B82F6] tracking-tight group-hover/link:underline">{m.project.name}</span>
+                                                            <span className="text-xs font-semibold text-[#3B82F6] tracking-tight group-hover/link:underline">{m.project.name}</span>
                                                         </div>
                                                     ) : m.university ? (
                                                         <div className="flex items-center gap-2">
                                                             <div className="p-1.5 bg-emerald-500/10 rounded-md border border-emerald-500/20">
                                                                 <GraduationCap className="w-3 h-3 text-emerald-400" />
                                                             </div>
-                                                            <span className="text-xs font-bold text-emerald-400 tracking-tight">{m.university.name}</span>
+                                                            <span className="text-xs font-semibold text-emerald-400 tracking-tight">{m.university.name}</span>
                                                         </div>
                                                     ) : (
-                                                        <span className="text-[rgba(255,255,255,0.1)] text-[11px] font-bold tracking-[0.12em] uppercase">SYSTEM</span>
+                                                        <span className="text-[rgba(255,255,255,0.1)] text-[11px] font-semibold">SYSTEM</span>
                                                     )}
                                                 </td>
                                                 {isManagement && (
                                                     <td className="px-5 py-5 hidden md:table-cell">
                                                         <div className="flex items-center gap-2.5">
-                                                            <div className="w-7 h-7 rounded bg-[#0D1016] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-bold text-white text-[11px] shadow-inner">
+                                                            <div className="w-7 h-7 rounded bg-[#111113] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-semibold text-white text-[11px] shadow-inner">
                                                                 {m.ownerUser?.name?.charAt(0) || 'U'}
                                                             </div>
                                                             <div className="flex flex-col">
-                                                                <span className="text-xs font-bold text-[rgba(255,255,255,0.9)] tracking-tight truncate max-w-[120px]">{m.ownerUser?.name || "Staff"}</span>
-                                                                <span className="text-[11px] font-bold text-[rgba(255,255,255,0.25)] uppercase tracking-tighter">Assigned Owner</span>
+                                                                <span className="text-xs font-semibold text-[rgba(255,255,255,0.9)] tracking-tight truncate max-w-[120px]">{m.ownerUser?.name || "Staff"}</span>
+                                                                <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.25)] tracking-tighter">Assigned Owner</span>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -635,28 +639,28 @@ export default function MilestonesPage() {
                                             <div className="flex flex-col gap-1 min-w-0">
                                                 <div className="flex items-center gap-2">
                                                     {m.isFlagged && <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />}
-                                                    <span className="text-[13px] font-bold text-white leading-tight">{m.title}</span>
+                                                    <span className="text-[13px] font-semibold text-white leading-tight">{m.title}</span>
                                                 </div>
-                                                <span className="text-[11px] text-[rgba(255,255,255,0.4)] font-bold uppercase tracking-wider truncate">{m.description || "Milestone"}</span>
+                                                <span className="text-[11px] text-[rgba(255,255,255,0.4)] font-semibold truncate">{m.description || "Milestone"}</span>
                                             </div>
                                             <StatusBadge status={mapStatusForBadge(m.status)} size="sm" />
                                         </div>
 
                                         <div className="flex flex-wrap items-center gap-3">
                                             <div className={cn(
-                                                "text-[11px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-tighter border",
+                                                "text-[11px] font-semibold px-1.5 py-0.5 rounded-sm  tracking-tighter border",
                                                 m.priority === 'CRITICAL' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
                                                     m.priority === 'HIGH' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
                                                         'bg-blue-500/10 text-blue-400 border-blue-500/20'
                                             )}>
                                                 {m.priority}
                                             </div>
-                                            <div className="flex items-center gap-1 text-[11px] font-bold text-[rgba(255,255,255,0.5)]">
+                                            <div className="flex items-center gap-1 text-[11px] font-semibold text-[rgba(255,255,255,0.5)]">
                                                 <Clock className="w-3 h-3 opacity-30" />
                                                 {new Date(m.targetDate).toLocaleDateString()}
                                             </div>
                                             {m.project && (
-                                                <div className="text-[11px] font-bold text-[#3B82F6] uppercase tracking-wider truncate max-w-[100px]">
+                                                <div className="text-[11px] font-semibold text-[#3B82F6] truncate max-w-[100px]">
                                                     {m.project.name}
                                                 </div>
                                             )}
@@ -664,17 +668,17 @@ export default function MilestonesPage() {
 
                                         <div className="flex items-center justify-between mt-4">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center font-bold text-[11px]">
+                                                <div className="w-6 h-6 rounded bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center font-semibold text-[11px]">
                                                     {m.ownerUser?.name?.charAt(0) || 'U'}
                                                 </div>
-                                                <span className="text-[11px] font-bold text-[rgba(255,255,255,0.4)]">{m.ownerUser?.name || "Governance"}</span>
+                                                <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.4)]">{m.ownerUser?.name || "Governance"}</span>
                                             </div>
 
                                             <div className="flex items-center gap-2">
                                                 {(m.owner === userId || isManagement) && m.status !== 'COMPLETED' && (
                                                     <button
                                                         onClick={() => setMilestoneToComplete(m)}
-                                                        className="px-3 py-1.5 bg-emerald-500/10 text-emerald-400 text-[11px] font-bold uppercase tracking-wider rounded border border-emerald-500/20 active:scale-95 transition-all"
+                                                        className="px-3 py-1.5 bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold rounded border border-emerald-500/20 active:scale-95 transition-all"
                                                     >
                                                         Complete
                                                     </button>
@@ -715,12 +719,12 @@ export default function MilestonesPage() {
 
                 {/* Governance Intervention Layer (Modal) */}
                 {selectedMilestone && (
-                    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] w-full max-w-lg animate-in zoom-in-95 duration-300 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
-                            <div className="px-4 sm:px-8 py-6 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between bg-gradient-to-r from-[rgba(0,0,0,0.3)] to-transparent">
+                    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
+                        <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-lg animate-in zoom-in-95 duration-300 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
+                            <div className="px-4 sm:px-8 py-6 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <Activity className="w-5 h-5 text-[#3B82F6]" />
-                                    <h3 className="text-[11px] font-bold text-white uppercase tracking-[0.12em]">Assessment</h3>
+                                    <h3 className="text-[11px] font-semibold text-white">Assessment</h3>
                                 </div>
                                 <button onClick={() => setSelectedMilestone(null)} className="text-[rgba(255,255,255,0.3)] hover:text-white transition-colors p-2 hover:bg-[rgba(255,255,255,0.05)] rounded-full">
                                     <X className="w-5 h-5" />
@@ -728,21 +732,21 @@ export default function MilestonesPage() {
                             </div>
                             <form onSubmit={handleAddRemark} className="p-5 sm:p-8 space-y-8">
                                 <div className="space-y-2">
-                                    <label className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] block">Active Initiative</label>
-                                    <div className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                                    <label className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] block">Active Initiative</label>
+                                    <div className="text-lg font-semibold text-white tracking-tight flex items-center gap-2">
                                         {selectedMilestone.title}
-                                        {selectedMilestone.project && <span className="text-[11px] font-bold text-[#3B82F6] bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/10 uppercase tracking-wider">{selectedMilestone.project.name}</span>}
+                                        {selectedMilestone.project && <span className="text-[11px] font-semibold text-[#3B82F6] bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/10">{selectedMilestone.project.name}</span>}
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-[0.12em] block">Assessment</label>
+                                    <label className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] block">Assessment</label>
                                     <textarea
                                         required
                                         autoFocus
                                         value={remarkText}
                                         onChange={e => setRemarkText(e.target.value)}
-                                        className="w-full bg-[#141414] border border-[rgba(255,255,255,0.1)] rounded-lg p-4 text-sm font-bold tracking-tight focus:ring-1 focus:ring-[#3B82F6] transition-all min-h-[160px] text-white resize-none shadow-inner placeholder-[rgba(255,255,255,0.2)]"
+                                        className="w-full bg-[#18181B] border border-[rgba(255,255,255,0.1)] rounded-lg p-4 text-sm font-semibold tracking-tight focus:ring-1 focus:ring-[#3B82F6] transition-all min-h-[160px] text-white resize-none shadow-inner placeholder-[rgba(255,255,255,0.2)]"
                                         placeholder="Add instructions and context"
                                     />
                                 </div>
@@ -753,13 +757,13 @@ export default function MilestonesPage() {
                                         id="modal-flag-toggle"
                                         checked={isFlaggedChecked}
                                         onChange={e => setIsFlaggedChecked(e.target.checked)}
-                                        className="w-5 h-5 rounded border-[rgba(255,255,255,0.2)] bg-[#07090D] text-red-300 focus:ring-red-600 cursor-pointer"
+                                        className="w-5 h-5 rounded border-[rgba(255,255,255,0.2)] bg-[#09090B] text-red-300 focus:ring-red-600 cursor-pointer"
                                     />
                                     <div className="flex flex-col">
-                                        <label htmlFor="modal-flag-toggle" className="text-[11px] font-bold text-red-400 cursor-pointer uppercase tracking-[0.15em] flex items-center gap-2">
+                                        <label htmlFor="modal-flag-toggle" className="text-[11px] font-semibold text-red-400 cursor-pointer flex items-center gap-2">
                                             Elevate Strategic Concern
                                         </label>
-                                        <span className="text-[11px] text-red-400/50 font-bold tracking-tight mt-0.5">Mandatory executive review triggered</span>
+                                        <span className="text-[11px] text-red-400/50 font-semibold tracking-tight mt-0.5">Mandatory executive review triggered</span>
                                     </div>
                                 </div>
 
@@ -768,14 +772,14 @@ export default function MilestonesPage() {
                                         type="button"
                                         variant="default"
                                         onClick={() => setSelectedMilestone(null)}
-                                        className="bg-transparent border-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.5)] px-6 font-bold uppercase tracking-[0.12em] text-[11px]"
+                                        className="bg-transparent border-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.5)] px-6 font-semibold text-[11px]"
                                     >
                                         Abort
                                     </NotionButton>
                                     <NotionButton
                                         type="submit"
                                         disabled={isRemarking}
-                                        className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-4 sm:px-8 shadow-xl shadow-blue-900/40 font-bold uppercase tracking-[0.12em] text-[11px] h-10"
+                                        className="bg-[#1F1F23] hover:bg-[#1F1F23] text-white px-4 sm:px-8 shadow-xl shadow-blue-900/40 font-semibold text-[11px] h-10"
                                     >
                                         {isRemarking ? 'Syncing...' : 'Sync Policy'}
                                     </NotionButton>

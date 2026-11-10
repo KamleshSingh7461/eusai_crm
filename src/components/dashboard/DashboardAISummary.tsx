@@ -55,7 +55,7 @@ export default function DashboardAISummary({ role, contextData }: DashboardAISum
         return text.split('\n').map((line, i) => {
             if (line.startsWith('-') || line.startsWith('•')) {
                 return (
-                    <div key={i} className="flex gap-2 items-start text-xs font-bold text-blue-400 mt-1">
+                    <div key={i} className="flex gap-2 items-start text-xs font-semibold text-blue-400 mt-1">
                         <span className="shrink-0">▶</span>
                         <span>{line.replace(/^[-•]\s*/, '')}</span>
                     </div>
@@ -66,31 +66,23 @@ export default function DashboardAISummary({ role, contextData }: DashboardAISum
     };
 
     return (
-        <div className="relative group overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111111]/80 backdrop-blur-2xl p-6 md:p-8 shadow-2xl transition-all hover:border-purple-500/30">
-            {/* Glossy overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
-            
-            {/* Animated Glow */}
-            <div className="absolute -top-24 -left-24 w-48 h-48 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-purple-600/20 transition-all duration-700" />
-            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-blue-600/20 transition-all duration-700" />
+        <div className="glass p-5">
 
-            <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start md:items-center">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-5">
                 <div className="shrink-0">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-blue-700 border border-white/20 flex items-center justify-center shadow-[0_0_30px_rgba(147,51,234,0.3)] group-hover:scale-110 transition-transform duration-500">
-                        <Zap className="w-6 h-6 text-white animate-pulse" />
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/10 ring-1 ring-inset ring-violet-500/20">
+                        <Zap className="h-[18px] w-[18px] text-violet-400" />
                     </div>
                 </div>
 
                 <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-3 mb-3">
-                        <h3 className="text-sm font-bold text-white uppercase tracking-[0.12em] flex items-center gap-2">
-                            EUSAI Insight Engine
-                        </h3>
-                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-green-500/10 text-green-400 border border-green-500/20 font-bold tracking-wider uppercase">Live Pulse</span>
+                    <div className="mb-1 flex flex-wrap items-center gap-2">
+                        <h3 className="text-[15px] font-semibold text-white">AI summary</h3>
+                        <span className="rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[11px] font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20">Live</span>
                         {isLoading && <Loader2 className="w-3 h-3 animate-spin text-purple-400" />}
                     </div>
 
-                    <div className="text-sm text-white/60 font-medium leading-relaxed max-w-4xl">
+                    <div className="max-w-4xl text-sm leading-relaxed text-zinc-400">
                         <AnimatePresence mode="wait">
                             {isLoading ? (
                                 <motion.div 
@@ -105,7 +97,7 @@ export default function DashboardAISummary({ role, contextData }: DashboardAISum
                                 <motion.div 
                                     initial={{ opacity: 0 }} 
                                     animate={{ opacity: 1 }}
-                                    className="flex items-center gap-2 text-red-400/80 font-bold"
+                                    className="flex items-center gap-2 text-zinc-400"
                                 >
                                     <AlertCircle className="w-4 h-4" /> {error}
                                 </motion.div>
@@ -113,30 +105,31 @@ export default function DashboardAISummary({ role, contextData }: DashboardAISum
                                 <motion.div 
                                     initial={{ opacity: 0, y: 10 }} 
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="text-[13px] text-white/80"
+                                    className="text-sm text-zinc-300"
                                 >
                                     {renderContent(summary)}
                                 </motion.div>
                             ) : (
-                                <p>Awaiting intelligence synchronization...</p>
+                                <p>No summary yet.</p>
                             )}
                         </AnimatePresence>
                     </div>
                 </div>
 
-                <div className="shrink-0 w-full md:w-auto flex flex-col gap-2">
+                <div className="flex shrink-0 items-center gap-2">
                     <Link href="/ai-assistant">
-                        <button className="group/btn flex items-center justify-center gap-3 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-[11px] font-bold text-white uppercase tracking-wider transition-all w-full md:w-auto">
-                            Consult Intelligence
-                            <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                        <button className="flex h-9 items-center gap-1.5 rounded-lg border border-[#2F2F35] bg-[#18181B] px-3.5 text-sm font-medium text-zinc-100 transition-colors hover:bg-[#1F1F23]">
+                            Open EUSAI AI
+                            <ChevronRight className="h-4 w-4 text-zinc-500" />
                         </button>
                     </Link>
                     <button 
                         onClick={fetchSummary}
                         disabled={isLoading}
-                        className="flex items-center justify-center gap-2 text-[11px] font-bold text-white/30 hover:text-white/60 uppercase tracking-wider transition-all py-1"
+                        aria-label="Refresh summary" title="Refresh summary"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-[#18181B] hover:text-zinc-200"
                     >
-                        <RefreshCcw className={cn("w-3 h-3", isLoading && "animate-spin")} /> Re-Scan
+                        <RefreshCcw className={cn("h-4 w-4", isLoading && "animate-spin")} />
                     </button>
                 </div>
             </div>

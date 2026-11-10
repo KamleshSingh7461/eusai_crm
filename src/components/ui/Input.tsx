@@ -20,7 +20,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <div className={cn("w-full", containerClassName)}>
                 {label && <FieldLabel htmlFor={inputId} required={required}>{label}</FieldLabel>}
                 <div className="relative">
-                    {leftIcon && <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 [&_svg]:h-4 [&_svg]:w-4">{leftIcon}</div>}
+                    {leftIcon && <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 [&_svg]:h-4 [&_svg]:w-4">{leftIcon}</div>}
                     <input
                         ref={ref}
                         id={inputId}
@@ -29,7 +29,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         className={cn(fieldClass, error && fieldErrorClass, leftIcon && "pl-10", rightIcon && "pr-10", className)}
                         {...props}
                     />
-                    {rightIcon && <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 [&_svg]:h-4 [&_svg]:w-4">{rightIcon}</div>}
+                    {rightIcon && <div className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 [&_svg]:h-4 [&_svg]:w-4">{rightIcon}</div>}
                 </div>
                 {(error || helperText) && <FieldHint error={!!error}>{error || helperText}</FieldHint>}
             </div>

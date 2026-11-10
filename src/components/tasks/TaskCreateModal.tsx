@@ -76,26 +76,24 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] border-white/[0.08] rounded-3xl relative w-full rounded-b-none sm:rounded-b-3xl max-w-xl animate-in zoom-in-95 duration-300 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
+            <div className="bg-[#111113] border border-white/[0.08] rounded-2xl border-white/[0.08] rounded-2xl relative w-full rounded-b-none sm:rounded-b-3xl max-w-xl animate-in zoom-in-95 duration-300 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
                 {/* Glossy background detail */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl -ml-24 -mb-24 pointer-events-none" />
 
                 {/* Header */}
                 <div className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-6 border-b border-[rgba(255,255,255,0.06)]">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center shadow-lg shadow-blue-900/20">
+                        <div className="w-10 h-10 rounded-xl bg-[#3B82F6] flex items-center justify-center shadow-lg shadow-blue-900/20">
                             <Briefcase className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h2 className="font-display text-lg font-bold text-white">Project Objective</h2>
-                            <p className="text-xs text-slate-400 font-medium">Add task</p>
+                            <h2 className="font-display text-lg font-semibold text-white">Project Objective</h2>
+                            <p className="text-xs text-zinc-400 font-medium">Add task</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                        className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -104,7 +102,7 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
                 <form onSubmit={handleSubmit} className="relative z-10 p-5 sm:p-8 space-y-6 max-h-[85vh] overflow-y-auto scrollbar-hide">
                     {/* Title */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                        <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Task Title
                         </label>
                         <input
@@ -118,7 +116,7 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
 
                     {/* Description */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                        <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-purple-500" /> Description
                         </label>
                         <textarea
@@ -133,7 +131,7 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Category */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                            <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
                                 <Flag className="w-3 h-3 text-yellow-400" /> Category
                             </label>
                             <select
@@ -141,24 +139,24 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
                                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
                             >
-                                <option value="EUSAI_AGREEMENT" className="bg-[#07090D]">EUSAI Agreement</option>
-                                <option value="SPORTS_LOGO" className="bg-[#07090D]">Sports Logo Agreement</option>
-                                <option value="MOU" className="bg-[#07090D]">MOU Integration</option>
-                                <option value="BUSINESS_ORDER" className="bg-[#07090D]">Business Order</option>
-                                <option value="CUSTOM" className="bg-[#07090D]">Custom Task</option>
+                                <option value="EUSAI_AGREEMENT" className="bg-[#09090B]">EUSAI Agreement</option>
+                                <option value="SPORTS_LOGO" className="bg-[#09090B]">Sports Logo Agreement</option>
+                                <option value="MOU" className="bg-[#09090B]">MOU Integration</option>
+                                <option value="BUSINESS_ORDER" className="bg-[#09090B]">Business Order</option>
+                                <option value="CUSTOM" className="bg-[#09090B]">Custom Task</option>
                             </select>
                         </div>
 
                         {/* Assignee */}
                         <div className="space-y-2">
                             <div className="flex flex-wrap items-center justify-between gap-3">
-                                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                                <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
                                     <UserIcon className="w-3 h-3 text-purple-400" /> Assignees
                                 </label>
                                 <button
                                     type="button"
                                     onClick={() => setIsBulkMode(!isBulkMode)}
-                                    className="text-[11px] font-bold text-[#3B82F6] uppercase tracking-tighter hover:underline"
+                                    className="text-[11px] font-semibold text-[#3B82F6] tracking-tighter hover:underline"
                                 >
                                     {isBulkMode ? "Switch to Single" : "Bulk Assign"}
                                 </button>
@@ -188,10 +186,10 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
                                         onChange={(e) => setFormData({ ...formData, assignedToId: e.target.value })}
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
                                     >
-                                        <option value="" className="bg-[#07090D]">Select Member...</option>
-                                        <option value={(session?.user as any)?.id} className="bg-[#07090D]">Assign to Me</option>
+                                        <option value="" className="bg-[#09090B]">Select Member...</option>
+                                        <option value={(session?.user as any)?.id} className="bg-[#09090B]">Assign to Me</option>
                                         {assignees.filter(u => u.id !== (session?.user as any)?.id).map(u => (
-                                            <option key={u.id} value={u.id} className="bg-[#07090D]">{u.name} ({u.role})</option>
+                                            <option key={u.id} value={u.id} className="bg-[#09090B]">{u.name} ({u.role})</option>
                                         ))}
                                     </select>
                                 </div>
@@ -202,7 +200,7 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Deadline */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                            <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
                                 <Calendar className="w-3 h-3 text-green-400" /> Due Date
                             </label>
                             <input
@@ -216,7 +214,7 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
 
                         {/* Priority Selection */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-300">Priority Ranking</label>
+                            <label className="text-sm font-medium text-zinc-300">Priority Ranking</label>
                             <div className="flex gap-2">
                                 {[
                                     { val: '1', label: 'Low', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
@@ -227,9 +225,9 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
                                         key={p.val}
                                         type="button"
                                         onClick={() => setFormData({ ...formData, priority: p.val })}
-                                        className={`flex-1 px-3 py-2 rounded-xl text-[11px] font-bold uppercase border transition-all ${formData.priority === p.val
+                                        className={`flex-1 px-3 py-2 rounded-xl text-[11px] font-semibold  border transition-all ${formData.priority === p.val
                                             ? `${p.color} ring-2 ring-white/10 scale-105 shadow-lg`
-                                            : 'bg-white/5 text-slate-400 border-white/5 hover:bg-white/10'
+                                            : 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10'
                                             }`}
                                     >
                                         {p.label}
@@ -244,16 +242,16 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-3 text-xs font-bold text-slate-400 hover:text-white transition-colors"
+                            className="px-6 py-3 text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="relative group px-5 sm:px-10 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-bold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden flex items-center gap-2"
+                            className="relative group px-5 sm:px-10 py-3 bg-[#1F1F23] hover:bg-[#1F1F23] text-white text-xs font-semibold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden flex items-center gap-2"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                             {isLoading ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (

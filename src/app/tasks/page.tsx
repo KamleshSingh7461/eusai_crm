@@ -53,7 +53,7 @@ const PRIORITY: Record<number, { label: string; tone: 'rose' | 'amber' | 'slate'
     3: { label: 'High', tone: 'rose' }, 2: { label: 'Medium', tone: 'amber' }, 1: { label: 'Low', tone: 'slate' },
 };
 const COLUMNS = [
-    { id: 'TODO', label: 'To do', dot: 'bg-slate-400' },
+    { id: 'TODO', label: 'To do', dot: 'bg-zinc-400' },
     { id: 'IN_PROGRESS', label: 'In progress', dot: 'bg-blue-400' },
     { id: 'REVIEW', label: 'In review', dot: 'bg-amber-400' },
     { id: 'DONE', label: 'Done', dot: 'bg-emerald-400' },
@@ -100,6 +100,18 @@ function TasksContent() {
     }, [isLeader, showToast]);
 
     useEffect(() => { if (session) fetchData(); }, [session, fetchData]);
+
+    // Deep links from the dashboards: ?filter=overdue narrows the list, ?taskId=<id> opens that task.
+    useEffect(() => {
+        if (params.get('filter') === 'overdue') setFilters({ ...DEFAULT_FILTERS, overdueOnly: true });
+    }, [params]);
+
+    useEffect(() => {
+        const id = params.get('taskId');
+        if (!id || tasks.length === 0) return;
+        const task = tasks.find(t => t.id === id);
+        if (task) setSelectedTaskForDetail(task);
+    }, [params, tasks]);
 
     // /tasks?new=1 (from the Create menu) opens the new-task dialog.
     useEffect(() => {
@@ -276,8 +288,8 @@ function TasksContent() {
             {isDirector && analytics?.teamPerformance && analytics.teamPerformance.length > 0 && (
                 <section className="space-y-3">
                     <div className="flex items-center justify-between">
-                        <h2 className="font-display text-lg font-bold text-white">By person</h2>
-                        <span className="text-sm text-slate-500">Click someone to see only their tasks</span>
+                        <h2 className="font-display text-lg font-semibold text-white">By person</h2>
+                        <span className="text-sm text-zinc-500">Click someone to see only their tasks</span>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         {analytics.teamPerformance.map((m, i) => {
@@ -289,16 +301,16 @@ function TasksContent() {
                                         <Avatar alt={m.name} fallback={initialsOf(m.name)} className="h-9 w-9 text-xs" />
                                         <div className="min-w-0 flex-1">
                                             <p className="truncate text-sm font-semibold text-white">{m.name}</p>
-                                            <p className="text-xs text-slate-500">{humanize(m.role)}</p>
+                                            <p className="text-xs text-zinc-500">{humanize(m.role)}</p>
                                         </div>
-                                        <span className="font-display text-lg font-bold text-white tabular-nums">{pct}%</span>
+                                        <span className="font-display text-lg font-semibold text-white tabular-nums">{pct}%</span>
                                     </div>
                                     <ProgressBar value={pct} className="mt-3" />
                                     <div className="mt-3 flex items-center justify-between text-xs">
-                                        <span className="text-slate-400">{m.completed}/{m.total} done</span>
+                                        <span className="text-zinc-400">{m.completed}/{m.total} done</span>
                                         <span className="flex gap-3">
-                                            <span className={m.overdue > 0 ? 'text-rose-300' : 'text-slate-600'}>{m.overdue} overdue</span>
-                                            <span className={m.highPriority > 0 ? 'text-amber-300' : 'text-slate-600'}>{m.highPriority} high</span>
+                                            <span className={m.overdue > 0 ? 'text-rose-300' : 'text-zinc-600'}>{m.overdue} overdue</span>
+                                            <span className={m.highPriority > 0 ? 'text-amber-300' : 'text-zinc-600'}>{m.highPriority} high</span>
                                         </span>
                                     </div>
                                 </Card>
@@ -326,10 +338,10 @@ function TasksContent() {
 
                 {activeFilterCount > 0 && (
                     <div className="flex flex-wrap items-center gap-2 text-sm">
-                        <span className="text-slate-500">{filteredTasks.length} of {tasks.length} tasks</span>
+                        <span className="text-zinc-500">{filteredTasks.length} of {tasks.length} tasks</span>
                         {filters.overdueOnly && <Badge tone="rose">Overdue only</Badge>}
                         {personFilterName && <Badge tone="blue">{personFilterName}</Badge>}
-                        <button onClick={() => setFilters(DEFAULT_FILTERS)} className="flex items-center gap-1 rounded-full px-2 py-0.5 text-xs text-slate-400 ring-1 ring-inset ring-white/10 hover:text-white">
+                        <button onClick={() => setFilters(DEFAULT_FILTERS)} className="flex items-center gap-1 rounded-full px-2 py-0.5 text-xs text-zinc-400 ring-1 ring-inset ring-white/10 hover:text-white">
                             <X className="h-3 w-3" />Clear filters
                         </button>
                     </div>
@@ -351,7 +363,7 @@ function TasksContent() {
                         <div className="hidden overflow-x-auto md:block">
                             <table className="w-full min-w-[900px] text-sm">
                                 <thead>
-                                    <tr className="border-b border-white/[0.06] bg-white/[0.02] text-left text-xs font-medium text-slate-500">
+                                    <tr className="border-b border-white/[0.06] bg-white/[0.02] text-left text-xs font-medium text-zinc-500">
                                         <th className="px-6 py-3 font-medium">Task</th>
                                         <th className="px-3 py-3 font-medium">Status</th>
                                         <th className="px-3 py-3 font-medium">Priority</th>
@@ -368,13 +380,13 @@ function TasksContent() {
                                         return (
                                             <tr key={t.id} className="group border-b border-white/[0.04] transition last:border-0 hover:bg-white/[0.025]">
                                                 <td className="max-w-[340px] cursor-pointer px-6 py-3.5" onClick={() => setSelectedTaskForDetail(t)}>
-                                                    <p className="truncate font-semibold text-slate-100 group-hover:text-blue-200">{t.title}</p>
-                                                    {t.description && <p className="mt-0.5 truncate text-xs text-slate-500">{t.description}</p>}
+                                                    <p className="truncate font-semibold text-zinc-100 group-hover:text-blue-200">{t.title}</p>
+                                                    {t.description && <p className="mt-0.5 truncate text-xs text-zinc-500">{t.description}</p>}
                                                 </td>
                                                 <td className="px-3 py-3.5"><StatusPill status={t.status} /></td>
                                                 <td className="px-3 py-3.5"><Badge tone={priority.tone}>{priority.label}</Badge></td>
                                                 <td className="px-3 py-3.5">
-                                                    <p className={cn('flex items-center gap-1.5 whitespace-nowrap', overdue ? 'text-rose-300' : 'text-slate-300')}>
+                                                    <p className={cn('flex items-center gap-1.5 whitespace-nowrap', overdue ? 'text-rose-300' : 'text-zinc-300')}>
                                                         <CalendarDays className="h-3.5 w-3.5 opacity-60" />{t.deadline ? format(new Date(t.deadline), 'd MMM yyyy') : '–'}
                                                     </p>
                                                     {overdue && <p className="text-xs text-rose-400/80">Overdue</p>}
@@ -382,14 +394,14 @@ function TasksContent() {
                                                 <td className="px-3 py-3.5">
                                                     {t.project
                                                         ? <button onClick={() => router.push(`/projects/${t.project!.id}`)} className="flex max-w-[160px] items-center gap-1.5 truncate text-blue-300 hover:text-blue-200"><Briefcase className="h-3.5 w-3.5 shrink-0" />{t.project.name}</button>
-                                                        : <span className="text-slate-600">General</span>}
+                                                        : <span className="text-zinc-600">General</span>}
                                                 </td>
                                                 <td className="px-3 py-3.5">
                                                     <div className="flex items-center gap-2">
                                                         <Avatar alt={t.assignedTo?.name || ''} fallback={initialsOf(t.assignedTo?.name)} className="h-7 w-7 text-[11px]" />
                                                         <div className="min-w-0">
-                                                            <p className="max-w-[120px] truncate text-slate-200">{t.assignedTo?.name || 'Unassigned'}</p>
-                                                            {t.assignedTo?.role && <p className="text-xs text-slate-500">{humanize(t.assignedTo.role)}</p>}
+                                                            <p className="max-w-[120px] truncate text-zinc-200">{t.assignedTo?.name || 'Unassigned'}</p>
+                                                            {t.assignedTo?.role && <p className="text-xs text-zinc-500">{humanize(t.assignedTo.role)}</p>}
                                                         </div>
                                                     </div>
                                                 </td>
@@ -408,10 +420,10 @@ function TasksContent() {
                                     <li key={t.id} className="p-4">
                                         <button className="w-full text-left" onClick={() => setSelectedTaskForDetail(t)}>
                                             <div className="flex items-start justify-between gap-3">
-                                                <p className="font-semibold text-slate-100">{t.title}</p>
+                                                <p className="font-semibold text-zinc-100">{t.title}</p>
                                                 <StatusPill status={t.status} />
                                             </div>
-                                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
                                                 <Badge tone={priority.tone}>{priority.label}</Badge>
                                                 <span className={cn('flex items-center gap-1', isOverdue(t) && 'text-rose-300')}><CalendarDays className="h-3.5 w-3.5" />{t.deadline ? format(new Date(t.deadline), 'd MMM') : '–'}</span>
                                                 {t.project && <span className="text-blue-300">{t.project.name}</span>}
@@ -433,8 +445,8 @@ function TasksContent() {
                                     <div key={col.id} className="rounded-2xl border border-white/[0.05] bg-white/[0.015] p-3">
                                         <div className="mb-3 flex items-center gap-2 px-1">
                                             <span className={cn('h-2 w-2 rounded-full', col.dot)} />
-                                            <span className="text-sm font-semibold text-slate-200">{col.label}</span>
-                                            <span className="rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[11px] font-semibold text-slate-400">{items.length}</span>
+                                            <span className="text-sm font-semibold text-zinc-200">{col.label}</span>
+                                            <span className="rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[11px] font-semibold text-zinc-400">{items.length}</span>
                                         </div>
                                         <div className="space-y-2.5">
                                             {items.map(t => {
@@ -443,21 +455,21 @@ function TasksContent() {
                                                 return (
                                                     <div key={t.id} className="glass glass-hover cursor-pointer rounded-xl p-3.5" onClick={() => setSelectedTaskForDetail(t)}>
                                                         <div className="flex items-start justify-between gap-2">
-                                                            <p className="text-sm font-semibold leading-snug text-slate-100">{t.title}</p>
+                                                            <p className="text-sm font-semibold leading-snug text-zinc-100">{t.title}</p>
                                                             <Badge tone={priority.tone}>{priority.label}</Badge>
                                                         </div>
                                                         {t.project && <p className="mt-1.5 truncate text-xs text-blue-300">{t.project.name}</p>}
                                                         <div className="mt-3 flex items-center justify-between">
-                                                            <span className={cn('flex items-center gap-1 text-xs', isOverdue(t) ? 'text-rose-300' : 'text-slate-500')}>
+                                                            <span className={cn('flex items-center gap-1 text-xs', isOverdue(t) ? 'text-rose-300' : 'text-zinc-500')}>
                                                                 <CalendarDays className="h-3.5 w-3.5" />{t.deadline ? format(new Date(t.deadline), 'd MMM') : '–'}
                                                             </span>
-                                                            <Avatar alt={t.assignedTo?.name || ''} fallback={initialsOf(t.assignedTo?.name)} className="h-6 w-6 text-[10px]" />
+                                                            <Avatar alt={t.assignedTo?.name || ''} fallback={initialsOf(t.assignedTo?.name)} className="h-6 w-6 text-xs" />
                                                         </div>
                                                         {canChangeStatus(t) && next && (
                                                             <button
                                                                 onClick={e => { e.stopPropagation(); updateStatus(t, next.id); }}
                                                                 disabled={busyId === t.id}
-                                                                className="mt-3 flex w-full items-center justify-center gap-1 rounded-lg border border-white/[0.06] py-1.5 text-xs font-medium text-slate-400 transition hover:border-white/[0.12] hover:text-white disabled:opacity-50"
+                                                                className="mt-3 flex w-full items-center justify-center gap-1 rounded-lg border border-white/[0.06] py-1.5 text-xs font-medium text-zinc-400 transition hover:border-white/[0.12] hover:text-white disabled:opacity-50"
                                                             >
                                                                 Move to {next.label.toLowerCase()} <ChevronRight className="h-3.5 w-3.5" />
                                                             </button>
@@ -465,7 +477,7 @@ function TasksContent() {
                                                     </div>
                                                 );
                                             })}
-                                            {items.length === 0 && <p className="rounded-xl border border-dashed border-white/[0.06] py-6 text-center text-xs text-slate-600">Nothing here</p>}
+                                            {items.length === 0 && <p className="rounded-xl border border-dashed border-white/[0.06] py-6 text-center text-xs text-zinc-600">Nothing here</p>}
                                         </div>
                                     </div>
                                 );

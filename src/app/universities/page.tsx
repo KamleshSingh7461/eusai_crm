@@ -200,8 +200,8 @@ export default function UniversitiesPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Universities</h1>
-                    <p className="mt-2 max-w-2xl text-base text-slate-400">Manage university partnerships, agreements, and MOUs.</p>
+                    <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Universities</h1>
+                    <p className="mt-2 max-w-2xl text-base text-zinc-400">Manage university partnerships, agreements, and MOUs.</p>
                 </div>
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
@@ -220,8 +220,8 @@ export default function UniversitiesPage() {
                             <GraduationCap className="w-6 h-6 text-[#3B82F6]" />
                         </div>
                         <div>
-                            <div className="text-2xl font-bold text-heading">{meta.partnerCount} / {meta.totalEntities}</div>
-                            <div className="text-xs font-bold text-body uppercase">Partners / Total</div>
+                            <div className="text-2xl font-semibold text-heading">{meta.partnerCount} / {meta.totalEntities}</div>
+                            <div className="text-xs font-semibold text-body">Partners / Total</div>
                         </div>
                     </div>
 
@@ -230,8 +230,8 @@ export default function UniversitiesPage() {
                             <CheckCircle2 className="w-6 h-6 text-[#34D399]" />
                         </div>
                         <div>
-                            <div className="text-2xl font-bold text-heading">{meta.conversionRate}%</div>
-                            <div className="text-xs font-bold text-body uppercase">Partner Conversion</div>
+                            <div className="text-2xl font-semibold text-heading">{meta.conversionRate}%</div>
+                            <div className="text-xs font-semibold text-body">Partner Conversion</div>
                         </div>
                     </div>
 
@@ -240,8 +240,8 @@ export default function UniversitiesPage() {
                             <TrendingUp className="w-6 h-6 text-[#8B5CF6]" />
                         </div>
                         <div>
-                            <div className="text-2xl font-bold text-heading">₹{(meta.totalValue / 100000).toFixed(1)}L</div>
-                            <div className="text-xs font-bold text-body uppercase">Portfolio Value</div>
+                            <div className="text-2xl font-semibold text-heading">₹{(meta.totalValue / 100000).toFixed(1)}L</div>
+                            <div className="text-xs font-semibold text-body">Portfolio Value</div>
                         </div>
                     </div>
 
@@ -250,8 +250,8 @@ export default function UniversitiesPage() {
                             <FileText className="w-6 h-6 text-[#F59E0B]" />
                         </div>
                         <div>
-                            <div className="text-2xl font-bold text-heading">{meta.milestoneProgress}%</div>
-                            <div className="text-xs font-bold text-body uppercase">Milestone Health</div>
+                            <div className="text-2xl font-semibold text-heading">{meta.milestoneProgress}%</div>
+                            <div className="text-xs font-semibold text-body">Milestone Health</div>
                         </div>
                     </div>
                 </div>
@@ -284,13 +284,13 @@ export default function UniversitiesPage() {
                     <div className="flex items-center gap-1 bg-[var(--notion-bg-tertiary)] p-1 rounded-sm">
                         <button
                             onClick={() => setTeamOnly(false)}
-                            className={`px-3 py-1 text-xs font-bold rounded-sm transition-all ${!teamOnly ? 'bg-[var(--notion-bg-primary)] text-[#3B82F6] shadow-sm' : 'text-subheading hover:text-heading'}`}
+                            className={`px-3 py-1 text-xs font-semibold rounded-sm transition-all ${!teamOnly ? 'bg-[var(--notion-bg-primary)] text-[#3B82F6] shadow-sm' : 'text-subheading hover:text-heading'}`}
                         >
                             All
                         </button>
                         <button
                             onClick={() => setTeamOnly(true)}
-                            className={`px-3 py-1 text-xs font-bold rounded-sm transition-all ${teamOnly ? 'bg-[var(--notion-bg-primary)] text-[#3B82F6] shadow-sm' : 'text-subheading hover:text-heading'}`}
+                            className={`px-3 py-1 text-xs font-semibold rounded-sm transition-all ${teamOnly ? 'bg-[var(--notion-bg-primary)] text-[#3B82F6] shadow-sm' : 'text-subheading hover:text-heading'}`}
                         >
                             My Team
                         </button>
@@ -307,7 +307,7 @@ export default function UniversitiesPage() {
             ) : filteredUniversities.length === 0 ? (
                 <div className="p-6 sm:p-12 text-center border-2 border-dashed border-[var(--notion-border-default)] rounded-sm text-body">
                     <GraduationCap className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                    <h3 className="text-lg font-bold mb-1">No Universities Found</h3>
+                    <h3 className="text-lg font-semibold mb-1">No Universities Found</h3>
                     <p className="text-sm max-w-sm mx-auto">Add a new university to start tracking agreements and business orders.</p>
                 </div>
             ) : (
@@ -316,7 +316,7 @@ export default function UniversitiesPage() {
                         <div key={uni.id} className="card-jira p-5 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm shadow-sm hover:shadow-md transition-shadow group relative overflow-hidden flex flex-col">
                             <div className={`absolute top-0 left-0 w-1 h-full ${uni.status === 'PARTNER' ? 'bg-green-500' :
                                 uni.status === 'PROSPECT' ? 'bg-blue-500' :
-                                    'bg-slate-300'
+                                    'bg-zinc-300'
                                 }`} />
 
                             <div className="flex justify-between items-start mb-3 pl-2">
@@ -328,7 +328,7 @@ export default function UniversitiesPage() {
                                         <select
                                             value={uni.status}
                                             onChange={(e) => handleUpdateStatus(uni.id, e.target.value)}
-                                            className={`px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wide border cursor-pointer outline-none focus:ring-1 focus:ring-[#3B82F6] ${uni.status === 'PARTNER' ? 'bg-green-500/15 text-green-300 border-green-400/25' :
+                                            className={`px-2 py-0.5 rounded-sm text-[11px] font-semibold  tracking-wide border cursor-pointer outline-none focus:ring-1 focus:ring-[#3B82F6] ${uni.status === 'PARTNER' ? 'bg-green-500/15 text-green-300 border-green-400/25' :
                                                 uni.status === 'PROSPECT' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
                                                     'bg-white/[0.03] text-fg-muted border-line'
                                                 }`}
@@ -338,7 +338,7 @@ export default function UniversitiesPage() {
                                             <option value="INACTIVE">INACTIVE</option>
                                         </select>
                                     ) : (
-                                        <span className={`px-2 py-0.5 rounded-sm text-[11px] font-bold uppercase tracking-wide border ${uni.status === 'PARTNER' ? 'bg-green-500/15 text-green-300 border-green-400/25' :
+                                        <span className={`px-2 py-0.5 rounded-sm text-[11px] font-semibold  tracking-wide border ${uni.status === 'PARTNER' ? 'bg-green-500/15 text-green-300 border-green-400/25' :
                                             uni.status === 'PROSPECT' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
                                                 'bg-white/[0.03] text-fg-muted border-line'
                                             }`}>
@@ -348,7 +348,7 @@ export default function UniversitiesPage() {
                                 </div>
                             </div>
 
-                            <h3 className="text-lg font-bold text-heading mb-1 pl-2 truncate" title={uni.name}>
+                            <h3 className="text-lg font-semibold text-heading mb-1 pl-2 truncate" title={uni.name}>
                                 {uni.name}
                             </h3>
                             <div className="flex items-center justify-between pr-2 pl-2 mb-4">
@@ -357,13 +357,13 @@ export default function UniversitiesPage() {
                                     <span className="truncate">{uni.location || 'Location not set'}</span>
                                 </div>
                                 {((uni as any).milestones || []).some((m: any) => m.owner === userId) ? (
-                                    <span className="flex items-center gap-1 text-[11px] font-bold text-[#3B82F6] bg-blue-500/10 px-1.5 py-0.5 rounded-sm border border-blue-500/20">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] animate-pulse" />
+                                    <span className="flex items-center gap-1 text-[11px] font-semibold text-[#3B82F6] bg-blue-500/10 px-1.5 py-0.5 rounded-sm border border-blue-500/20">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#1F1F23] animate-pulse" />
                                         My Active
                                     </span>
                                 ) : ((uni as any).milestones || []).length > 0 && (
-                                    <span className="flex items-center gap-1 text-[11px] font-bold text-[#34D399] bg-green-500/10 px-1.5 py-0.5 rounded-sm border border-green-400/25">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#34D399]" />
+                                    <span className="flex items-center gap-1 text-[11px] font-semibold text-[#34D399] bg-green-500/10 px-1.5 py-0.5 rounded-sm border border-green-400/25">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#1F1F23]" />
                                         Team Active
                                     </span>
                                 )}
@@ -375,22 +375,22 @@ export default function UniversitiesPage() {
                                         onClick={() => router.push(`/milestones?universityId=${uni.id}`)}
                                         className="p-2 bg-[var(--notion-bg-secondary)] hover:bg-[var(--notion-bg-tertiary)] rounded-sm transition-colors border border-transparent hover:border-[var(--notion-border-default)]"
                                     >
-                                        <div className="text-lg font-bold text-[#3B82F6]">{uni._count.milestones}</div>
-                                        <div className="text-[11px] font-bold text-body uppercase">Agreements</div>
+                                        <div className="text-lg font-semibold text-[#3B82F6]">{uni._count.milestones}</div>
+                                        <div className="text-[11px] font-semibold text-body">Agreements</div>
                                     </button>
                                     <button
                                         onClick={() => router.push(`/projects?universityId=${uni.id}`)}
                                         className="p-2 bg-[var(--notion-bg-secondary)] hover:bg-[var(--notion-bg-tertiary)] rounded-sm transition-colors border border-transparent hover:border-[var(--notion-border-default)]"
                                     >
-                                        <div className="text-lg font-bold text-heading">{uni._count.businessOrders}</div>
-                                        <div className="text-[11px] font-bold text-body uppercase">Orders</div>
+                                        <div className="text-lg font-semibold text-heading">{uni._count.businessOrders}</div>
+                                        <div className="text-[11px] font-semibold text-body">Orders</div>
                                     </button>
                                 </div>
 
                                 {/* Milestone Progress Bar */}
                                 {uni.milestones.length > 0 && (
                                     <div className="space-y-1">
-                                        <div className="flex justify-between text-[11px] font-bold text-body uppercase">
+                                        <div className="flex justify-between text-[11px] font-semibold text-body">
                                             <span>Milestone Progress</span>
                                             <span>
                                                 {Math.round(uni.milestones.reduce((acc, m) => acc + (m.progress || 0), 0) / uni.milestones.length)}%
@@ -398,7 +398,7 @@ export default function UniversitiesPage() {
                                         </div>
                                         <div className="w-full h-1.5 bg-[var(--notion-bg-tertiary)] rounded-full overflow-hidden">
                                             <div
-                                                className="h-full bg-[#3B82F6] transition-all duration-500"
+                                                className="h-full bg-[#1F1F23] transition-all duration-500"
                                                 style={{ width: `${Math.round(uni.milestones.reduce((acc, m) => acc + (m.progress || 0), 0) / uni.milestones.length)}%` }}
                                             />
                                         </div>
@@ -408,8 +408,8 @@ export default function UniversitiesPage() {
                                 {/* Revenue Indicator */}
                                 {uni.businessOrders.length > 0 && (
                                     <div className="flex items-center justify-between p-2 bg-green-500/10/50 border border-green-400/25 rounded-sm">
-                                        <span className="text-[11px] font-bold text-green-300 uppercase">Revenue Generated</span>
-                                        <span className="text-xs font-bold text-green-300">
+                                        <span className="text-[11px] font-semibold text-green-300">Revenue Generated</span>
+                                        <span className="text-xs font-semibold text-green-300">
                                             ₹{uni.businessOrders.reduce((acc, o) => acc + Number(o.amount), 0).toLocaleString()}
                                         </span>
                                     </div>
@@ -417,7 +417,7 @@ export default function UniversitiesPage() {
 
                                 {uni.contactPerson && (
                                     <div className="text-xs text-body">
-                                        <span className="font-bold">Contact:</span> {uni.contactPerson}
+                                        <span className="font-semibold">Contact:</span> {uni.contactPerson}
                                     </div>
                                 )}
 
@@ -436,10 +436,10 @@ export default function UniversitiesPage() {
 
             {/* Create University Modal */}
             {isCreateModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] w-full max-w-lg animate-in zoom-in-95 duration-300 h-[80vh] flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
+                    <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-lg animate-in zoom-in-95 duration-300 h-[80vh] flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
                         <div className="p-6 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-secondary)] shrink-0">
-                            <h3 className="text-lg font-bold text-heading">Add University</h3>
+                            <h3 className="text-lg font-semibold text-heading">Add University</h3>
                             <button
                                 onClick={() => setIsCreateModalOpen(false)}
                                 className="p-1 hover:bg-[var(--notion-bg-tertiary)] rounded-sm text-body"
@@ -451,7 +451,7 @@ export default function UniversitiesPage() {
                         <div className="flex-1 overflow-y-auto p-6">
                             <form id="create-uni-form" onSubmit={handleCreate} className="space-y-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-body uppercase">University Name</label>
+                                    <label className="text-xs font-semibold text-body">University Name</label>
                                     <input
                                         required
                                         value={formData.name}
@@ -463,7 +463,7 @@ export default function UniversitiesPage() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-body uppercase">Location</label>
+                                        <label className="text-xs font-semibold text-body">Location</label>
                                         <input
                                             value={formData.location}
                                             onChange={e => setFormData({ ...formData, location: e.target.value })}
@@ -472,12 +472,12 @@ export default function UniversitiesPage() {
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-body uppercase">Status</label>
+                                        <label className="text-xs font-semibold text-body">Status</label>
                                         <select
                                             value={formData.status}
                                             onChange={e => setFormData({ ...formData, status: e.target.value })}
                                             disabled={!['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes((session?.user as any)?.role || '')}
-                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none disabled:bg-white/[0.03] disabled:text-slate-400"
+                                            className="w-full px-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none disabled:bg-white/[0.03] disabled:text-zinc-400"
                                         >
                                             <option value="PROSPECT">Prospect</option>
                                             <option value="PARTNER">Partner</option>
@@ -487,7 +487,7 @@ export default function UniversitiesPage() {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-body uppercase">Contact Person</label>
+                                    <label className="text-xs font-semibold text-body">Contact Person</label>
                                     <input
                                         value={formData.contactPerson}
                                         onChange={e => setFormData({ ...formData, contactPerson: e.target.value })}
@@ -498,7 +498,7 @@ export default function UniversitiesPage() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-body uppercase">Email</label>
+                                        <label className="text-xs font-semibold text-body">Email</label>
                                         <input
                                             type="email"
                                             value={formData.email}
@@ -508,7 +508,7 @@ export default function UniversitiesPage() {
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-body uppercase">Phone</label>
+                                        <label className="text-xs font-semibold text-body">Phone</label>
                                         <input
                                             value={formData.phone}
                                             onChange={e => setFormData({ ...formData, phone: e.target.value })}
@@ -519,7 +519,7 @@ export default function UniversitiesPage() {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-body uppercase">Website</label>
+                                    <label className="text-xs font-semibold text-body">Website</label>
                                     <input
                                         value={formData.website}
                                         onChange={e => setFormData({ ...formData, website: e.target.value })}
@@ -529,7 +529,7 @@ export default function UniversitiesPage() {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-body uppercase">Description</label>
+                                    <label className="text-xs font-semibold text-body">Description</label>
                                     <textarea
                                         rows={3}
                                         value={formData.description}
@@ -563,11 +563,11 @@ export default function UniversitiesPage() {
 
             {/* Create Order Modal */}
             {isOrderModalOpen && selectedUniversityForOrder && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] w-full max-w-lg animate-in zoom-in-95 duration-300 flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
+                    <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-lg animate-in zoom-in-95 duration-300 flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
                         <div className="p-6 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-secondary)] shrink-0">
                             <div>
-                                <h3 className="text-lg font-bold text-heading">New Business Order</h3>
+                                <h3 className="text-lg font-semibold text-heading">New Business Order</h3>
                                 <p className="text-xs text-body">For {selectedUniversityForOrder.name}</p>
                             </div>
                             <button
@@ -581,7 +581,7 @@ export default function UniversitiesPage() {
                         <div className="p-6">
                             <form id="create-order-form" onSubmit={handleCreateOrder} className="space-y-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-body uppercase">Order Title</label>
+                                    <label className="text-xs font-semibold text-body">Order Title</label>
                                     <input
                                         required
                                         value={orderFormData.title}
@@ -593,7 +593,7 @@ export default function UniversitiesPage() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-body uppercase">Amount (INR)</label>
+                                        <label className="text-xs font-semibold text-body">Amount (INR)</label>
                                         <input
                                             type="number"
                                             required
@@ -604,7 +604,7 @@ export default function UniversitiesPage() {
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-body uppercase">Date</label>
+                                        <label className="text-xs font-semibold text-body">Date</label>
                                         <input
                                             type="date"
                                             required
@@ -616,7 +616,7 @@ export default function UniversitiesPage() {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-body uppercase">Link to MOU (Optional)</label>
+                                    <label className="text-xs font-semibold text-body">Link to MOU (Optional)</label>
                                     <select
                                         value={orderFormData.milestoneId}
                                         onChange={e => setOrderFormData({ ...orderFormData, milestoneId: e.target.value })}
@@ -630,7 +630,7 @@ export default function UniversitiesPage() {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-body uppercase">Status</label>
+                                    <label className="text-xs font-semibold text-body">Status</label>
                                     <select
                                         value={orderFormData.status}
                                         onChange={e => setOrderFormData({ ...orderFormData, status: e.target.value })}
@@ -643,7 +643,7 @@ export default function UniversitiesPage() {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-body uppercase">Description</label>
+                                    <label className="text-xs font-semibold text-body">Description</label>
                                     <textarea
                                         rows={2}
                                         value={orderFormData.description}

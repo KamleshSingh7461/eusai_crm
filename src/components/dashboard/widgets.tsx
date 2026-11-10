@@ -30,12 +30,14 @@ export const timeAgo = (date?: string | Date | null) => {
     if (!date) return '';
     const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
     if (seconds < 60) return 'just now';
-    const units: [number, string][] = [[60, 'min'], [24, 'hr'], [7, 'day'], [4.35, 'wk'], [12, 'mo']];
+    // each step: [how many of the current unit make the next one, the next unit]
+    const steps: [number, string][] = [[60, 'hr'], [24, 'day'], [7, 'wk'], [4.35, 'mo'], [12, 'yr']];
     let value = seconds / 60;
     let label = 'min';
-    for (let i = 1; i < units.length && value >= units[i][0]; i++) {
-        value /= units[i][0];
-        label = units[i][1];
+    for (const [size, next] of steps) {
+        if (value < size) break;
+        value /= size;
+        label = next;
     }
     const n = Math.floor(value);
     return `${n} ${label}${n === 1 || label === 'min' || label === 'hr' ? '' : 's'} ago`;
@@ -56,8 +58,8 @@ export function DashboardError({ message, onRetry }: { message?: string; onRetry
     return (
         <Card className="mx-auto mt-16 max-w-lg text-center" padding="lg">
             <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-300 ring-1 ring-inset ring-rose-400/25"><AlertCircle className="h-6 w-6" /></span>
-            <h3 className="mt-4 font-display text-lg font-bold text-white">Dashboard couldn't load</h3>
-            <p className="mt-1 text-sm text-slate-400">{message || 'Check your connection and try again.'}</p>
+            <h3 className="mt-4 font-display text-lg font-semibold text-white">Dashboard couldn't load</h3>
+            <p className="mt-1 text-sm text-zinc-400">{message || 'Check your connection and try again.'}</p>
             <Button className="mt-5" variant="secondary" onClick={onRetry} leftIcon={<RefreshCw className="h-4 w-4" />}>Try again</Button>
         </Card>
     );
@@ -130,7 +132,7 @@ export function DonutBreakdown({ data, centerLabel, emptyText = 'Nothing to show
     data: { name: string; value: number }[]; centerLabel: string; emptyText?: string;
 }) {
     const total = data.reduce((sum, d) => sum + d.value, 0);
-    if (total === 0) return <p className="py-10 text-center text-sm text-slate-500">{emptyText}</p>;
+    if (total === 0) return <p className="py-10 text-center text-sm text-zinc-500">{emptyText}</p>;
     return (
         <div className="flex flex-col items-center gap-6 sm:flex-row xl:flex-col 2xl:flex-row">
             <div className="relative h-40 w-40 shrink-0">
@@ -143,17 +145,17 @@ export function DonutBreakdown({ data, centerLabel, emptyText = 'Nothing to show
                     </PieChart>
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="font-display text-3xl font-bold text-white tabular-nums">{total}</span>
-                    <span className="text-xs text-slate-400">{centerLabel}</span>
+                    <span className="font-display text-3xl font-semibold text-white tabular-nums">{total}</span>
+                    <span className="text-xs text-zinc-400">{centerLabel}</span>
                 </div>
             </div>
             <ul className="w-full space-y-2.5">
                 {data.map(d => (
                     <li key={d.name} className="flex items-center gap-3 text-sm">
                         <span className={cn('h-2.5 w-2.5 rounded-full', TONES[statusTone(d.name)].dot)} />
-                        <span className="flex-1 text-slate-300">{humanize(d.name)}</span>
+                        <span className="flex-1 text-zinc-300">{humanize(d.name)}</span>
                         <span className="font-semibold text-white tabular-nums">{d.value}</span>
-                        <span className="w-10 text-right text-xs text-slate-500 tabular-nums">{Math.round((d.value / total) * 100)}%</span>
+                        <span className="w-10 text-right text-xs text-zinc-500 tabular-nums">{Math.round((d.value / total) * 100)}%</span>
                     </li>
                 ))}
             </ul>
@@ -166,7 +168,7 @@ export function BarList({ items, emptyText = 'Nothing to show yet' }: {
     items: { label: string; value: number; color?: string; href?: string; tone?: Tone }[]; emptyText?: string;
 }) {
     const max = Math.max(1, ...items.map(i => i.value));
-    if (items.length === 0) return <p className="py-8 text-center text-sm text-slate-500">{emptyText}</p>;
+    if (items.length === 0) return <p className="py-8 text-center text-sm text-zinc-500">{emptyText}</p>;
     return (
         <ul className="space-y-3">
             {items.map((item, i) => {
@@ -174,14 +176,14 @@ export function BarList({ items, emptyText = 'Nothing to show yet' }: {
                 const row = (
                     <div className="group">
                         <div className="mb-1.5 flex items-center justify-between text-sm">
-                            <span className="truncate text-slate-300 group-hover:text-white">{item.label}</span>
+                            <span className="truncate text-zinc-300 group-hover:text-white">{item.label}</span>
                             <span className="font-semibold text-white tabular-nums">{item.value}</span>
                         </div>
                         <div className="h-2 overflow-hidden rounded-full bg-white/[0.05]">
                             <motion.div
                                 initial={{ width: 0 }} animate={{ width: `${(item.value / max) * 100}%` }}
                                 transition={{ duration: 0.9, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
-                                className="h-full rounded-full" style={{ background: `linear-gradient(90deg, ${color}66, ${color})` }}
+                                className="h-full rounded-full" style={{ background: color }}
                             />
                         </div>
                     </div>
@@ -205,7 +207,7 @@ export function ActivityList({ items, emptyText = 'No recent activity' }: {
     items: { id: string; title: string; subtitle?: string; who?: string | null; image?: string | null; at?: string | Date | null; done?: boolean; href?: string }[];
     emptyText?: string;
 }) {
-    if (items.length === 0) return <p className="py-10 text-center text-sm text-slate-500">{emptyText}</p>;
+    if (items.length === 0) return <p className="py-10 text-center text-sm text-zinc-500">{emptyText}</p>;
     return (
         <ol className="space-y-1">
             {items.map((a, i) => {
@@ -219,12 +221,12 @@ export function ActivityList({ items, emptyText = 'No recent activity' }: {
                             </span>
                         </div>
                         <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-slate-100">{a.title}</p>
-                            <p className="mt-0.5 truncate text-xs text-slate-500">
+                            <p className="truncate text-sm font-medium text-zinc-100">{a.title}</p>
+                            <p className="mt-0.5 truncate text-xs text-zinc-500">
                                 {[a.who || 'Unassigned', a.subtitle].filter(Boolean).join(' · ')}
                             </p>
                         </div>
-                        {a.at && <span className="shrink-0 text-xs text-slate-500">{timeAgo(a.at)}</span>}
+                        {a.at && <span className="shrink-0 text-xs text-zinc-500">{timeAgo(a.at)}</span>}
                     </div>
                 );
                 return <li key={a.id}>{a.href ? <Link href={a.href}>{content}</Link> : content}</li>;

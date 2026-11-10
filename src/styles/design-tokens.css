@@ -5,7 +5,7 @@
 
 :root {
     /* ===== BACKGROUNDS ===== */
-    --notion-bg-primary: #07090D;
+    --notion-bg-primary: #09090B;
     /* Main background */
     --notion-bg-blue: #3B82F6;
     --notion-bg-blue-hover: #2563EB;
@@ -15,20 +15,20 @@
     --notion-bg-green: #10B981;
     --notion-bg-purple: #8B5CF6;
     --notion-bg-pink: #ad1a72;
-    --notion-bg-gray: #1A1F2A;
-    --notion-bg-secondary: #0D1016;
+    --notion-bg-gray: #1F1F23;
+    --notion-bg-secondary: #111113;
     /* Cards, elevated surfaces */
-    --notion-bg-tertiary: #131720;
+    --notion-bg-tertiary: #18181B;
     /* Hover states */
-    --notion-bg-sidebar: #080A0F;
+    --notion-bg-sidebar: #09090B;
     /* Sidebar */
     --notion-bg-hover: rgba(255, 255, 255, 0.04);
     /* Subtle hover */
 
     /* ===== TEXT COLORS ===== */
-    --notion-text-primary: #E6EAF0;
+    --notion-text-primary: #FAFAFA;
     /* Headings, important text */
-    --notion-text-secondary: #A0A9B8;
+    --notion-text-secondary: #A1A1AA;
     /* Body text */
     --notion-text-tertiary: #8B94A5;
     /* Muted text, labels */

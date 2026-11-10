@@ -106,8 +106,8 @@ export default function LibraryPage() {
             <div className="px-6 py-6 border-b border-[var(--notion-border-default)]">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div>
-                        <h1 className="font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Library</h1>
-                        <p className="mt-2 max-w-2xl text-base text-slate-400">Centralized knowledge base and asset repository.</p>
+                        <h1 className="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Library</h1>
+                        <p className="mt-2 max-w-2xl text-base text-zinc-400">Centralized knowledge base and asset repository.</p>
                     </div>
                 </div>
 
@@ -120,7 +120,7 @@ export default function LibraryPage() {
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={cn(
-                                    "px-4 py-1.5 text-xs font-bold rounded-sm transition-all whitespace-nowrap",
+                                    "px-4 py-1.5 text-xs font-semibold rounded-sm transition-all whitespace-nowrap",
                                     activeTab === tab
                                         ? "bg-[var(--notion-bg-primary)] text-heading shadow-sm"
                                         : "text-subheading hover:bg-[var(--notion-bg-hover)] hover:text-heading"
@@ -179,7 +179,7 @@ export default function LibraryPage() {
                         {(activeTab === 'ALL' || activeTab === 'DOCUMENTS') && filteredDocuments.length > 0 && (
                             <section>
                                 <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-lg font-bold text-heading flex items-center gap-2">
+                                    <h2 className="text-lg font-semibold text-heading flex items-center gap-2">
                                         <FileText className="w-4 h-4 text-blue-500" />
                                         Documents
                                     </h2>
@@ -199,7 +199,7 @@ export default function LibraryPage() {
                                                     <MoreHorizontal className="w-4 h-4" />
                                                 </button>
                                             </div>
-                                            <h3 className="font-bold text-heading text-sm mb-1 truncate" title={doc.name}>{doc.name}</h3>
+                                            <h3 className="font-semibold text-heading text-sm mb-1 truncate" title={doc.name}>{doc.name}</h3>
                                             <div className="flex items-center gap-2 text-xs text-subheading">
                                                 <span>{doc.size || 'Unknown size'}</span>
                                                 <span>•</span>
@@ -207,7 +207,7 @@ export default function LibraryPage() {
                                             </div>
                                             {/* Hover Action */}
                                             <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-sm pointer-events-none">
-                                                <a href={doc.url} target="_blank" rel="noreferrer" className="pointer-events-auto bg-white text-black px-3 py-1.5 rounded-full text-xs font-bold shadow-sm hover:scale-105 transition-transform flex items-center gap-1">
+                                                <a href={doc.url} target="_blank" rel="noreferrer" className="pointer-events-auto bg-white text-black px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm hover:scale-105 transition-transform flex items-center gap-1">
                                                     <Download className="w-3 h-3" /> Download
                                                 </a>
                                             </div>
@@ -221,7 +221,7 @@ export default function LibraryPage() {
                         {(activeTab === 'ALL' || activeTab === 'WIKI') && filteredWiki.length > 0 && (
                             <section>
                                 <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-lg font-bold text-heading flex items-center gap-2">
+                                    <h2 className="text-lg font-semibold text-heading flex items-center gap-2">
                                         <BookOpen className="w-4 h-4 text-orange-500" />
                                         Wiki Pages
                                     </h2>
@@ -234,7 +234,7 @@ export default function LibraryPage() {
                                                 <BookOpen className="w-4 h-4" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="font-bold text-heading text-sm mb-0.5 truncate">{page.title}</h3>
+                                                <h3 className="font-semibold text-heading text-sm mb-0.5 truncate">{page.title}</h3>
                                                 <p className="text-xs text-subheading truncate opacity-80">{page.content ? page.content.substring(0, 100) : 'Empty page'}</p>
                                             </div>
                                             <div className="text-xs text-subheading hidden sm:block whitespace-nowrap">
@@ -250,7 +250,7 @@ export default function LibraryPage() {
                         {(activeTab === 'ALL' || activeTab === 'SPACES') && filteredSpaces.length > 0 && (
                             <section>
                                 <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-lg font-bold text-heading flex items-center gap-2">
+                                    <h2 className="text-lg font-semibold text-heading flex items-center gap-2">
                                         <Folder className="w-4 h-4 text-yellow-500" />
                                         Spaces
                                     </h2>
@@ -265,15 +265,15 @@ export default function LibraryPage() {
                                             <div className="bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] group-hover:border-blue-400 rounded-sm p-4 h-full transition-all">
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <div
-                                                        className="w-8 h-8 rounded-sm flex items-center justify-center text-white font-bold text-xs"
+                                                        className="w-8 h-8 rounded-sm flex items-center justify-center text-white font-semibold text-xs"
                                                         style={{ backgroundColor: space.color || '#3B82F6' }}
                                                     >
                                                         {space.name.substring(0, 2).toUpperCase()}
                                                     </div>
-                                                    <h3 className="font-bold text-heading text-sm truncate group-hover:text-blue-300 transition-colors">{space.name}</h3>
+                                                    <h3 className="font-semibold text-heading text-sm truncate group-hover:text-blue-300 transition-colors">{space.name}</h3>
                                                 </div>
                                                 <p className="text-xs text-subheading line-clamp-2 mb-3 h-8">{space.description || 'No description available.'}</p>
-                                                <div className="flex items-center gap-2 text-[11px] font-bold text-subheading uppercase tracking-wider">
+                                                <div className="flex items-center gap-2 text-[11px] font-semibold text-subheading">
                                                     <span className="bg-[var(--notion-bg-secondary)] px-1.5 py-0.5 rounded-sm border border-[var(--notion-border-default)]">
                                                         {space.type}
                                                     </span>
@@ -291,7 +291,7 @@ export default function LibraryPage() {
                         {activeTab === 'ALL' && filteredDocuments.length === 0 && filteredWiki.length === 0 && filteredSpaces.length === 0 && (
                             <div className="flex flex-col items-center justify-center py-10 sm:py-16 text-center">
                                 <Search className="w-12 h-12 text-[var(--notion-border-default)] mb-4" />
-                                <h3 className="text-lg font-bold text-heading mb-1">No results found</h3>
+                                <h3 className="text-lg font-semibold text-heading mb-1">No results found</h3>
                                 <p className="text-sm text-subheading max-w-md">
                                     We couldn't find anything matching "{searchQuery}" in your library. Try adjusting your search or filters.
                                 </p>

@@ -121,12 +121,12 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] w-full rounded-b-none sm:rounded-b-3xl max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
+            <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full rounded-b-none sm:rounded-b-3xl max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-[rgba(255,255,255,0.08)] bg-white/[0.02]">
                     <div className="flex items-center gap-2">
-                        <h2 className="text-lg font-bold text-[rgba(255,255,255,0.9)] tracking-tight">
+                        <h2 className="text-lg font-semibold text-[rgba(255,255,255,0.9)] tracking-tight">
                             {initialData ? 'Update Issue' : 'Report an issue'}
                         </h2>
                     </div>
@@ -138,35 +138,35 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
                     {/* Title */}
                     <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-slate-300">Summary</label>
+                        <label className="text-sm font-medium text-zinc-300">Summary</label>
                         <input
                             {...register('title')}
                             placeholder="Briefly describe the blocker..."
-                            className="w-full bg-[#0D1016] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/40 focus:border-[#60A5FA] transition-all"
+                            className="w-full bg-[#111113] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/40 focus:border-[#60A5FA] transition-all"
                         />
                         {errors.title && <p className="text-xs text-[#FB7185] font-medium mt-1">{errors.title.message}</p>}
                     </div>
 
                     {/* Description */}
                     <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-slate-300">Description</label>
+                        <label className="text-sm font-medium text-zinc-300">Description</label>
                         <textarea
                             {...register('description')}
                             placeholder="Add context"
                             rows={3}
-                            className="w-full bg-[#0D1016] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/40 focus:border-[#60A5FA] transition-all resize-y min-h-[80px]"
+                            className="w-full bg-[#111113] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/40 focus:border-[#60A5FA] transition-all resize-y min-h-[80px]"
                         />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         {/* Project */}
                         <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-slate-300 flex items-center gap-1.5">
+                            <label className="text-sm font-medium text-zinc-300 flex items-center gap-1.5">
                                 <Briefcase className="w-3 h-3" /> Project Link
                             </label>
                             <select
                                 {...register('projectId')}
-                                className="w-full bg-[#0D1016] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/40 focus:border-[#60A5FA] transition-all appearance-none"
+                                className="w-full bg-[#111113] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/40 focus:border-[#60A5FA] transition-all appearance-none"
                             >
                                 <option value="">No Linked Project</option>
                                 {projects.map(p => (
@@ -177,13 +177,13 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
 
                         {/* Owner/Assignee */}
                         <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-slate-300 flex items-center gap-1.5">
+                            <label className="text-sm font-medium text-zinc-300 flex items-center gap-1.5">
                                 <UserIcon className="w-3 h-3" /> Owner
                             </label>
                             <input
                                 {...register('owner')}
                                 placeholder="Assignee"
-                                className="w-full bg-[#0D1016] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/40 focus:border-[#60A5FA] transition-all"
+                                className="w-full bg-[#111113] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/40 focus:border-[#60A5FA] transition-all"
                             />
                             {errors.owner && <p className="text-xs text-[#FB7185] font-medium mt-1">{errors.owner.message}</p>}
                         </div>
@@ -192,12 +192,12 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         {/* Severity */}
                         <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-slate-300 flex items-center gap-1.5">
+                            <label className="text-sm font-medium text-zinc-300 flex items-center gap-1.5">
                                 <Flag className="w-3 h-3" /> Severity Level
                             </label>
                             <select
                                 {...register('severity')}
-                                className="w-full bg-[#0D1016] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/40 focus:border-[#60A5FA] transition-all appearance-none"
+                                className="w-full bg-[#111113] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/40 focus:border-[#60A5FA] transition-all appearance-none"
                             >
                                 <option value="CRITICAL">🔴 Critical Setup</option>
                                 <option value="HIGH">🟠 High Priority</option>
@@ -208,12 +208,12 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
 
                         {/* Status */}
                         <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-slate-300 flex items-center gap-1.5">
+                            <label className="text-sm font-medium text-zinc-300 flex items-center gap-1.5">
                                 <AlertTriangle className="w-3 h-3" /> Status
                             </label>
                             <select
                                 {...register('status')}
-                                className="w-full bg-[#0D1016] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/40 focus:border-[#60A5FA] transition-all appearance-none"
+                                className="w-full bg-[#111113] border border-[rgba(255,255,255,0.1)] rounded-md px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#60A5FA]/40 focus:border-[#60A5FA] transition-all appearance-none"
                             >
                                 <option value="OPEN">Open Issue</option>
                                 <option value="RESOLVING">In Progress</option>
@@ -226,12 +226,12 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
                     {/* Resolution Remarks (Conditional) */}
                     {['CLOSED', 'RESOLVED'].includes(statusObj || '') && (
                         <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-200 pt-2 border-t border-[rgba(255,255,255,0.08)]">
-                            <label className="text-[11px] font-bold text-[#34D399]">Resolution Remarks <span className='text-[#FB7185]'>*</span></label>
+                            <label className="text-[11px] font-semibold text-[#34D399]">Resolution Remarks <span className='text-[#FB7185]'>*</span></label>
                             <textarea
                                 {...register('resolution')}
                                 placeholder="Details of resolution strategy..."
                                 rows={3}
-                                className="w-full bg-[#0D1016] border border-[#34D399]/30 rounded-md px-3 py-2.5 text-sm text-white placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-[#34D399]/40 focus:border-[#34D399] transition-all resize-y"
+                                className="w-full bg-[#111113] border border-[#34D399]/30 rounded-md px-3 py-2.5 text-sm text-white placeholder-[rgba(255,255,255,0.2)] focus:outline-none focus:ring-2 focus:ring-[#34D399]/40 focus:border-[#34D399] transition-all resize-y"
                             />
                             {errors.resolution && <p className="text-xs text-[#FB7185] font-medium mt-1">{errors.resolution.message}</p>}
                         </div>
@@ -242,14 +242,14 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-sm font-bold text-[rgba(255,255,255,0.5)] hover:text-white hover:bg-[rgba(255,255,255,0.05)] rounded-md transition-colors uppercase tracking-wide"
+                            className="px-4 py-2 text-sm font-semibold text-[rgba(255,255,255,0.5)] hover:text-white hover:bg-[rgba(255,255,255,0.05)] rounded-md transition-colors tracking-wide"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="px-6 py-2 text-sm font-bold text-white bg-[#3B82F6] hover:bg-[#3B82F6] rounded-md shadow-[0_0_15px_rgba(0,82,204,0.3)] disabled:opacity-50 transition-all flex items-center gap-2 uppercase tracking-wide hover:transform hover:scale-105 active:scale-95"
+                            className="px-6 py-2 text-sm font-semibold text-white bg-[#1F1F23] hover:bg-[#1F1F23] rounded-md disabled:opacity-50 transition-all flex items-center gap-2 tracking-wide hover:transform hover:scale-105 active:scale-95"
                         >
                             {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                             {initialData ? 'Update Record' : 'Report issue'}

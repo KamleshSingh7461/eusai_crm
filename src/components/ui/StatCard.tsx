@@ -30,16 +30,15 @@ export default function StatCard({ label, value, icon: Icon, tone = 'blue', delt
 
     const body = (
         <Card delay={delay} interactive={clickable} onClick={onClick} padding="none" className="group h-full overflow-hidden p-4 sm:p-5">
-            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-100" style={{ background: t.stroke + '33' }} />
             <div className="flex items-start justify-between">
-                <span className={cn('flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-gradient-to-br ring-1 ring-inset', t.tile)}>
-                    <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg ring-1 ring-inset', t.tile)}>
+                    <Icon className="h-[18px] w-[18px]" />
                 </span>
-                {clickable && <ChevronRight className="h-4 w-4 text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-slate-300" />}
+                {clickable && <ChevronRight className="h-4 w-4 text-zinc-600 transition group-hover:translate-x-0.5 group-hover:text-zinc-300" />}
             </div>
-            <p className="mt-4 truncate text-xs font-medium text-slate-400 sm:mt-5 sm:text-sm">{label}</p>
+            <p className="mt-4 truncate text-xs font-medium text-zinc-400 sm:mt-5 sm:text-sm">{label}</p>
             <div className="mt-1 flex items-end justify-between gap-3">
-                <p className="font-display text-2xl sm:text-[32px] leading-none font-bold truncate tracking-tight text-white tabular-nums">{value}</p>
+                <p className="font-display text-2xl sm:text-[28px] leading-none font-semibold truncate tracking-[-0.03em] text-white tabular-nums">{value}</p>
                 {trend && <Sparkline data={trend} color={t.stroke} className="-mb-1 hidden h-10 w-24 shrink-0 sm:block" />}
             </div>
             {(delta || note) && (
@@ -49,7 +48,7 @@ export default function StatCard({ label, value, icon: Icon, tone = 'blue', delt
                             {deltaPositive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}{delta}
                         </span>
                     )}
-                    {note && <span className="truncate text-slate-500">{note}</span>}
+                    {note && <span className="truncate text-zinc-500">{note}</span>}
                 </div>
             )}
         </Card>

@@ -208,26 +208,24 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] relative w-full rounded-b-none sm:rounded-b-3xl max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
+            <div className="bg-[#111113] border border-white/[0.08] rounded-2xl relative w-full rounded-b-none sm:rounded-b-3xl max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
                 {/* Glossy background detail */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/5 rounded-full blur-3xl -ml-24 -mb-24 pointer-events-none" />
 
                 {/* Header */}
                 <div className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-6 border-b border-[rgba(255,255,255,0.06)]">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center shadow-lg shadow-blue-900/20">
+                        <div className="w-10 h-10 rounded-xl bg-[#3B82F6] flex items-center justify-center shadow-lg shadow-blue-900/20">
                             <Layout className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h2 className="font-display text-lg font-bold text-white">New milestone</h2>
-                            <p className="text-xs text-slate-400 font-medium">Define high-impact milestones and objectives</p>
+                            <h2 className="font-display text-lg font-semibold text-white">New milestone</h2>
+                            <p className="text-xs text-zinc-400 font-medium">Define high-impact milestones and objectives</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+                        className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -240,20 +238,20 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-white/5 border border-white/10 rounded-2xl">
                         <div className="space-y-2">
                             <div className="flex flex-wrap items-center justify-between gap-3">
-                                <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                                <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
                                     Assign All To
                                 </label>
                                 <button
                                     type="button"
                                     onClick={() => setIsBulkMode(!isBulkMode)}
-                                    className="text-[11px] font-bold text-[#3B82F6] uppercase tracking-tighter hover:underline"
+                                    className="text-[11px] font-semibold text-[#3B82F6] tracking-tighter hover:underline"
                                 >
                                     {isBulkMode ? "Single Mode" : "Bulk Assign"}
                                 </button>
                             </div>
 
                             {isLoadingUsers ? (
-                                <div className="h-11 flex items-center text-xs text-slate-400 gap-2">
+                                <div className="h-11 flex items-center text-xs text-zinc-400 gap-2">
                                     <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                                     Synchronizing...
                                 </div>
@@ -281,10 +279,10 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                     required
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
                                 >
-                                    <option value="" className="bg-[#07090D]">Select Assignee...</option>
-                                    <option value={(session?.user as any)?.id} className="bg-[#07090D]">Assign to Me</option>
+                                    <option value="" className="bg-[#09090B]">Select Assignee...</option>
+                                    <option value={(session?.user as any)?.id} className="bg-[#09090B]">Assign to Me</option>
                                     {users.filter(u => u.id !== (session?.user as any)?.id).map(user => (
-                                        <option key={user.id} value={user.id} className="bg-[#07090D]">
+                                        <option key={user.id} value={user.id} className="bg-[#09090B]">
                                             {user.name || (user as any).email} ({user.role})
                                         </option>
                                     ))}
@@ -293,11 +291,11 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                            <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
                                 Project Context
                             </label>
                             {isLoadingProjects ? (
-                                <div className="h-11 flex items-center text-xs text-slate-400 gap-2">
+                                <div className="h-11 flex items-center text-xs text-zinc-400 gap-2">
                                     <span className="w-4 h-4 border-2 border-[#3B82F6] border-t-transparent rounded-full animate-spin" />
                                     Fetching Projects...
                                 </div>
@@ -307,9 +305,9 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                     onChange={(e) => setProjectId(e.target.value)}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
                                 >
-                                    <option value="" className="bg-[#07090D]">Link Project (Optional)</option>
+                                    <option value="" className="bg-[#09090B]">Link Project (Optional)</option>
                                     {projects.map(project => (
-                                        <option key={project.id} value={project.id} className="bg-[#07090D]">
+                                        <option key={project.id} value={project.id} className="bg-[#09090B]">
                                             {project.name}
                                         </option>
                                     ))}
@@ -324,16 +322,16 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                             <div key={entry.id} className="relative p-6 bg-white/5 border border-white/10 rounded-2xl group animate-in slide-in-from-bottom-4 duration-500">
                                 <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-[11px] font-bold text-white border border-white/10">
+                                        <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-[11px] font-semibold text-white border border-white/10">
                                             {index + 1}
                                         </div>
-                                        <h3 className="text-xs font-bold text-white">Milestone Objective</h3>
+                                        <h3 className="text-xs font-semibold text-white">Milestone Objective</h3>
                                     </div>
                                     {entries.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => removeEntry(entry.id)}
-                                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                                            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -342,7 +340,7 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
 
                                 <div className="space-y-6">
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-slate-300">Title</label>
+                                        <label className="text-sm font-medium text-zinc-300">Title</label>
                                         <input
                                             placeholder="e.g. Phase 1 Completion"
                                             value={entry.title}
@@ -353,7 +351,7 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-sm font-medium text-slate-300">Description</label>
+                                        <label className="text-sm font-medium text-zinc-300">Description</label>
                                         <textarea
                                             placeholder="What needs to be delivered"
                                             value={entry.description}
@@ -364,20 +362,20 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-300">Category</label>
+                                            <label className="text-sm font-medium text-zinc-300">Category</label>
                                             <select
                                                 value={entry.category}
                                                 onChange={(e) => updateEntry(entry.id, 'category', e.target.value)}
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white transition-all appearance-none cursor-pointer text-sm font-medium"
                                             >
                                                 {MILESTONE_CATEGORIES.map(c => (
-                                                    <option key={c.value} value={c.value} className="bg-[#07090D]">{c.label}</option>
+                                                    <option key={c.value} value={c.value} className="bg-[#09090B]">{c.label}</option>
                                                 ))}
                                             </select>
                                         </div>
 
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-300">Target Date</label>
+                                            <label className="text-sm font-medium text-zinc-300">Target Date</label>
                                             <input
                                                 type="date"
                                                 value={entry.targetDate}
@@ -391,14 +389,14 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                     {/* Sub-selectors */}
                                     {entry.category === 'MOU' && (
                                         <div className="space-y-2 animate-in fade-in duration-300">
-                                            <label className="text-sm font-medium text-slate-300">MOU Type</label>
+                                            <label className="text-sm font-medium text-zinc-300">MOU Type</label>
                                             <select
                                                 value={entry.mouType}
                                                 onChange={(e) => updateEntry(entry.id, 'mouType', e.target.value)}
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none cursor-pointer text-sm font-medium"
                                             >
-                                                <option value="" className="bg-[#07090D]">Select MOU Type...</option>
-                                                {MOU_TYPES.map(type => <option key={type} value={type} className="bg-[#07090D]">{type}</option>)}
+                                                <option value="" className="bg-[#09090B]">Select MOU Type...</option>
+                                                {MOU_TYPES.map(type => <option key={type} value={type} className="bg-[#09090B]">{type}</option>)}
                                             </select>
                                         </div>
                                     )}
@@ -406,7 +404,7 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                     {entry.category === 'BUSINESS_ORDER' && (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-in fade-in duration-300">
                                             <div className="space-y-2">
-                                                <label className="text-sm font-medium text-slate-300">University Name</label>
+                                                <label className="text-sm font-medium text-zinc-300">University Name</label>
                                                 <input
                                                     placeholder="Enter university..."
                                                     value={entry.universityName}
@@ -415,14 +413,14 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-sm font-medium text-slate-300">Order Type</label>
+                                                <label className="text-sm font-medium text-zinc-300">Order Type</label>
                                                 <select
                                                     value={entry.orderType}
                                                     onChange={(e) => updateEntry(entry.id, 'orderType', e.target.value)}
                                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white appearance-none cursor-pointer text-sm font-medium"
                                                 >
-                                                    <option value="" className="bg-[#07090D]">Select Order Type...</option>
-                                                    {BUSINESS_ORDER_TYPES.map(type => <option key={type} value={type} className="bg-[#07090D]">{type}</option>)}
+                                                    <option value="" className="bg-[#09090B]">Select Order Type...</option>
+                                                    {BUSINESS_ORDER_TYPES.map(type => <option key={type} value={type} className="bg-[#09090B]">{type}</option>)}
                                                 </select>
                                             </div>
                                         </div>
@@ -431,16 +429,16 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                     <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white/5 border border-white/5 rounded-xl">
                                         <div className="flex items-center gap-6">
                                             <div className="space-y-2">
-                                                <label className="text-sm font-medium text-slate-300 block mb-2">Priority</label>
+                                                <label className="text-sm font-medium text-zinc-300 block mb-2">Priority</label>
                                                 <div className="flex gap-2">
                                                     {['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].map(p => (
                                                         <button
                                                             key={p}
                                                             type="button"
                                                             onClick={() => updateEntry(entry.id, 'priority', p)}
-                                                            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase transition-all border ${entry.priority === p
-                                                                ? 'bg-[#3B82F6] border-blue-500 text-white shadow-lg shadow-blue-900/40 scale-105'
-                                                                : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
+                                                            className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold  transition-all border ${entry.priority === p
+                                                                ? 'bg-[#1F1F23] border-blue-500 text-white shadow-lg shadow-blue-900/40 scale-105'
+                                                                : 'bg-white/5 border-white/5 text-zinc-400 hover:bg-white/10'
                                                                 }`}
                                                         >
                                                             {p}
@@ -455,11 +453,11 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                             onClick={() => updateEntry(entry.id, 'isFlagged', !entry.isFlagged)}
                                             className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${entry.isFlagged
                                                 ? 'bg-red-500/20 border-red-500/30 text-red-400 shadow-lg shadow-red-900/20'
-                                                : 'bg-white/5 border-white/5 text-slate-400 hover:bg-white/10'
+                                                : 'bg-white/5 border-white/5 text-zinc-400 hover:bg-white/10'
                                                 }`}
                                         >
                                             <Flag className={`w-4 h-4 ${entry.isFlagged ? 'fill-red-400' : ''}`} />
-                                            <span className="text-[11px] font-bold">Attention</span>
+                                            <span className="text-[11px] font-semibold">Attention</span>
                                         </button>
                                     </div>
 
@@ -481,27 +479,27 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                     <button
                         type="button"
                         onClick={addEntry}
-                        className="w-full py-6 bg-white/5 border-2 border-dashed border-white/10 rounded-2xl text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all font-bold text-xs flex items-center justify-center gap-3 group"
+                        className="w-full py-6 bg-white/5 border-2 border-dashed border-white/10 rounded-2xl text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all font-semibold text-xs flex items-center justify-center gap-3 group"
                     >
                         <Plus className="w-5 h-5 group-hover:scale-125 transition-transform" />
                         Add New Objective to Workspace
                     </button>
 
                     {/* Footer Actions */}
-                    <div className="flex justify-end gap-6 pt-8 border-t border-[rgba(255,255,255,0.06)] sticky bottom-0 bg-[#07090D] pb-0 mt-8 z-10 box-content">
+                    <div className="flex justify-end gap-6 pt-8 border-t border-[rgba(255,255,255,0.06)] sticky bottom-0 bg-[#09090B] pb-0 mt-8 z-10 box-content">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-6 py-3 text-xs font-bold text-slate-400 hover:text-white transition-colors"
+                            className="px-6 py-3 text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="relative group px-5 sm:px-10 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-bold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden"
+                            className="relative group px-5 sm:px-10 py-3 bg-[#1F1F23] hover:bg-[#1F1F23] text-white text-xs font-semibold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                             <span className="relative z-10">
                                 {isSubmitting ? 'Synchronizing...' : (entries.length > 1 ? `Execute ${entries.length} Deployments` : 'Initialize Milestone')}
                             </span>

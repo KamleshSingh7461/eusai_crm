@@ -48,7 +48,7 @@ export default function ExpandableSection({
         <div className={cn("select-none", className)}>
             <div
                 onClick={toggleExpanded}
-                className="flex items-center justify-between px-3 py-1.5 cursor-pointer hover:bg-[#1A1F2A] rounded-sm transition-colors group"
+                className="flex items-center justify-between px-3 py-1.5 cursor-pointer hover:bg-[#1F1F23] rounded-sm transition-colors group"
             >
                 <div className="flex items-center gap-2 flex-1">
                     <ChevronRight

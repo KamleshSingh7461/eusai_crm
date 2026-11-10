@@ -122,18 +122,18 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
             <div
-                className="bg-[#0F131B] border border-white/[0.08] rounded-3xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.06)] w-full rounded-b-none sm:rounded-b-3xl max-w-3xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]"
+                className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full rounded-b-none sm:rounded-b-3xl max-w-3xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="px-6 py-5 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between bg-gradient-to-r from-[rgba(0,0,0,0.3)] to-transparent shrink-0">
+                <div className="px-6 py-5 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center shadow-lg">
+                        <div className="w-8 h-8 rounded-lg bg-[#3B82F6] flex items-center justify-center shadow-lg">
                             <Target className="w-5 h-5 text-white" />
                         </div>
-                        <h3 className="font-display text-base font-bold text-white">Milestone analysis</h3>
+                        <h3 className="font-display text-base font-semibold text-white">Milestone analysis</h3>
                     </div>
                     <button
                         onClick={onClose}
@@ -150,7 +150,7 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
                         <div className="flex flex-wrap items-center gap-3">
                             <StatusBadge status={mapStatusForBadge(milestone.status)} size="sm" />
                             <div className={cn(
-                                "text-[11px] font-bold px-2 py-0.5 rounded-sm border inline-flex items-center gap-1.5 shadow-sm",
+                                "text-[11px] font-semibold px-2 py-0.5 rounded-sm border inline-flex items-center gap-1.5 shadow-sm",
                                 milestone.priority === 'CRITICAL' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
                                     milestone.priority === 'HIGH' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
                                         'bg-blue-500/10 text-blue-400 border-blue-500/20'
@@ -159,13 +159,13 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
                                 Sensitivity: {milestone.priority}
                             </div>
                             {milestone.isFlagged && (
-                                <div className="bg-red-500/10 text-red-500 text-[11px] font-bold px-2 py-0.5 rounded border border-red-500/20 flex items-center gap-1.5 animate-pulse">
+                                <div className="bg-red-500/10 text-red-500 text-[11px] font-semibold px-2 py-0.5 rounded border border-red-500/20 flex items-center gap-1.5 animate-pulse">
                                     <Flag className="w-3 h-3 fill-current" />
                                     Active Intervention Required
                                 </div>
                             )}
                         </div>
-                        <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tighter leading-tight">
+                        <h2 className="text-2xl sm:text-3xl font-semibold text-white tracking-tighter leading-tight">
                             {milestone.title}
                         </h2>
                     </div>
@@ -173,25 +173,25 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
                     {/* Meta Stats Grid */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-xl p-4 space-y-2">
-                            <span className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] block">Category Scope</span>
-                            <div className="text-[11px] font-bold text-white uppercase tracking-tight">{milestone.category}</div>
+                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] block">Category Scope</span>
+                            <div className="text-[11px] font-semibold text-white tracking-tight">{milestone.category}</div>
                         </div>
                         <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-xl p-4 space-y-2">
-                            <span className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] block">MOU</span>
-                            <div className="text-[11px] font-bold text-blue-400 uppercase tracking-tight">{milestone.mouType || "Standard EU-SAI"}</div>
+                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] block">MOU</span>
+                            <div className="text-[11px] font-semibold text-blue-400 tracking-tight">{milestone.mouType || "Standard EU-SAI"}</div>
                         </div>
                         <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-xl p-4 gap-2 flex flex-col justify-between">
-                            <span className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] block">Progress</span>
+                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] block">Progress</span>
                             <div className="flex items-center gap-2">
-                                <span className="text-xl font-bold text-white leading-none">{milestone.progress}%</span>
-                                <div className="flex-1 h-1 bg-[#141414] rounded-full overflow-hidden">
+                                <span className="text-xl font-semibold text-white leading-none">{milestone.progress}%</span>
+                                <div className="flex-1 h-1 bg-[#18181B] rounded-full overflow-hidden">
                                     <div className="h-full bg-blue-600 rounded-full" style={{ width: `${milestone.progress}%` }} />
                                 </div>
                             </div>
                         </div>
                         <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-xl p-4 space-y-2">
-                            <span className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] block">Timeline Target</span>
-                            <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-tight flex items-center gap-1.5">
+                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] block">Timeline Target</span>
+                            <div className="text-[11px] font-semibold text-emerald-400 tracking-tight flex items-center gap-1.5">
                                 <Calendar className="w-3 h-3" />
                                 {new Date(milestone.targetDate).toLocaleDateString()}
                             </div>
@@ -201,41 +201,41 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
                     {/* Detailed Metadata */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-xl p-5">
                         <div className="space-y-1.5">
-                            <span className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] flex items-center gap-2">
+                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] flex items-center gap-2">
                                 <Shield className="w-3 h-3" />
                                 Governance Owner
                             </span>
                             <div className="flex items-center gap-2.5">
-                                <div className="w-7 h-7 rounded bg-[#0D1016] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-bold text-white text-[11px] shadow-inner">
+                                <div className="w-7 h-7 rounded bg-[#111113] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-semibold text-white text-[11px] shadow-inner">
                                     {milestone.ownerUser?.name?.charAt(0) || 'U'}
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-bold text-white leading-tight">{milestone.ownerUser?.name || "Unassigned"}</span>
-                                    <span className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] uppercase tracking-tight">Owner</span>
+                                    <span className="text-sm font-semibold text-white leading-tight">{milestone.ownerUser?.name || "Unassigned"}</span>
+                                    <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] tracking-tight">Owner</span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="space-y-1.5">
-                            <span className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] flex items-center gap-2">
+                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] flex items-center gap-2">
                                 <Briefcase className="w-3 h-3" />
                                 Strategic Entities
                             </span>
                             <div className="flex flex-col gap-1">
                                 {milestone.project && (
-                                    <div className="text-sm font-bold text-[#3B82F6] flex items-center gap-1.5">
+                                    <div className="text-sm font-semibold text-[#3B82F6] flex items-center gap-1.5">
                                         <Shield className="w-3.5 h-3.5" />
                                         Project: {milestone.project.name}
                                     </div>
                                 )}
                                 {milestone.university && (
-                                    <div className="text-sm font-bold text-emerald-400 flex items-center gap-1.5">
+                                    <div className="text-sm font-semibold text-emerald-400 flex items-center gap-1.5">
                                         <GraduationCap className="w-3.5 h-3.5" />
                                         University: {milestone.university.name}
                                     </div>
                                 )}
                                 {!milestone.project && !milestone.university && (
-                                    <div className="text-sm font-bold text-[rgba(255,255,255,0.3)] italic">System-wide objective</div>
+                                    <div className="text-sm font-semibold text-[rgba(255,255,255,0.3)] italic">System-wide objective</div>
                                 )}
                             </div>
                         </div>
@@ -243,11 +243,11 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
 
                     {/* Description */}
                     <div className="space-y-3">
-                        <span className="text-[11px] font-bold text-[rgba(255,255,255,0.3)] flex items-center gap-2">
+                        <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] flex items-center gap-2">
                             <Activity className="w-3 h-3 text-[#3B82F6]" />
                             Strategic Scope & Description
                         </span>
-                        <div className="bg-[#141414] border border-[rgba(255,255,255,0.05)] rounded-xl p-6 shadow-inner">
+                        <div className="bg-[#18181B] border border-[rgba(255,255,255,0.05)] rounded-xl p-6 shadow-inner">
                             <p className="text-sm sm:text-base text-[rgba(255,255,255,0.8)] leading-relaxed whitespace-pre-wrap font-medium tracking-tight">
                                 {milestone.description || "Objective telemetry not provided for this mission."}
                             </p>
@@ -257,7 +257,7 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
                     {/* Executive Remarks (if exists) */}
                     {milestone.remarks && (
                         <div className="space-y-3">
-                            <span className="text-[11px] font-bold text-orange-400 flex items-center gap-2">
+                            <span className="text-[11px] font-semibold text-orange-400 flex items-center gap-2">
                                 <Flag className="w-3 h-3" />
                                 Executive Management Remarks
                             </span>
@@ -272,23 +272,23 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
                     {/* Mission Evidence & Strategic Ledger (Comments) */}
                     {milestone.comments && milestone.comments.length > 0 && (
                         <div className="space-y-4 pt-4 border-t border-[rgba(255,255,255,0.05)]">
-                            <span className="text-[11px] font-bold text-[#10B981] flex items-center gap-2">
+                            <span className="text-[11px] font-semibold text-[#10B981] flex items-center gap-2">
                                 <Target className="w-3 h-3" />
                                 Strategic Completion Evidence
                             </span>
 
                             <div className="space-y-4">
                                 {milestone.comments.map((comment) => (
-                                    <div key={comment.id} className="bg-[#191C1F] border border-[rgba(16,185,129,0.1)] rounded-xl overflow-hidden shadow-2xl">
+                                    <div key={comment.id} className="bg-[#1F1F23] border border-[rgba(16,185,129,0.1)] rounded-xl overflow-hidden shadow-2xl">
                                         <div className="px-4 py-3 bg-[rgba(16,185,129,0.03)] border-b border-[rgba(16,185,129,0.05)] flex items-center justify-between">
                                             <div className="flex items-center gap-2.5">
-                                                <div className="w-6 h-6 rounded bg-[#10B981]/10 flex items-center justify-center text-[11px] font-bold text-[#10B981] border border-[#10B981]/20">
+                                                <div className="w-6 h-6 rounded bg-[#111113] flex items-center justify-center text-[11px] font-semibold text-[#10B981] border border-[#10B981]/20">
                                                     {comment.user?.name?.charAt(0) || 'U'}
                                                 </div>
-                                                <span className="text-[11px] font-bold text-white">{comment.user?.name}</span>
-                                                <span className="text-[11px] font-bold text-[rgba(255,255,255,0.2)] bg-white/5 px-1.5 py-0.5 rounded uppercase tracking-tighter">{comment.user?.role}</span>
+                                                <span className="text-[11px] font-semibold text-white">{comment.user?.name}</span>
+                                                <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.2)] bg-white/5 px-1.5 py-0.5 rounded tracking-tighter">{comment.user?.role}</span>
                                             </div>
-                                            <span className="text-[11px] font-bold text-[rgba(255,255,255,0.15)] font-mono">
+                                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.15)] font-mono">
                                                 {new Date(comment.timestamp).toLocaleString()}
                                             </span>
                                         </div>
@@ -308,7 +308,7 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
                                                                 href={url}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="flex items-center gap-3 p-3 bg-[#0D1016] border border-[rgba(255,255,255,0.05)] rounded-lg hover:bg-[#22272B] hover:border-[rgba(16,185,129,0.2)] transition-all group shadow-lg"
+                                                                className="flex items-center gap-3 p-3 bg-[#111113] border border-[rgba(255,255,255,0.05)] rounded-lg hover:bg-[#1F1F23] hover:border-[rgba(16,185,129,0.2)] transition-all group shadow-lg"
                                                             >
                                                                 {isImage ? (
                                                                     <div className="w-12 h-12 rounded bg-black/40 flex items-center justify-center overflow-hidden shrink-0 border border-white/5">
@@ -320,8 +320,8 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
                                                                     </div>
                                                                 )}
                                                                 <div className="flex flex-col min-w-0">
-                                                                    <span className="text-[11px] font-bold text-white tracking-tight uppercase">Resource #{idx + 1}</span>
-                                                                    <span className="text-[11px] font-bold text-[#10B981] uppercase flex items-center gap-1 mt-0.5 group-hover:underline">
+                                                                    <span className="text-[11px] font-semibold text-white tracking-tight">Resource #{idx + 1}</span>
+                                                                    <span className="text-[11px] font-semibold text-[#10B981] flex items-center gap-1 mt-0.5 group-hover:underline">
                                                                         Inspect Payload <ExternalLink className="w-2 h-2" />
                                                                     </span>
                                                                 </div>
@@ -339,12 +339,12 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
                 </div>
 
                 {/* Footer */}
-                <div className="px-4 sm:px-8 py-6 border-t border-[rgba(255,255,255,0.08)] bg-gradient-to-b from-transparent to-[rgba(0,0,0,0.2)] shrink-0 flex items-center justify-between">
+                <div className="px-4 sm:px-8 py-6 border-t border-[rgba(255,255,255,0.08)] bg-transparent shrink-0 flex items-center justify-between">
                     <div className="flex gap-3">
                         {isSenior && isOverdue && (
                             <button
                                 onClick={handleSendOverdueReminder}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 rounded-lg text-[11px] font-bold uppercase tracking-[0.15em] transition-all border border-orange-500/30 active:scale-95 shadow-md"
+                                className="flex items-center gap-2 px-5 py-2.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 rounded-lg text-[11px] font-semibold transition-all border border-orange-500/30 active:scale-95 shadow-md"
                             >
                                 <BellRing className="w-4 h-4 animate-pulse" />
                                 Send Overdue Reminder (Email & Push)
@@ -354,7 +354,7 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
                             <button
                                 onClick={handleDelete}
                                 disabled={isDeleting}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-[11px] font-bold transition-all border border-red-500/20 active:scale-95 disabled:opacity-50"
+                                className="flex items-center gap-2 px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-[11px] font-semibold transition-all border border-red-500/20 active:scale-95 disabled:opacity-50"
                             >
                                 {isDeleting ? (
                                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -367,7 +367,7 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
                     </div>
                     <button
                         onClick={onClose}
-                        className="px-4 sm:px-8 py-2.5 bg-[#131720] hover:bg-[#1A1F2A] text-white rounded-lg text-[11px] font-bold transition-all border border-[rgba(255,255,255,0.05)] active:scale-95 shadow-lg"
+                        className="px-4 sm:px-8 py-2.5 bg-[#18181B] hover:bg-[#1F1F23] text-white rounded-lg text-[11px] font-semibold transition-all border border-[rgba(255,255,255,0.05)] active:scale-95 shadow-lg"
                     >
                         Acknowledge
                     </button>

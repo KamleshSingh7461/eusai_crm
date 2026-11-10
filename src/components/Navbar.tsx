@@ -16,6 +16,7 @@ import Avatar, { initialsOf } from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
 import { humanize, roleTone } from "@/components/ui/tones";
 import { openCommandPalette } from "@/components/Sidebar";
+import MobileTopBar from "@/components/MobileTopBar";
 
 interface NavbarProps {
     onMenuClick?: () => void;
@@ -39,7 +40,7 @@ function useBreadcrumbs() {
     }));
 }
 
-const menuItemClass = "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-slate-200 transition hover:bg-white/[0.06]";
+const menuItemClass = "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-zinc-200 transition hover:bg-white/[0.06]";
 
 function Dropdown({ open, onClose, className, children }: { open: boolean; onClose: () => void; className?: string; children: React.ReactNode }) {
     return (
@@ -52,7 +53,7 @@ function Dropdown({ open, onClose, className, children }: { open: boolean; onClo
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -6, scale: 0.98 }}
                         transition={{ duration: 0.15 }}
-                        className={cn('absolute right-0 top-full z-50 mt-2 rounded-2xl border border-white/[0.08] bg-[#11141B]/95 p-1.5 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.8)] backdrop-blur-2xl', className)}
+                        className={cn('absolute right-0 top-full z-50 mt-2 rounded-xl border border-[#2F2F35] bg-[#18181B] p-1 shadow-2xl shadow-black/60', className)}
                     >
                         {children}
                     </motion.div>
@@ -97,40 +98,47 @@ export default function Navbar(_props: NavbarProps) {
 
     return (
         <>
-            <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-white/[0.06] bg-[#07090D]/70 px-4 backdrop-blur-2xl sm:px-6 lg:px-8">
-                {/* mobile brand */}
-                <Link href="/" className="flex items-center gap-2 md:hidden">
-                    <span className="h-8 w-8 rounded-lg bg-white p-0.5"><img src="/EUSAI-LOGO.png" alt="EUSAI" className="h-full w-full object-contain" /></span>
-                    <span className="font-display text-base font-bold text-white">EUSAI</span>
-                </Link>
+            <MobileTopBar
+                crumbs={crumbs}
+                createItems={createItems}
+                canCreate={!isReadOnly}
+                onCreate={item => { if (item.dialog) setDialog(item.dialog); else if (item.href) go(item.href); }}
+            />
 
+            {/* tablets and desktop */}
+            <header className="sticky top-0 z-40 hidden h-16 items-center gap-3 border-b border-[#1C1C1F] bg-[#09090B] px-6 md:flex lg:px-8">
                 {/* breadcrumbs */}
                 <nav aria-label="Breadcrumb" className="hidden min-w-0 items-center gap-2 text-sm md:flex">
-                    <span className="text-slate-500">Workspace</span>
+                    <span className="text-zinc-500">Workspace</span>
                     {crumbs.map((crumb, i) => (
                         <React.Fragment key={crumb.href}>
-                            <ChevronRight className="h-4 w-4 shrink-0 text-slate-600" />
+                            <ChevronRight className="h-4 w-4 shrink-0 text-zinc-600" />
                             {i === crumbs.length - 1
-                                ? <span className="truncate font-medium text-slate-200">{crumb.label}</span>
-                                : <Link href={crumb.href} className="truncate text-slate-400 hover:text-slate-200">{crumb.label}</Link>}
+                                ? <span className="truncate font-medium text-zinc-200">{crumb.label}</span>
+                                : <Link href={crumb.href} className="truncate text-zinc-400 hover:text-zinc-200">{crumb.label}</Link>}
                         </React.Fragment>
                     ))}
                 </nav>
 
                 <div className="flex-1" />
 
-                <button onClick={openCommandPalette} className="hidden h-10 w-64 items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 text-sm text-slate-500 transition hover:bg-white/[0.06] hover:text-slate-300 xl:flex">
+                <button onClick={openCommandPalette} className="hidden h-9 w-64 items-center gap-2 rounded-lg border border-white/[0.07] bg-white/[0.03] px-3 text-sm text-zinc-500 transition hover:bg-white/[0.06] hover:text-zinc-300 xl:flex">
                     <Search className="h-4 w-4" />
                     <span className="flex-1 truncate whitespace-nowrap text-left">Search everything</span>
                     <kbd className="rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[11px]">Ctrl K</kbd>
+                </button>
+
+                <button onClick={openCommandPalette} aria-label="Search" title="Search (Ctrl K)"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-white/[0.06] active:bg-white/[0.08] md:h-9 md:w-9 md:border md:border-white/[0.07] md:bg-white/[0.03] xl:hidden">
+                    <Search className="h-[19px] w-[19px]" />
                 </button>
 
                 <NotificationCenter />
 
                 <button
                     onClick={() => setShowAssistant(!showAssistant)}
-                    className={cn('hidden h-10 w-10 items-center justify-center rounded-xl border transition lg:flex',
-                        showAssistant ? 'border-blue-400/30 bg-blue-500/15 text-blue-300' : 'border-white/[0.07] bg-white/[0.03] text-slate-300 hover:bg-white/[0.06]')}
+                    className={cn('hidden h-9 w-9 items-center justify-center rounded-lg border transition lg:flex',
+                        showAssistant ? 'border-blue-400/30 bg-blue-500/15 text-blue-300' : 'border-white/[0.07] bg-white/[0.03] text-zinc-300 hover:bg-white/[0.06]')}
                     title="Help assistant"
                     aria-label="Help assistant"
                 >
@@ -142,17 +150,17 @@ export default function Navbar(_props: NavbarProps) {
                         <button
                             onClick={() => setShowCreateMenu(!showCreateMenu)}
                             aria-label="Create"
-                            className="flex h-10 w-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-blue-500 to-blue-600 text-sm sm:w-auto sm:px-4 font-semibold text-white shadow-[0_8px_24px_-8px_rgba(59,130,246,0.8),inset_0_1px_0_rgba(255,255,255,0.25)] transition hover:from-blue-400 hover:to-blue-500"
+                            className="flex h-9 w-9 items-center justify-center gap-2 rounded-lg md:h-9 bg-blue-600 text-sm sm:w-auto sm:px-4 font-medium text-white transition-colors hover:bg-blue-500"
                         >
                             <Plus className="h-[18px] w-[18px] sm:h-4 sm:w-4" /> <span className="hidden sm:inline">Create</span> <ChevronDown className={cn('hidden h-4 w-4 opacity-70 transition sm:block', showCreateMenu && 'rotate-180')} />
                         </button>
-                        <Dropdown open={showCreateMenu} onClose={() => setShowCreateMenu(false)} className="w-72">
+                        <Dropdown open={showCreateMenu} onClose={() => setShowCreateMenu(false)} className="-right-12 w-[min(18rem,calc(100vw-1.5rem))] md:right-0">
                             {createItems.map(item => (
                                 <button key={item.label} onClick={() => { if (item.dialog) { setDialog(item.dialog); setShowCreateMenu(false); } else if (item.href) go(item.href); }} className={menuItemClass}>
                                     <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg', item.tone)}><item.icon className="h-4 w-4" /></span>
                                     <span className="min-w-0">
-                                        <span className="block font-medium text-slate-100">{item.label}</span>
-                                        <span className="block text-xs text-slate-500">{item.hint}</span>
+                                        <span className="block font-medium text-zinc-100">{item.label}</span>
+                                        <span className="block text-xs text-zinc-500">{item.hint}</span>
                                     </span>
                                 </button>
                             ))}
@@ -163,27 +171,27 @@ export default function Navbar(_props: NavbarProps) {
                 <div className="relative">
                     <button
                         onClick={() => setShowProfileMenu(!showProfileMenu)}
-                        className="flex h-10 items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.03] pl-1 pr-2 transition hover:bg-white/[0.06] sm:pr-3"
+                        className="ml-0.5 flex items-center gap-2 rounded-full transition md:h-9 md:rounded-lg md:border md:border-white/[0.07] md:bg-white/[0.03] md:pl-1 md:pr-3 md:hover:bg-white/[0.06]"
                         aria-label="Account menu"
                     >
                         <Avatar src={(session?.user as any)?.image} alt={session?.user?.name || ''} fallback={initialsOf(session?.user?.name)} className="h-8 w-8 text-[11px]" />
-                        <span className="hidden max-w-[120px] truncate text-sm font-medium text-slate-200 sm:block">{(session?.user?.name || 'User').split(' ')[0]}</span>
-                        <ChevronDown className="hidden h-4 w-4 text-slate-500 sm:block" />
+                        <span className="hidden max-w-[120px] truncate text-sm font-medium text-zinc-200 md:block">{(session?.user?.name || 'User').split(' ')[0]}</span>
+                        <ChevronDown className="hidden h-4 w-4 text-zinc-500 md:block" />
                     </button>
-                    <Dropdown open={showProfileMenu} onClose={() => setShowProfileMenu(false)} className="w-72">
+                    <Dropdown open={showProfileMenu} onClose={() => setShowProfileMenu(false)} className="w-[min(18rem,calc(100vw-1.5rem))]">
                         <div className="flex items-center gap-3 px-3 py-3">
                             <Avatar src={(session?.user as any)?.image} alt={session?.user?.name || ''} fallback={initialsOf(session?.user?.name)} className="h-10 w-10 text-xs" />
                             <div className="min-w-0 flex-1">
                                 <p className="truncate text-sm font-semibold text-white">{session?.user?.name || 'User'}</p>
-                                <p className="truncate text-xs text-slate-500">{session?.user?.email}</p>
+                                <p className="truncate text-xs text-zinc-500">{session?.user?.email}</p>
                             </div>
                         </div>
                         <div className="px-3 pb-2"><Badge tone={roleTone(userRole)}>{humanize(userRole)}</Badge></div>
                         <div className="my-1 h-px bg-white/[0.06]" />
-                        <button onClick={() => go('/profile')} className={menuItemClass}><User className="h-4 w-4 text-slate-400" /> Profile and settings</button>
-                        {isLeader && userRole !== 'MANAGEMENT' && <button onClick={() => go('/team')} className={menuItemClass}><Users className="h-4 w-4 text-slate-400" /> Team</button>}
-                        {isLeader && <button onClick={() => go('/spaces')} className={menuItemClass}><Building2 className="h-4 w-4 text-slate-400" /> Departments</button>}
-                        <button onClick={() => go('/reports/submit')} className={menuItemClass}><FileText className="h-4 w-4 text-slate-400" /> Submit daily report</button>
+                        <button onClick={() => go('/profile')} className={menuItemClass}><User className="h-4 w-4 text-zinc-400" /> Profile and settings</button>
+                        {isLeader && userRole !== 'MANAGEMENT' && <button onClick={() => go('/team')} className={menuItemClass}><Users className="h-4 w-4 text-zinc-400" /> Team</button>}
+                        {isLeader && <button onClick={() => go('/spaces')} className={menuItemClass}><Building2 className="h-4 w-4 text-zinc-400" /> Departments</button>}
+                        <button onClick={() => go('/reports/submit')} className={menuItemClass}><FileText className="h-4 w-4 text-zinc-400" /> Submit daily report</button>
                         <div className="my-1 h-px bg-white/[0.06]" />
                         <button onClick={() => signOut({ callbackUrl: '/login' })} className={cn(menuItemClass, 'text-rose-300 hover:bg-rose-500/10')}><LogOut className="h-4 w-4" /> Log out</button>
                     </Dropdown>
