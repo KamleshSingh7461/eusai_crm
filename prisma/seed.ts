@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { seedDemoData } from './demo-data'
+import { seedDemoCompanies } from './demo-companies'
 
 // Seeds a small, realistic org for local/staging. Idempotent: safe to re-run.
 if (process.env.APP_ENV === 'production') {
@@ -113,6 +114,7 @@ async function main() {
     // Demo organization (people, departments, six months of history). Local only, or SEED_DEMO=1.
     if (process.env.APP_ENV === 'local' || process.env.SEED_DEMO === '1') {
         await seedDemoData(prisma, { director: director.id, manager: manager.id, teamLeader: teamLeader.id, employee: employee.id, intern: intern.id, spaceId: space.id })
+        await seedDemoCompanies(prisma)
     }
 
     console.log('🌱 Seed finished.')
