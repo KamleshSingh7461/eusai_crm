@@ -1,8 +1,21 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { canManageCompany, currentUser, staffAccess } from '@/lib/companies';
+import { loadCardForView } from '@/lib/cardView';
 
 const REASONS = ['Lost', 'Stolen', 'Damaged', 'Details changed', 'Other'];
+
+/** GET /api/id-cards/:id : one card to view (front and back), for its holder, their company's HR and Directors. */
+export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
+    const user = await currentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { id } = await context.params;
+    const view = await loadCardForView({ id });
+    if (!view) return NextResponse.json({ error: 'Card not found' }, { status: 404 });
+    const allowed = view.holderId === user.id || canManageCompany(await staffAccess(user), view.holderCompanyId);
+    if (!allowed) return NextResponse.json({ error: 'Card not found' }, { status: 404 });
+    return NextResponse.json({ state: view.state, card: view.card });
+}
 
 /**
  * PATCH /api/id-cards/:id  { reason }

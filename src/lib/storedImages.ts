@@ -27,12 +27,17 @@ export function sniffImage(buf: Buffer): 'image/jpeg' | 'image/png' | 'image/web
  * Who may see a stored image:
  *  - a logo: anyone signed in (it's printed on cards and will show on the public verification page)
  *  - a photo: the person themselves, Directors, and HR of the person's company
- *  - a signature: Directors and HR of that company
+ *  - a signature: Directors, HR of that company, and the company's own staff (it's printed on their cards,
+ *    which they can view in the CRM)
  */
 export async function canViewImage(viewer: { id: string; role: string }, img: { kind: string; userId: string | null; companyId: string | null }) {
     if (img.kind === 'LOGO') return true;
     if (ALL_COMPANY_ROLES.includes(viewer.role)) return true;
     if (img.kind === 'PHOTO' && img.userId === viewer.id) return true;
+    if (img.kind === 'SIGNATURE' && img.companyId) {
+        const me = await prisma.user.findUnique({ where: { id: viewer.id }, select: { companyId: true } });
+        if (me?.companyId === img.companyId) return true;
+    }
     const access = await staffAccess(viewer);
     if (!access.canManageAny) return false;
     if (img.kind === 'SIGNATURE') return !!img.companyId && access.hrCompanyIds.includes(img.companyId);

@@ -5,6 +5,27 @@ import { employeeJson, employeeSelect } from '@/lib/employeeRecord';
 
 const select = { ...employeeSelect, isSuspended: true } as const;
 
+/**
+ * Who may read someone's employment record: the person, Directors and HR of their company, Management
+ * (read-only across the organisation), and the managers or team leaders they report to (the same people
+ * the Team pages show them to).
+ */
+async function canView(viewer: { id: string; role: string }, personId: string, canManage: boolean) {
+    if (viewer.id === personId || canManage || viewer.role === 'MANAGEMENT') return true;
+    if (viewer.role === 'TEAM_LEADER') {
+        return (await prisma.user.count({ where: { id: personId, reportingManagers: { some: { id: viewer.id } } } })) > 0;
+    }
+    if (viewer.role === 'MANAGER') {
+        return (await prisma.user.count({
+            where: {
+                id: personId,
+                OR: [{ reportingManagers: { some: { id: viewer.id } } }, { memberSpaces: { some: { managerId: viewer.id } } }],
+            },
+        })) > 0;
+    }
+    return false;
+}
+
 /** GET /api/employees/:id : employment summary for a profile page, and whether the viewer may edit it. */
 export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
     const user = await currentUser();
@@ -12,8 +33,9 @@ export async function GET(_req: Request, context: { params: Promise<{ id: string
     const { id } = await context.params;
     const person = await prisma.user.findUnique({ where: { id }, select });
     if (!person) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    const access = await staffAccess(user);
-    return NextResponse.json({ employee: employeeJson(person), canEdit: canManageCompany(access, person.companyId) });
+    const canEdit = canManageCompany(await staffAccess(user), person.companyId);
+    if (!(await canView(user, id, canEdit))) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return NextResponse.json({ employee: employeeJson(person), canEdit });
 }
 
 /**

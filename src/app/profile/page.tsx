@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { User, Mail, Shield, LogOut, Save, Lock } from 'lucide-react';
 import { signOut } from 'next-auth/react';
+import MyIdCard from '@/components/employees/MyIdCard';
 
 export default function ProfilePage() {
     const { data: session } = useSession();
@@ -94,6 +95,8 @@ export default function ProfilePage() {
                     Sign Out
                 </Button>
             </div>
+
+            <MyIdCard />
 
             {/* Profile Card */}
             <div className="bg-white/[0.03] border border-[#FFFFFF14] rounded-lg p-5 sm:p-8 space-y-6">

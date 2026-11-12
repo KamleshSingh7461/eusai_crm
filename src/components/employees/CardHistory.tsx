@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Ban, ExternalLink, Loader2, ScanLine } from 'lucide-react';
+import { Ban, ExternalLink, Eye, EyeOff, Loader2, ScanLine } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import { fieldClass } from '@/components/ui/Field';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
+import type { CardPayload } from '@/lib/idCards';
+import CardViewer from '@/components/employees/CardViewer';
 
 interface Card {
     id: string; cardNumber: string; status: 'ACTIVE' | 'REPLACED' | 'REVOKED'; companyCode: string;
@@ -31,6 +33,17 @@ export default function CardHistory({ userId, onChanged }: { userId: string; onC
     const [cancelling, setCancelling] = useState<string | null>(null);
     const [reason, setReason] = useState('Lost');
     const [busy, setBusy] = useState(false);
+    const [viewing, setViewing] = useState<string | null>(null);
+    const [views, setViews] = useState<Record<string, CardPayload | 'error'>>({});
+
+    const toggleView = async (id: string) => {
+        if (viewing === id) return setViewing(null);
+        setViewing(id);
+        if (views[id]) return;
+        const res = await fetch(`/api/id-cards/${id}`);
+        const data = res.ok ? await res.json() : null;
+        setViews(v => ({ ...v, [id]: data?.card || 'error' }));
+    };
 
     const load = useCallback(async () => {
         const res = await fetch(`/api/id-cards?userId=${encodeURIComponent(userId)}`);
@@ -76,6 +89,9 @@ export default function CardHistory({ userId, onChanged }: { userId: string; onC
                         </div>
                         <div className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
                             <span className="inline-flex items-center gap-1 text-zinc-400"><ScanLine className="h-3.5 w-3.5" />Checked {c.checks} {c.checks === 1 ? 'time' : 'times'}</span>
+                            <button type="button" onClick={() => toggleView(c.id)} aria-expanded={viewing === c.id} className="inline-flex items-center gap-1 text-zinc-200 hover:text-white">
+                                {viewing === c.id ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}{viewing === c.id ? 'Hide card' : 'View card'}
+                            </button>
                             <a href={c.verifyPath} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-300 hover:text-blue-200">
                                 <ExternalLink className="h-3.5 w-3.5" />See what a scan shows
                             </a>
@@ -85,6 +101,13 @@ export default function CardHistory({ userId, onChanged }: { userId: string; onC
                                 </button>
                             )}
                         </div>
+                        {viewing === c.id && (
+                            <div className="mt-3 rounded-xl bg-[#18181B] p-4">
+                                {views[c.id] === 'error' ? <p className="text-sm text-rose-300">Couldn't load this card.</p>
+                                    : views[c.id] ? <CardViewer card={views[c.id] as CardPayload} />
+                                        : <p className="flex items-center gap-2 text-sm text-zinc-500"><Loader2 className="h-4 w-4 animate-spin" />Loading…</p>}
+                            </div>
+                        )}
                         {cancelling === c.id && (
                             <div className="mt-3 space-y-2 rounded-lg border border-rose-500/25 bg-rose-500/[0.06] p-3">
                                 <p className="text-xs text-rose-200">Anyone checking this card will be told it's cancelled. Issue a new card to replace it.</p>
