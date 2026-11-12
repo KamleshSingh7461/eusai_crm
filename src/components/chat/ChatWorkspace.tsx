@@ -126,7 +126,7 @@ export default function ChatWorkspace() {
     const loadLatest = useCallback(async (channelId: string, initial: boolean) => {
         if (initial) { setLoadingMessages(true); setMessages([]); setHasMore(false); setError(''); }
         try {
-            const res = await fetch(`/api/chat/messages?channelId=${encodeURIComponent(channelId)}`, { cache: 'no-store' });
+            const res = await fetch(`/api/chat/messages?channelId=${encodeURIComponent(channelId)}&limit=200`, { cache: 'no-store' });
             if (activeRef.current !== channelId) return;
             if (res.status === 403) { setError('You don’t have access to this conversation.'); setMessages([]); return; }
             if (!res.ok) return;

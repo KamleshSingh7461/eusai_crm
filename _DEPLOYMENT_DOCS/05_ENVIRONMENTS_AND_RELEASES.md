@@ -28,7 +28,11 @@ Create the `staging` branch once from `dev-app` (`git push origin origin/dev-app
 ## 2. One-time: baseline existing databases (migration history reset)
 The old `prisma/migrations` were generated for SQLite and no longer matched the real schema, so the database was kept in sync with `db push`. They have been replaced by a single PostgreSQL baseline, `prisma/migrations/0_init`.
 
-**An existing database that already has the tables (production RDS today):** mark the baseline as applied. This does not change any tables:
+**An existing database that already has the tables (production RDS today):** mark the baseline as applied. This does not change any tables.
+
+Do this **before** the first push of this release to `dev-app`: if Amplify is connected it runs `prisma migrate deploy` on every push, and without the baseline that step stops with P3005 (refuses to touch a non-empty database) or P3018 (stops at `CREATE TABLE "User"`: already exists). Neither changes data, but the deploy fails until the baseline is recorded. Take an RDS snapshot first.
+
+Rehearsed on a copy of the live schema filled with data (34 tables, every row hashed before and after): the baseline plus `migrate deploy` left every row identical and the database matched `schema.prisma` exactly.
 ```bash
 npm run db:status:production                     # shows 0_init as not applied
 node scripts/env.mjs production npx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script

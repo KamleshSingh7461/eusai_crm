@@ -42,7 +42,7 @@ export async function GET(req: Request) {
         //   after=<ISO date>  only messages newer than this (cheap polling)
         //   before=<ISO date> older messages for infinite scroll
         //   limit=<n>         page size (max 500)
-        // Without them: the latest page, oldest first, as before.
+        // Without any of them: the full history, as before (see below).
         const after = searchParams.get('after');
         const before = searchParams.get('before');
         const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '') || PAGE, 1), 500);
@@ -53,6 +53,16 @@ export async function GET(req: Request) {
                 include: { sender: { select: senderSelect } },
                 orderBy: { createdAt: 'asc' },
                 take: 500,
+            });
+            return NextResponse.json({ messages, hasMore: false });
+        }
+
+        // No paging parameters at all = an older client (the mobile app): full history, oldest first, exactly as before.
+        if (!before && !searchParams.get('limit')) {
+            const messages = await prisma.chatMessage.findMany({
+                where: { channelId },
+                include: { sender: { select: senderSelect } },
+                orderBy: { createdAt: 'asc' },
             });
             return NextResponse.json({ messages, hasMore: false });
         }
