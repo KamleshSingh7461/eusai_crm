@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import { FieldHint, FieldLabel, fieldClass } from '@/components/ui/Field';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
+import ImageField from '@/components/employees/ImageField';
 
 export interface CompanyLite { id: string; code: string; legalName: string; isActive: boolean; brandColor?: string | null }
 
@@ -25,6 +26,9 @@ export interface EmployeeRow {
     exitDate: string | null;
     loginBlocked: boolean;
     missing: string[];
+    photoUrl: string | null;
+    card: { cardNumber: string; issuedAt: string; validUntil: string | null } | null;
+    cardBlockers: string[];
 }
 
 const STATUSES = [
@@ -54,6 +58,7 @@ export default function EmploymentModal({ employee, onClose, onSaved, selfId }: 
     const [exitDate, setExitDate] = useState('');
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
+    const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
     useEffect(() => {
         if (!employee) return;
@@ -62,11 +67,13 @@ export default function EmploymentModal({ employee, onClose, onSaved, selfId }: 
         setJoining(employee.dateOfJoining || '');
         setStatus(employee.employmentStatus);
         setExitDate(employee.exitDate || '');
+        setPhotoUrl(employee.photoUrl);
         setError('');
         if (!companies) {
             fetch('/api/companies').then(r => (r.ok ? r.json() : null)).then(d => setCompanies(d?.companies || [])).catch(() => setCompanies([]));
         }
-    }, [employee]); // eslint-disable-line react-hooks/exhaustive-deps
+        // reset only when another person is opened, so a photo upload doesn't wipe unsaved edits
+    }, [employee?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const chosen = companies?.find(c => c.id === companyId) || (employee?.company?.id === companyId ? employee.company : null);
     const companyChanged = !!employee && (employee.company?.id || '') !== companyId;
@@ -98,7 +105,7 @@ export default function EmploymentModal({ employee, onClose, onSaved, selfId }: 
                 data.issued ? `Employee ID ${data.issued} generated` : exiting ? `${employee.name || employee.email} marked as exited` : 'Employment details saved',
                 'success'
             );
-            onSaved(data.employee);
+            onSaved({ ...data.employee, photoUrl });
             onClose();
         } catch {
             setError("Couldn't reach the server. Check your connection and try again.");
@@ -141,6 +148,15 @@ export default function EmploymentModal({ employee, onClose, onSaved, selfId }: 
                             )}
                         </div>
                     </div>
+
+                    <ImageField
+                        kind="PHOTO"
+                        targetId={employee.id}
+                        url={photoUrl}
+                        label="ID card photo"
+                        hint="A recent passport-style photo: face clearly visible, plain background. Saved as soon as you confirm it."
+                        onChange={url => { setPhotoUrl(url); onSaved({ ...employee, photoUrl: url, cardBlockers: url ? employee.cardBlockers.filter(b => b !== 'photo') : Array.from(new Set([...employee.cardBlockers, 'photo'])) }); }}
+                    />
 
                     <div>
                         <FieldLabel htmlFor="emp-company" required>Employing company</FieldLabel>

@@ -85,6 +85,9 @@ model User {
   exitDate         DateTime? @db.Date
   // companies whose employee records this person manages as HR
   hrCompanies      Company[] @relation("CompanyHr")
+  // ID card photo (an /api/images/... address) and every card issued to them
+  photoUrl         String?
+  idCards          IdCard[]  @relation("CardHolder")
 
   @@index([companyId])
 }
@@ -110,12 +113,55 @@ model Company {
   emailDomains       String[] // sign-in is allowed for these domains, e.g. ["fgsnlive.com"]
   verifyDomain       String?  @unique // e.g. verify.fgsnlive.com, printed in card QR codes
   nextEmployeeNumber Int      @default(1)
+  cardValidityMonths Int      @default(24) // how long a newly issued ID card is valid
   isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  employees User[] @relation("CompanyEmployees")
-  hrUsers   User[] @relation("CompanyHr")
+  employees User[]   @relation("CompanyEmployees")
+  hrUsers   User[]   @relation("CompanyHr")
+  idCards   IdCard[]
+}
+
+// One printed ID card. Issuing a new card for someone marks their previous one REPLACED, so only the newest
+// card verifies. The card keeps a copy of what was printed on it, so verification shows what the holder carries.
+model IdCard {
+  id           String    @id @default(uuid())
+  cardNumber   String    @unique // short code printed on the back, typed in when the QR can't be scanned
+  token        String    @unique // long random code inside the QR; never shown as text
+  userId       String
+  user         User      @relation("CardHolder", fields: [userId], references: [id], onDelete: Cascade)
+  companyId    String
+  company      Company   @relation(fields: [companyId], references: [id])
+  employeeCode String
+  name         String
+  designation  String
+  status       String    @default("ACTIVE") // ACTIVE, REPLACED, REVOKED
+  issuedAt     DateTime  @default(now())
+  validUntil   DateTime  @db.Date
+  issuedById   String?
+  revokedAt    DateTime?
+  revokedReason String?
+  createdAt    DateTime  @default(now())
+
+  @@index([userId, status])
+}
+
+// Small private files kept in the database (ID photos, company logos, signatures), so they're covered by
+// database backups and only served through /api/images with an access check.
+model StoredImage {
+  id           String   @id @default(uuid())
+  kind         String   // PHOTO, LOGO, SIGNATURE
+  mimeType     String
+  size         Int
+  data         Bytes
+  userId       String?  // the person a PHOTO belongs to
+  companyId    String?  // the company a LOGO or SIGNATURE belongs to
+  uploadedById String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([companyId])
 }
 
 model PushSubscription {

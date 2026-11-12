@@ -4,7 +4,7 @@ import { CODE_RE, isValidDomain, normalizeDomain } from '@/lib/companies';
 export const companySelect = {
     id: true, code: true, legalName: true, cin: true, gstin: true, registeredAddress: true, officeAddress: true,
     website: true, hrEmail: true, hrPhone: true, logoUrl: true, brandColor: true, signatoryName: true,
-    signatoryTitle: true, signatureUrl: true, emailDomains: true, verifyDomain: true, nextEmployeeNumber: true,
+    signatoryTitle: true, signatureUrl: true, emailDomains: true, verifyDomain: true, nextEmployeeNumber: true, cardValidityMonths: true,
     isActive: true, createdAt: true,
     hrUsers: { select: { id: true, name: true, email: true } },
 } as const;
@@ -72,6 +72,11 @@ export async function readCompanyInput(body: any, existingId?: string): Promise<
         data.brandColor = optional(c);
     }
     if (has('isActive')) data.isActive = !!body.isActive;
+    if (has('cardValidityMonths')) {
+        const m = Number(body.cardValidityMonths);
+        if (![12, 24, 36, 60].includes(m)) return { error: 'Card validity must be 1, 2, 3 or 5 years.' };
+        data.cardValidityMonths = m;
+    }
 
     if (creating || has('emailDomains')) {
         const raw: string[] = Array.isArray(body.emailDomains) ? body.emailDomains : String(body.emailDomains || '').split(/[\s,]+/);

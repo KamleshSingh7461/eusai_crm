@@ -39,7 +39,7 @@ const BRAND = 'EUSAI Team';
 const now = () => new Date();
 const stamp = (d = now()) => format(d, 'd MMM yyyy, h:mm a');
 
-function download(blob: Blob, name: string) {
+export function download(blob: Blob, name: string) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

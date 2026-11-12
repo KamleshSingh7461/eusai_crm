@@ -12,6 +12,7 @@ import Modal, { ModalIcon } from '@/components/ui/Modal';
 import { FieldHint, FieldLabel, fieldClass } from '@/components/ui/Field';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
+import ImageField from '@/components/employees/ImageField';
 
 interface Person { id: string; name: string | null; email: string }
 interface Company {
@@ -19,6 +20,7 @@ interface Company {
     registeredAddress: string | null; officeAddress: string | null; website: string | null;
     hrEmail: string | null; hrPhone: string | null; brandColor: string | null;
     signatoryName: string | null; signatoryTitle: string | null;
+    logoUrl: string | null; signatureUrl: string | null; cardValidityMonths: number;
     emailDomains: string[]; verifyDomain: string | null; isActive: boolean;
     idsIssued: number; hrUsers: Person[];
     staff: { active: number; exited: number; missingId: number };
@@ -27,19 +29,21 @@ interface Company {
 const DEFAULT_COLOR = '#2563EB';
 
 // what has to be filled in before this company's ID cards can be printed
-const CARD_FIELDS: { key: keyof Company; label: string }[] = [
-    { key: 'cin', label: 'CIN' },
-    { key: 'registeredAddress', label: 'Registered address' },
-    { key: 'hrEmail', label: 'HR email' },
-    { key: 'hrPhone', label: 'HR phone' },
-    { key: 'signatoryName', label: 'Signatory' },
-    { key: 'verifyDomain', label: 'Verification address' },
-];
+// (the same rule the server applies before printing)
+const cardGaps = (c: Company) => [
+    !c.cin && 'CIN',
+    !c.registeredAddress && 'Registered address',
+    !c.hrEmail && !c.hrPhone && 'HR email or phone',
+    !c.signatoryName && 'Signatory',
+    !c.verifyDomain && 'Verification address',
+].filter(Boolean) as string[];
+// not required, but the card looks unfinished without them
+const cardExtras = (c: Company) => [!c.logoUrl && 'logo', !c.signatureUrl && 'signature image'].filter(Boolean) as string[];
 
 const emptyForm = {
     code: '', legalName: '', cin: '', gstin: '', registeredAddress: '', officeAddress: '', website: '',
     hrEmail: '', hrPhone: '', brandColor: DEFAULT_COLOR, signatoryName: '', signatoryTitle: '',
-    emailDomains: '', verifyDomain: '', isActive: true, hrUserIds: [] as string[],
+    emailDomains: '', verifyDomain: '', isActive: true, hrUserIds: [] as string[], cardValidityMonths: 24,
 };
 type Form = typeof emptyForm;
 
@@ -94,7 +98,7 @@ export default function CompaniesPage() {
             {canEdit && (
                 <CompanyModal
                     company={editing}
-                    onClose={() => setEditing(null)}
+                    onClose={() => { setEditing(null); load(); }}
                     onSaved={(msg) => { showToast(msg, 'success'); setEditing(null); load(); }}
                 />
             )}
@@ -103,15 +107,20 @@ export default function CompaniesPage() {
 }
 
 function CompanyCard({ company: c, canEdit, onEdit }: { company: Company; canEdit: boolean; onEdit: () => void }) {
-    const gaps = CARD_FIELDS.filter(f => !c[f.key]);
+    const gaps = cardGaps(c);
+    const extras = cardExtras(c);
     const color = c.brandColor || DEFAULT_COLOR;
     return (
         <Card padding="none" className={cn('flex flex-col overflow-hidden', !c.isActive && 'opacity-70')}>
             <div className="h-1" style={{ background: color }} />
             <div className="flex items-start gap-3 p-5 pb-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[11px] font-bold tracking-wide text-white" style={{ background: color }}>
-                    {c.code.slice(0, 5)}
-                </div>
+                {c.logoUrl ? (
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1"><img src={c.logoUrl} alt="" className="h-full w-full object-contain" /></div>
+                ) : (
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[11px] font-bold tracking-wide text-white" style={{ background: color }}>
+                        {c.code.slice(0, 5)}
+                    </div>
+                )}
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                         <h2 className="text-[15px] font-semibold leading-snug text-white">{c.legalName}</h2>
@@ -143,7 +152,7 @@ function CompanyCard({ company: c, canEdit, onEdit }: { company: Company; canEdi
 
             <div className={cn('flex items-start gap-2 border-t border-[#232327] px-5 py-3 text-xs', gaps.length ? 'text-amber-300' : 'text-emerald-300')}>
                 {gaps.length ? <CircleAlert className="mt-px h-3.5 w-3.5 shrink-0" /> : <CheckCircle2 className="mt-px h-3.5 w-3.5 shrink-0" />}
-                <span>{gaps.length ? `Needed for ID cards: ${gaps.map(g => g.label).join(', ')}` : 'Ready for ID cards'}</span>
+                <span>{gaps.length ? `Needed for ID cards: ${gaps.join(', ')}` : extras.length ? `Ready for ID cards. Recommended: add the ${extras.join(' and ')}.` : 'Ready for ID cards'}</span>
             </div>
         </Card>
     );
@@ -170,6 +179,7 @@ function CompanyModal({ company, onClose, onSaved }: { company: Company | 'new' 
     const [form, setForm] = useState<Form>(emptyForm);
     const [people, setPeople] = useState<Person[]>([]);
     const [hrSearch, setHrSearch] = useState('');
+    const [images, setImages] = useState<{ logoUrl: string | null; signatureUrl: string | null }>({ logoUrl: null, signatureUrl: null });
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
 
@@ -177,12 +187,13 @@ function CompanyModal({ company, onClose, onSaved }: { company: Company | 'new' 
         if (!company) return;
         setError('');
         setHrSearch('');
+        setImages({ logoUrl: existing?.logoUrl ?? null, signatureUrl: existing?.signatureUrl ?? null });
         setForm(existing ? {
             code: existing.code, legalName: existing.legalName, cin: existing.cin || '', gstin: existing.gstin || '',
             registeredAddress: existing.registeredAddress || '', officeAddress: existing.officeAddress || '',
             website: existing.website || '', hrEmail: existing.hrEmail || '', hrPhone: existing.hrPhone || '',
             brandColor: existing.brandColor || DEFAULT_COLOR, signatoryName: existing.signatoryName || '',
-            signatoryTitle: existing.signatoryTitle || '', emailDomains: existing.emailDomains.join(', '),
+            signatoryTitle: existing.signatoryTitle || '', emailDomains: existing.emailDomains.join(', '), cardValidityMonths: existing.cardValidityMonths,
             verifyDomain: existing.verifyDomain || '', isActive: existing.isActive, hrUserIds: existing.hrUsers.map(u => u.id),
         } : emptyForm);
         if (!people.length) {
@@ -303,7 +314,27 @@ function CompanyModal({ company, onClose, onSaved }: { company: Company | 'new' 
                     </div>
                 </Section>
 
-                <Section title="Authorised signatory" hint="Signs ID cards and employment letters. The signature image is uploaded with the card designer.">
+                <Section title="Logo, signature and cards" hint={isNew ? 'Add the logo and signature after saving the company.' : 'Saved as soon as you upload them.'}>
+                    {existing && (
+                        <div className="grid gap-5 sm:grid-cols-2">
+                            <ImageField kind="LOGO" targetId={existing.id} url={images.logoUrl} label="Logo"
+                                hint="PNG with a transparent background works best." onChange={u => setImages(i => ({ ...i, logoUrl: u }))} />
+                            <ImageField kind="SIGNATURE" targetId={existing.id} url={images.signatureUrl} label="Signature"
+                                hint="Sign in dark ink on white paper and photograph it; the background is removed." onChange={u => setImages(i => ({ ...i, signatureUrl: u }))} />
+                        </div>
+                    )}
+                    <div className="sm:w-1/2">
+                        <FieldLabel htmlFor="co-validity">New cards are valid for</FieldLabel>
+                        <select id="co-validity" className={fieldClass} value={form.cardValidityMonths} onChange={e => set('cardValidityMonths', Number(e.target.value))}>
+                            <option value={12}>1 year</option>
+                            <option value={24}>2 years</option>
+                            <option value={36}>3 years</option>
+                            <option value={60}>5 years</option>
+                        </select>
+                    </div>
+                </Section>
+
+                <Section title="Authorised signatory" hint="Their name and title are printed under the signature on ID cards and letters.">
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div>
                             <FieldLabel htmlFor="co-sig">Name</FieldLabel>
