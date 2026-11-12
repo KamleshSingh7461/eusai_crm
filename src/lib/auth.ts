@@ -183,7 +183,11 @@ export const authOptions: NextAuthOptions = {
             }
             return true;
         },
-        async jwt({ token, user, account, profile }: any) {
+        async jwt({ token, user, account, profile, trigger, session }: any) {
+            // the Profile page renamed the person: show the new name without signing in again
+            if (trigger === 'update' && typeof session?.name === 'string' && session.name.trim()) {
+                token.name = session.name.trim().slice(0, 80);
+            }
             if (account) {
                 token.accessToken = account.access_token;
                 token.refreshToken = account.refresh_token;
