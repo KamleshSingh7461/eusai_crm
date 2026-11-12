@@ -13,12 +13,13 @@ export async function GET(request: NextRequest) {
     const userRole = (session.user as any).role;
     const currentUserId = (session.user as any).id;
 
-    if (!['DIRECTOR', 'MANAGER', 'TEAM_LEADER'].includes(userRole)) {
+    if (!['DIRECTOR', 'MANAGEMENT', 'MANAGER', 'TEAM_LEADER'].includes(userRole)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     try {
-        const targetUserIds = await getSubordinateIds(currentUserId, userRole);
+        // Management sees the whole organisation, read-only, like a Director
+        const targetUserIds = await getSubordinateIds(currentUserId, userRole === 'MANAGEMENT' ? 'DIRECTOR' : userRole);
 
         // Fetch Users with Task counts (active users only)
         const users = await prisma.user.findMany({

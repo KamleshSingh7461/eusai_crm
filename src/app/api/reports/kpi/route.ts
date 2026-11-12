@@ -160,13 +160,13 @@ export async function GET(request: NextRequest) {
 
 
         // 4. Task KPIs (Global/Team)
+        // Directors and Management have no scope lists: count every task. (OR: [{}, {}] matches nothing in Prisma.)
+        const scopeFilters = [
+            ...(targetUserIds ? [{ userId: { in: targetUserIds } }] : []),
+            ...(targetProjectIds ? [{ projectId: { in: targetProjectIds } }] : []),
+        ];
         const allTasks = await prisma.task.findMany({
-            where: {
-                OR: [
-                    targetUserIds ? { userId: { in: targetUserIds } } : {},
-                    targetProjectIds ? { projectId: { in: targetProjectIds } } : {}
-                ]
-            },
+            where: scopeFilters.length ? { OR: scopeFilters } : {},
             select: { status: true, priority: true, deadline: true, createdAt: true, updatedAt: true }
         });
 
@@ -214,7 +214,8 @@ export async function GET(request: NextRequest) {
             },
             team: {
                 velocity,
-                activeIssues: projects.reduce((acc, curr) => acc + curr._count.dailyReports, 0)
+                // open issues (not daily reports) across the projects in scope
+                activeIssues: projects.reduce((acc, curr) => acc + curr.issues.filter(i => !['CLOSED', 'RESOLVED'].includes(i.status)).length, 0)
             },
             // NEW SECTIONS
             risks: strategicRisks,

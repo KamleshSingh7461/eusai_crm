@@ -70,6 +70,7 @@ export async function GET(request: NextRequest) {
                 department: true,
                 image: true,
                 isSuspended: true,
+                createdAt: true,
                 memberSpaces: {
                     select: {
                         id: true,

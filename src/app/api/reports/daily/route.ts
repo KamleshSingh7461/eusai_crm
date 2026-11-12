@@ -90,7 +90,8 @@ export async function GET(request: NextRequest) {
                 }
             },
             orderBy: { date: 'desc' },
-            take: 500
+            // enough for a full month across a large team; exports use the same list
+            take: 3000
         });
 
         // Analytical Metadata for Executives
