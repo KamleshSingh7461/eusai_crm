@@ -82,6 +82,7 @@ export default function MobileTopBar({ crumbs, createItems, canCreate, onCreate 
     const [pastHero, setPastHero] = useState(false);
     const [sheet, setSheet] = useState<'create' | 'account' | null>(null);
     const [reportDone, setReportDone] = useState<boolean | null>(null);
+    const [dayOff, setDayOff] = useState<string | null>(null);
     const lastY = useRef(0);
 
     // scroll: glass after a few px, hide when scrolling down, show when scrolling up
@@ -106,15 +107,20 @@ export default function MobileTopBar({ crumbs, createItems, canCreate, onCreate 
 
     // today's daily report status, for the people who submit one
     useEffect(() => {
-        if (!user?.id || !REPORTING_ROLES.includes(role)) { setReportDone(null); return; }
+        if (!user?.id || !REPORTING_ROLES.includes(role)) { setReportDone(null); setDayOff(null); return; }
         const d = format(new Date(), 'yyyy-MM-dd');
         fetch(`/api/reports/daily?type=my&startDate=${d}&endDate=${d}`)
             .then(r => (r.ok ? r.json() : null))
             .then(j => setReportDone(j ? (j.reports || []).length > 0 : null))
             .catch(() => setReportDone(null));
+        // weekends and holidays: no report due, so no amber reminder
+        fetch(`/api/holidays?from=${d}&to=${d}`)
+            .then(r => (r.ok ? r.json() : null))
+            .then(j => setDayOff(j && !j.today?.isWorkingDay ? j.today?.reason || 'Day off' : null))
+            .catch(() => setDayOff(null));
     }, [user?.id, role, pathname]);
 
-    const statusDot = reportDone === null ? null : reportDone ? 'bg-emerald-400' : 'bg-amber-400';
+    const statusDot = reportDone === null ? null : reportDone ? 'bg-emerald-400' : dayOff ? null : 'bg-amber-400';
     const showTitle = !isHome || pastHero;
 
     const AvatarRing = ({ size = 'h-9 w-9' }: { size?: string }) => (
@@ -184,7 +190,12 @@ export default function MobileTopBar({ crumbs, createItems, canCreate, onCreate 
                     </h1>
 
                     <div className="relative mt-3 flex flex-wrap gap-2">
-                        {reportDone === false && (
+                        {reportDone === false && dayOff && (
+                            <span className="flex items-center gap-1.5 rounded-md bg-zinc-800 px-2.5 py-1 text-xs font-medium text-zinc-300">
+                                <CheckCircle2 className="h-3.5 w-3.5 text-zinc-400" />No report due today · {dayOff}
+                            </span>
+                        )}
+                        {reportDone === false && !dayOff && (
                             <Link href="/reports/submit" className="flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-300 ring-1 ring-inset ring-amber-500/20">
                                 <Clock3 className="h-3.5 w-3.5" />Daily report due by 11:59 PM<ChevronRight className="h-3.5 w-3.5 opacity-70" />
                             </Link>

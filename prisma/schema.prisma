@@ -534,3 +534,14 @@ model ChatMessage {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @default(now()) @updatedAt
 }
+
+// Company holidays marked by a Director. Like Saturdays and Sundays, no daily report is due on these
+// dates: streaks don't break, nobody is flagged or reminded, and weekly scores aren't reduced.
+model Holiday {
+  id          String   @id @default(uuid())
+  date        DateTime @unique @db.Date
+  name        String
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

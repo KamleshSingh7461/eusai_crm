@@ -7,7 +7,7 @@ import { useSession, signOut } from 'next-auth/react';
 import {
     Home, MessageSquare, Video, Clock, Briefcase, Target, CheckSquare, AlertTriangle, StickyNote, Table,
     Library, Sparkles, BookOpen, Users, Shield, Plus, ChevronLeft, ChevronDown, X, LogOut,
-    Search, Command, User, Building2, FileText, Smartphone, Monitor, Apple, Download
+    Search, Command, User, Building2, FileText, Smartphone, Monitor, Apple, Download, CalendarOff
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSpace } from '@/context/SpaceContext';
@@ -110,6 +110,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
         {
             title: 'Organization', items: [
                 { name: 'Team', href: '/team', icon: Users, show: canManageTeam },
+                { name: 'Holidays', href: '/holidays', icon: CalendarOff },
                 { name: 'System admin', href: '/admin', icon: Shield, show: userRole === 'DIRECTOR' },
             ]
         },

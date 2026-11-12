@@ -37,13 +37,18 @@ export default function ManagerFocus({ dash, variant = 'MANAGER' }: { dash: any;
     return (
         <>
             <section className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-                <StatCard label="Daily reports today" value={`${s.reportsSubmitted || 0}/${expected}`} icon={ClipboardCheck}
-                    tone={expected && s.reportsSubmitted >= expected ? 'emerald' : 'amber'}
-                    note={missing.length ? `${missing.length} not submitted yet` : 'Everyone has reported'} href="/reports?activeTab=TEAM" />
+                {dash.todayOff ? (
+                    <StatCard label="Daily reports today" value="Day off" icon={ClipboardCheck} tone="slate"
+                        note={`No report due · ${dash.todayOff}`} href="/holidays" />
+                ) : (
+                    <StatCard label="Daily reports today" value={`${s.reportsSubmitted || 0}/${expected}`} icon={ClipboardCheck}
+                        tone={expected && s.reportsSubmitted >= expected ? 'emerald' : 'amber'}
+                        note={missing.length ? `${missing.length} not submitted yet` : 'Everyone has reported'} href="/reports?activeTab=TEAM" />
+                )}
                 <StatCard label="Overdue tasks" value={s.overdueTasks || 0} icon={AlertTriangle} tone={s.overdueTasks ? 'rose' : 'emerald'}
                     note={`${s.openTasks || 0} open across your team`} href="/tasks?filter=overdue" />
                 <StatCard label="Due this week" value={s.dueThisWeek || 0} icon={CalendarClock} tone="blue"
-                    note={`${s.completedThisWeek || 0} completed this week`} href="/tasks" />
+                    note={`${s.completedThisWeek || 0} completed · ${dash.workingDaysThisWeek ?? 5} working day${dash.workingDaysThisWeek === 1 ? '' : 's'}${dash.holidaysThisWeek?.length ? ` (${dash.holidaysThisWeek.join(', ')})` : ''}`} href="/tasks" />
                 <StatCard label="Milestones at risk" value={s.atRiskMilestones || 0} icon={Target} tone={s.atRiskMilestones ? 'amber' : 'emerald'}
                     note="Delayed, flagged or past target" href="/milestones" />
             </section>

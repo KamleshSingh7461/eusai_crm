@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { todayStatus } from '@/lib/workdays';
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -195,7 +196,11 @@ export async function GET() {
         const completedTaskCount = allTasks.filter((t: any) => t.status === 'DONE').length;
         const taskCompletionRate = allTasks.length > 0 ? Math.round((completedTaskCount / allTasks.length) * 100) : 0;
 
+        // weekends and holidays: no report is due, so nobody counts as missing
+        const today_ = await todayStatus();
+
         return NextResponse.json({
+            todayOff: today_.isWorkingDay ? null : today_.reason,
             stats: {
                 partnerCount,
                 staffCount: users.length,
@@ -204,7 +209,7 @@ export async function GET() {
                 totalOpenIssues,
                 taskCompletionRate,
                 activeProjects: projects.filter((p: any) => p.status !== 'CLOSED').length,
-                missingReports: users.length - (await (prisma as any).dailyReport.count({
+                missingReports: !today_.isWorkingDay ? 0 : users.length - (await (prisma as any).dailyReport.count({
                     where: {
                         date: {
                             gte: new Date(new Date().setHours(0, 0, 0, 0)),

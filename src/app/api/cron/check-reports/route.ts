@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
 import { createNotification } from '@/lib/notifications';
+import { todayStatus } from '@/lib/workdays';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,6 +13,12 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        // Weekends and Director-marked holidays: no report is due, so nobody is flagged or emailed.
+        const status = await todayStatus();
+        if (!status.isWorkingDay) {
+            return NextResponse.json({ success: true, skipped: true, message: `No report due today (${status.reason}). Nobody flagged.` });
+        }
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 

@@ -1,5 +1,6 @@
 import { addDays, endOfWeek, startOfWeek, subDays } from 'date-fns';
 import prisma from '@/lib/prisma';
+import { countWorkingDays, getHolidays, todayStatus } from '@/lib/workdays';
 
 // Roles that submit a daily report
 const REPORTING_ROLES = ['EMPLOYEE', 'INTERN', 'TEAM_LEADER', 'MANAGER'];
@@ -33,7 +34,9 @@ export async function buildTeamFocus({ userId, teamIds, projectIds, ownedProject
     const people = [userId, ...teamIds];
     const milestoneScope = { OR: [{ owner: { in: people } }, { projectId: { in: ownedProjectIds } }, { spaceId: { in: spaceIds } }] };
 
-    const [team, reportsToday, teamTasks, milestones, issues, projects, paidOrders, pendingExpenses] = await Promise.all([
+    const [dayStatus, weekHolidays, team, reportsToday, teamTasks, milestones, issues, projects, paidOrders, pendingExpenses] = await Promise.all([
+        todayStatus(now),
+        getHolidays(weekStart, weekEnd),
         prisma.user.findMany({ where: { id: { in: teamIds }, isSuspended: false }, select: { id: true, name: true, role: true, image: true } }),
         prisma.dailyReport.findMany({ where: { userId: { in: teamIds }, date: today }, select: { userId: true } }),
         prisma.task.findMany({
@@ -66,7 +69,8 @@ export async function buildTeamFocus({ userId, teamIds, projectIds, ownedProject
 
     const activeTeamIds = new Set(team.map(m => m.id));
     const byId = new Map(team.map(m => [m.id, m]));
-    const reporters = team.filter(m => REPORTING_ROLES.includes((m.role || '').toUpperCase()));
+    // weekends and holidays: no report is due, so nobody is listed as missing
+    const reporters = dayStatus.isWorkingDay ? team.filter(m => REPORTING_ROLES.includes((m.role || '').toUpperCase())) : [];
     const submitted = new Set(reportsToday.map(r => r.userId).filter(id => activeTeamIds.has(id)));
     const missingReports = reporters.filter(m => !submitted.has(m.id));
 
@@ -89,6 +93,9 @@ export async function buildTeamFocus({ userId, teamIds, projectIds, ownedProject
         .slice(0, 5);
 
     return {
+        todayOff: dayStatus.isWorkingDay ? null : dayStatus.reason,
+        holidaysThisWeek: [...weekHolidays.values()],
+        workingDaysThisWeek: countWorkingDays(weekStart, weekEnd, weekHolidays),
         stats: {
             totalTeamSize: team.length,
             reportsSubmitted: submitted.size,

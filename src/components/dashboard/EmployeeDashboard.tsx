@@ -6,7 +6,8 @@ import { useSession } from 'next-auth/react';
 import { format, formatDistanceToNow, isPast } from 'date-fns';
 import {
     CheckCircle2, Flame, AlertCircle, Target, FileText, GraduationCap, IndianRupee,
-    Clock, PlayCircle, ArrowUpRight, CalendarDays, Send
+    Clock, PlayCircle, ArrowUpRight, CalendarDays, Send,
+    CalendarOff,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/context/ToastContext';
@@ -25,6 +26,8 @@ import { Card, CardHeader, DashboardError, DashboardSkeleton, firstName, greetin
 
 interface DashboardData {
     hasSubmittedReport: boolean;
+    /** set on weekends and holidays: no report is due today */
+    todayOff?: string | null;
     reportSubmissionTime: string | null;
     kpi: { efficiencyScore: number; streak: number; overdueMissions: number; activeMilestones: number; completedMilestones: number };
     milestones: any[];
@@ -102,6 +105,16 @@ export default function EmployeeDashboard() {
                 }
             />
 
+            {!data.hasSubmittedReport && data.todayOff ? (
+            <Card delay={0.05} padding="none" className="flex flex-wrap items-center gap-4 px-5 py-4">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-800 text-zinc-300 ring-1 ring-inset ring-zinc-700/70"><CalendarOff className="h-5 w-5" /></span>
+                <div className="min-w-[200px] flex-1">
+                    <p className="text-sm font-semibold text-white">No report due today · {data.todayOff}</p>
+                    <p className="text-sm text-zinc-400">Enjoy the day off. Your {kpi.streak}-day streak is safe. If you worked, you can still submit a report.</p>
+                </div>
+                <Button size="sm" variant="secondary" leftIcon={<Send className="h-3.5 w-3.5" />} onClick={() => router.push('/reports/submit')}>Submit anyway</Button>
+            </Card>
+            ) : (
             <Card delay={0.05} padding="none" className={cn('flex flex-wrap items-center gap-4 px-5 py-4',
                 data.hasSubmittedReport ? 'border-emerald-400/20  bg-emerald-500/[0.1] '
                     : isLate ? 'border-rose-400/20  bg-rose-500/[0.12] ' : 'border-blue-400/20  bg-blue-500/[0.12] ')}>
@@ -121,6 +134,7 @@ export default function EmployeeDashboard() {
                 </div>
                 {!data.hasSubmittedReport && <Button size="sm" variant={isLate ? 'danger' : 'primary'} leftIcon={<Send className="h-3.5 w-3.5" />} onClick={() => router.push('/reports/submit')}>Submit now</Button>}
             </Card>
+            )}
 
             <section className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4">
                 <StatCard delay={0.1} label="Completion rate" value={`${kpi.efficiencyScore}%`} icon={CheckCircle2}

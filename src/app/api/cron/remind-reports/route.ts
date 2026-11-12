@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { sendEmail } from '@/lib/email';
 import { isReportWindowOpen, REPORT_WINDOW_LABEL } from '@/lib/reportWindow';
 import { createNotification } from '@/lib/notifications';
+import { todayStatus } from '@/lib/workdays';
 
 export const dynamic = 'force-dynamic'; // Prevent static caching
 
@@ -22,6 +23,12 @@ export async function GET(request: NextRequest) {
 
     // Allow forcing via ?force=true for testing
     const force = searchParams.get('force') === 'true';
+
+    // Weekends and Director-marked holidays: no report is due, so no reminders (even when forced).
+    const status = await todayStatus(now);
+    if (!status.isWorkingDay) {
+        return NextResponse.json({ message: `No report due today (${status.reason}). Reminder skipped.` });
+    }
 
     if (!isWithinWindow && !force) {
         return NextResponse.json({

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { countWorkingDays, dayKey, getHolidays } from '@/lib/workdays';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getSubordinateIds } from '@/lib/hierarchy';
@@ -87,17 +88,14 @@ export async function POST(request: NextRequest) {
         const totalHoursWorked = dailyReports.reduce((sum, r) => sum + r.hoursWorked, 0);
         const accomplishments = dailyReports.map(r => r.accomplishments).join('\n• ');
 
-        // Calculate performance score (Mon-Fri baseline with Sat/Sun bonus)
-        // Baseline goal: 10 tasks + 40 hours per week = 90-100 score
-        const weekdayReports = dailyReports.filter(r => {
-            const d = new Date(r.date).getDay();
-            return d !== 0 && d !== 6;
-        });
-
-        const weekendReports = dailyReports.filter(r => {
-            const d = new Date(r.date).getDay();
-            return d === 0 || d === 6;
-        });
+        // Calculate performance score (working-day baseline with a bonus for days off)
+        // Baseline goal: 10 tasks + 40 hours per 5-day week = 90-100 score, scaled down when
+        // the week has holidays. Work reported on a weekend or holiday counts as bonus.
+        const holidays = await getHolidays(weekStart, weekEnd);
+        const workingDays = countWorkingDays(weekStart, weekEnd, holidays);
+        const isDayOff = (date: Date) => { const d = new Date(date); return d.getDay() === 0 || d.getDay() === 6 || holidays.has(dayKey(d)); };
+        const weekdayReports = dailyReports.filter(r => !isDayOff(r.date));
+        const weekendReports = dailyReports.filter(r => isDayOff(r.date));
 
         const weekdayTasks = weekdayReports.reduce((sum, r) => sum + r.tasksCompleted, 0);
         const weekdayHours = weekdayReports.reduce((sum, r) => sum + r.hoursWorked, 0);
@@ -108,7 +106,9 @@ export async function POST(request: NextRequest) {
         // Score logic: 
         // 1. Weekday contribution (capped at 100)
         // 2. Weekend contribution (added as potential over-performance)
-        const baseScore = Math.min(100, Math.round((weekdayTasks * 7) + (weekdayHours * 1.5)));
+        const baseScore = workingDays === 0
+            ? 100 // a week of holidays: nothing was expected
+            : Math.min(100, Math.round(((weekdayTasks * 7) + (weekdayHours * 1.5)) * (5 / workingDays)));
         const bonusScore = Math.round((weekendTasks * 5) + (weekendHours * 1));
 
         const performanceScore = Math.min(110, baseScore + bonusScore); // Max score 110 for overachievers
@@ -123,8 +123,9 @@ export async function POST(request: NextRequest) {
                 keyAccomplishments: accomplishments || 'No accomplishments reported',
                 performanceScore,
                 kpiMetrics: JSON.stringify({
-                    avgTasksPerDay: weekdayTasks / 5, // Divisor is always 5 for standard work week
-                    avgHoursPerDay: weekdayHours / 5,
+                    avgTasksPerDay: weekdayTasks / Math.max(workingDays, 1), // per working day (holidays excluded)
+                    avgHoursPerDay: weekdayHours / Math.max(workingDays, 1),
+                    workingDays,
                     weekendBonusTasks: weekendTasks,
                     weekendBonusHours: weekendHours,
                     completionRate: (totalTasksCompleted / Math.max(totalTasksCompleted, 1)) * 100
