@@ -34,17 +34,28 @@ export default function NotificationCenter() {
                 setUnreadCount(data.unreadCount);
             }
         } catch (error) {
-            console.error("Failed to fetch notifications", error);
+            // A request that never reached the server (offline, laptop asleep, server restarting) isn't an error
+            // worth reporting: the next poll or returning to the tab picks the notifications up again.
+            if (!(error instanceof TypeError)) console.error("Failed to fetch notifications", error);
         } finally {
             setLoading(false);
         }
     };
 
-    // Initial fetch and polling
+    // Poll every minute while the tab is visible; catch up straight away when the tab or connection comes back.
     useEffect(() => {
         fetchNotifications();
-        const interval = setInterval(fetchNotifications, 60000); // Poll every minute
-        return () => clearInterval(interval);
+        const interval = setInterval(() => {
+            if (document.visibilityState === 'visible' && navigator.onLine) fetchNotifications();
+        }, 60000);
+        const catchUp = () => { if (document.visibilityState === 'visible') fetchNotifications(); };
+        document.addEventListener('visibilitychange', catchUp);
+        window.addEventListener('online', catchUp);
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', catchUp);
+            window.removeEventListener('online', catchUp);
+        };
     }, []);
 
     // Handle click outside to close
