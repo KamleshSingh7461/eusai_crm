@@ -3,6 +3,7 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
+import { allowedSignInDomains } from "@/lib/companyDomains";
 import bcrypt from "bcryptjs";
 import { isLocal, isDevLoginEnabled } from "@/lib/env";
 
@@ -106,8 +107,8 @@ export const authOptions: NextAuthOptions = {
             const normalizedEmail = email.toLowerCase();
 
             // 1. Enforce Allowed Domains
-            const allowedDomains = ["@eusaiteam.com", "@alumniindia.com", "@fgsnlive.com", "@teamfibreinc.com"];
-            const isAllowedDomain = allowedDomains.some(domain => normalizedEmail.endsWith(domain));
+            // allowed domains are the email domains of the active companies (managed on the Companies page)
+            const isAllowedDomain = (await allowedSignInDomains()).includes(normalizedEmail.split('@')[1] || '');
 
             if (!isAllowedDomain) {
                 console.log(`🔴 Rejected login attempt from unauthorized domain: ${normalizedEmail}`);

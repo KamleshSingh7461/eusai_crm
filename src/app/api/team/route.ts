@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { sendEmail } from '@/lib/email';
+import { allowedSignInDomains } from '@/lib/companyDomains';
 
 // GET /api/team - Fetch all users with hierarchy info
 export async function GET(request: NextRequest) {
@@ -182,8 +183,8 @@ export async function POST(request: NextRequest) {
         const normalizedEmail = email.toLowerCase();
 
         // Enforce Allowed Domains for Invites
-        const allowedDomains = ["@eusaiteam.com", "@alumniindia.com", "@fgsnlive.com", "@teamfibreinc.com"];
-        const isAllowedDomain = allowedDomains.some(domain => normalizedEmail.endsWith(domain));
+        const inviteDomain = normalizedEmail.split('@')[1] || '';
+        const isAllowedDomain = (await allowedSignInDomains()).includes(inviteDomain);
 
         if (!isAllowedDomain) {
             return NextResponse.json({
@@ -253,6 +254,11 @@ export async function POST(request: NextRequest) {
                 name,
                 role: role || 'EMPLOYEE',
                 department: departmentDisplay,
+                // the employing company follows the email domain; HR can change it on the Employee IDs page
+                company: await (async () => {
+                    const match = await prisma.company.findFirst({ where: { emailDomains: { has: inviteDomain }, isActive: true }, select: { id: true } });
+                    return match ? { connect: { id: match.id } } : undefined;
+                })(),
                 reportingManagers: managerId ? { connect: { id: managerId } }
                     : body.managerIds ? { connect: body.managerIds.map((id: string) => ({ id })) }
                     : undefined,

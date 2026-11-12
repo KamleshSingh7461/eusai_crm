@@ -31,6 +31,7 @@ import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import Modal, { ModalIcon } from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
+import Link from 'next/link';
 
 interface User {
     id: string;
@@ -590,7 +591,7 @@ export default function TeamPage() {
                                                     value={formData.email}
                                                     onChange={e => setFormData({ ...formData, email: e.target.value })}
                                                     className="w-full pl-9 pr-3 py-2 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm text-sm focus:border-[#3B82F6] outline-none"
-                                                    placeholder="name@eusaiteam.com or @aumniindia.com"
+                                                    placeholder="name@eusaiteam.com"
                                                 />
                                             </div>
                                         </div>
@@ -817,6 +818,9 @@ export default function TeamPage() {
                         <div className="space-y-4">
                             <p className="text-sm text-[var(--notion-text-primary)] leading-relaxed">
                                 Are you sure you want to permanently delete <strong className="font-semibold text-heading">{userToDelete.name || userToDelete.email}</strong>?
+                            </p>
+                            <p className="rounded-md border border-amber-500/25 bg-amber-500/[0.07] p-3 text-xs leading-relaxed text-amber-200">
+                                If they have left the company, use <Link href="/employee-ids" className="font-semibold underline underline-offset-2">Mark as exited</Link> on Employee IDs instead. That blocks sign-in but keeps their record, so their ID card is reported correctly when someone checks it. Delete only accounts created by mistake.
                             </p>
                             <div className="p-3 bg-[var(--notion-bg-secondary)] rounded-md border border-[var(--notion-border-default)] text-xs text-[var(--notion-text-secondary)] space-y-1.5">
                                 <p className="font-semibold text-heading flex items-center gap-1.5">

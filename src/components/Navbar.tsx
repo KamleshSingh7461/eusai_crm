@@ -26,7 +26,7 @@ const SECTION_NAMES: Record<string, string> = {
     '': 'Home', inbox: 'Messages', meetings: 'Meetings', recent: 'Recents', projects: 'Projects', milestones: 'Milestones',
     tasks: 'Tasks', issues: 'Issues', notes: 'Notes', reports: 'Reports', library: 'Library', 'ai-assistant': 'EUSAI AI',
     welcome: 'Getting started', universities: 'Universities', resources: 'Resources', team: 'Team', admin: 'System admin',
-    spaces: 'Departments', wiki: 'Knowledge', health: 'Platform health', logs: 'System logs', profile: 'Profile', holidays: 'Holidays', new: 'New', submit: 'Submit report', performance: 'Performance', users: 'Users',
+    spaces: 'Departments', wiki: 'Knowledge', health: 'Platform health', logs: 'System logs', profile: 'Profile', holidays: 'Holidays', companies: 'Companies', 'employee-ids': 'Employee IDs', new: 'New', submit: 'Submit report', performance: 'Performance', users: 'Users',
 };
 
 /** "/reports/submit" -> [Reports, Submit report]; ids become "Details". */

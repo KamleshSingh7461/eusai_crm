@@ -16,7 +16,7 @@ const STATUS_TONES: Record<string, Tone> = {
     DONE: 'emerald', COMPLETED: 'emerald', RESOLVED: 'emerald', CLOSED: 'slate', APPROVED: 'emerald', PAID: 'emerald', PARTNER: 'emerald', ACTIVE: 'emerald', AVAILABLE: 'emerald',
     IN_PROGRESS: 'blue', EXECUTION: 'blue', RESOLVING: 'blue', ALLOCATED: 'blue', MONITORING: 'cyan',
     REVIEW: 'amber', PENDING: 'amber', PLANNING: 'violet', INITIATION: 'slate', PROSPECT: 'violet',
-    TODO: 'slate', OPEN: 'rose', DELAYED: 'rose', REJECTED: 'rose', CANCELLED: 'rose', OFFLINE: 'slate', INACTIVE: 'slate',
+    TODO: 'slate', OPEN: 'rose', DELAYED: 'rose', REJECTED: 'rose', CANCELLED: 'rose', OFFLINE: 'slate', INACTIVE: 'slate', ON_NOTICE: 'amber', EXITED: 'rose',
     CRITICAL: 'rose', HIGH: 'amber', MEDIUM: 'blue', LOW: 'slate',
 };
 

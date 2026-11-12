@@ -32,6 +32,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import Button from '@/components/ui/Button';
 import Modal, { ModalIcon } from '@/components/ui/Modal';
+import EmploymentPanel from '@/components/employees/EmploymentPanel';
 
 // --- DATA INTERFACES ---
 
@@ -328,6 +329,7 @@ export default function UserProfilePage() {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-10 pt-10 border-t border-white/5">
                 {/* Sidebar Navigation Context */}
                 <div className="lg:col-span-1 space-y-10">
+                    <EmploymentPanel userId={String(params.id)} />
                     <div>
                         <h4 className="text-[11px] font-semibold text-white/30 mb-6">Reports to</h4>
                         <div className="space-y-4">

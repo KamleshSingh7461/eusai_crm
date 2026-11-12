@@ -7,7 +7,7 @@ import { useSession, signOut } from 'next-auth/react';
 import {
     Home, MessageSquare, Video, Clock, Briefcase, Target, CheckSquare, AlertTriangle, StickyNote, Table,
     Library, Sparkles, BookOpen, Users, Shield, Plus, ChevronLeft, ChevronDown, X, LogOut,
-    Search, Command, User, Building2, FileText, Smartphone, Monitor, Apple, Download, CalendarOff
+    Search, Command, User, Building2, FileText, Smartphone, Monitor, Apple, Download, CalendarOff, IdCard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSpace } from '@/context/SpaceContext';
@@ -62,6 +62,15 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
     const [recentNotes, setRecentNotes] = useState<{ id: string; title: string }[]>([]);
     const [appsOpen, setAppsOpen] = useState(false);
 
+    // Directors always manage employee IDs; anyone else only if a Director made them HR for a company
+    const [isHr, setIsHr] = useState(false);
+    const userId = (session?.user as any)?.id;
+    useEffect(() => {
+        if (!userId || userRole === 'DIRECTOR') return;
+        fetch('/api/employees/access').then(r => (r.ok ? r.json() : null)).then(d => setIsHr(!!d?.canManage)).catch(() => {});
+    }, [userId, userRole]);
+    const canManageIds = userRole === 'DIRECTOR' || isHr;
+
     useEffect(() => {
         const loadNotes = () => {
             try {
@@ -111,6 +120,8 @@ export default function Sidebar({ isCollapsed, toggleSidebar, closeMobileMenu }:
             title: 'Organization', items: [
                 { name: 'Team', href: '/team', icon: Users, show: canManageTeam },
                 { name: 'Holidays', href: '/holidays', icon: CalendarOff },
+                { name: 'Employee IDs', href: '/employee-ids', icon: IdCard, show: canManageIds },
+                { name: 'Companies', href: '/companies', icon: Building2, show: userRole === 'DIRECTOR' },
                 { name: 'System admin', href: '/admin', icon: Shield, show: userRole === 'DIRECTOR' },
             ]
         },
