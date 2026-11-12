@@ -36,6 +36,41 @@ export interface VerifyRequest {
 export interface VerifyCompany {
     legalName: string; code: string; brandColor: string | null; cin: string | null;
     hrEmail: string | null; hrPhone: string | null; website: string | null; hasLogo: boolean;
+    registeredAddress: string | null; verifyDomain: string | null;
+}
+
+const brandSelect = {
+    legalName: true, code: true, brandColor: true, cin: true, hrEmail: true, hrPhone: true, website: true,
+    logoUrl: true, registeredAddress: true, verifyDomain: true,
+} as const;
+const toBrand = (c: { legalName: string; code: string; brandColor: string | null; cin: string | null; hrEmail: string | null; hrPhone: string | null; website: string | null; logoUrl: string | null; registeredAddress: string | null; verifyDomain: string | null }): VerifyCompany => ({
+    legalName: c.legalName, code: c.code, brandColor: c.brandColor, cin: c.cin, hrEmail: c.hrEmail, hrPhone: c.hrPhone,
+    website: c.website, hasLogo: !!c.logoUrl, registeredAddress: c.registeredAddress, verifyDomain: c.verifyDomain,
+});
+
+const isLocalDev = () => process.env.APP_ENV !== 'production' && process.env.NODE_ENV !== 'production';
+
+/**
+ * The company whose verification address this is, so the lookup page and "not found" answers carry its
+ * branding. In local development, verify.<code>.localhost (e.g. verify.fgsn.localhost) stands for that company.
+ */
+export async function companyForHost(host: string): Promise<VerifyCompany | null> {
+    const h = host.toLowerCase().split(':')[0];
+    if (!isVerifyHost(h)) return null;
+    let c = await prisma.company.findUnique({ where: { verifyDomain: h }, select: brandSelect });
+    if (!c && isLocalDev()) {
+        const m = /^verify\.([a-z0-9]{2,10})\.localhost$/.exec(h);
+        if (m) c = await prisma.company.findFirst({ where: { code: m[1].toUpperCase() }, select: brandSelect });
+    }
+    return c ? toBrand(c) : null;
+}
+
+/** A company's logo by its short code: logos are printed on every card, so they're public. */
+export async function companyLogo(code: string) {
+    if (!/^[A-Z][A-Z0-9]{1,9}$/.test(code)) return null;
+    const c = await prisma.company.findUnique({ where: { code }, select: { logoUrl: true } });
+    const id = c?.logoUrl?.startsWith('/api/images/') ? c.logoUrl.slice('/api/images/'.length) : null;
+    return id ? prisma.storedImage.findUnique({ where: { id }, select: { data: true, mimeType: true } }) : null;
 }
 export interface VerifyResult {
     state: VerifyState;
@@ -49,6 +84,8 @@ export interface VerifyResult {
     expiredOn?: string;
     /** opaque reference used to load the photo and logo for this result */
     ref?: string;
+    /** short id of this check in the log, shown to the visitor so HR can find it */
+    reference?: string;
 }
 
 const hashIp = (ip: string | null) =>
@@ -67,7 +104,7 @@ const allowedHere = (host: string, verifyDomain: string | null) => {
     if (!isVerifyHost(h)) return true; // the CRM's own address answers for every company
     if (verifyDomain && h === verifyDomain.toLowerCase()) return true;
     // local development: verify.localhost stands in for every company's address
-    return process.env.APP_ENV !== 'production' && process.env.NODE_ENV !== 'production' && h.endsWith('.localhost');
+    return isLocalDev() && h.endsWith('.localhost');
 };
 
 type CardForState = { status: string; companyId: string; employeeCode: string; validUntil: Date };
@@ -110,15 +147,17 @@ export async function verifyCard(req: VerifyRequest): Promise<VerifyResult> {
     const host = req.host.toLowerCase().split(':')[0].slice(0, 253);
 
     const log = (result: VerifyState, cardId: string | null) =>
-        prisma.verificationLog.create({ data: { cardId, method, result, host, ipHash, userAgent } }).catch(err => console.error('Verification log failed', err));
+        prisma.verificationLog.create({ data: { cardId, method, result, host, ipHash, userAgent }, select: { id: true } })
+            .then(r => r.id.replace(/-/g, '').slice(0, 8).toUpperCase())
+            .catch(err => { console.error('Verification log failed', err); return undefined; });
 
     // typed-in numbers are the guessable route, so they get a much tighter limit than scanned QR links
     const limited = method === 'NUMBER'
         ? !allow(`num:${ipHash}`, 10, 10 * 60_000)
         : !allow(`qr:${ipHash}`, 60, 60_000);
     if (limited) {
-        await log('LIMITED', null);
-        return { state: 'LIMITED', method, checkedAt };
+        const reference = await log('LIMITED', null);
+        return { state: 'LIMITED', method, checkedAt, reference };
     }
 
     const token = req.token && TOKEN_RE.test(req.token) ? req.token : null;
@@ -127,27 +166,23 @@ export async function verifyCard(req: VerifyRequest): Promise<VerifyResult> {
         ? await prisma.idCard.findUnique({
             where: token ? { token } : { cardNumber: number! },
             include: {
-                company: { select: { legalName: true, code: true, brandColor: true, cin: true, hrEmail: true, hrPhone: true, website: true, logoUrl: true, verifyDomain: true } },
+                company: { select: brandSelect },
                 user: { select: { companyId: true, employeeCode: true, employmentStatus: true, exitDate: true, dateOfJoining: true, photoUrl: true } },
             },
         })
         : null;
 
     if (!card || !allowedHere(host, card.company.verifyDomain)) {
-        await log('NOT_FOUND', null);
-        return { state: 'NOT_FOUND', method, checkedAt };
+        const reference = await log('NOT_FOUND', null);
+        return { state: 'NOT_FOUND', method, checkedAt, reference };
     }
 
-    const c = card.company;
-    const company: VerifyCompany = {
-        legalName: c.legalName, code: c.code, brandColor: c.brandColor, cin: c.cin,
-        hrEmail: c.hrEmail, hrPhone: c.hrPhone, website: c.website, hasLogo: !!c.logoUrl,
-    };
+    const company = toBrand(card.company);
     const u = card.user;
     const state = cardState(card, u);
 
-    await log(state, card.id);
-    const base: VerifyResult = { state, method, checkedAt, company, ref: card.token };
+    const reference = await log(state, card.id);
+    const base: VerifyResult = { state, method, checkedAt, company, ref: card.token, reference };
     if (state === 'EXPIRED') return { ...base, expiredOn: day(card.validUntil) };
     if (state !== 'VALID') return base;
     return {

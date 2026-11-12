@@ -49,5 +49,5 @@ Check it: open `https://verify.<domain>/` on a phone. The "Employee ID verificat
 
 ## Local testing
 
-`http://verify.localhost:3000` behaves like a company's verification address (browsers send `*.localhost` to
+`http://verify.<code>.localhost:3000` (for example `verify.fgsn.localhost`) behaves like that company's verification address, with its branding. Browsers send `*.localhost` to
 your own machine), and in local development it answers for every company's cards.
