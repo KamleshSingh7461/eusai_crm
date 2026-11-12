@@ -78,9 +78,9 @@ export default function PerformancePage() {
     };
 
     const getPerformanceBg = (score: number) => {
-        if (score >= 80) return 'bg-[#1F1F23] border-[#34D399]/30';
-        if (score >= 60) return 'bg-[#1F1F23] border-[#FBBF24]/30';
-        return 'bg-[#1F1F23] border-[#FB7185]/30';
+        if (score >= 80) return 'bg-[#34D399]/20 border-[#34D399]/30';
+        if (score >= 60) return 'bg-[#FBBF24]/20 border-[#FBBF24]/30';
+        return 'bg-[#FB7185]/20 border-[#FB7185]/30';
     };
 
     const topPerformer = performance[0];
@@ -197,7 +197,7 @@ export default function PerformancePage() {
                         <Activity className="w-5 h-5 text-green-400" /> Team members
                     </h3>
                     <div className="flex items-center gap-4">
-                        <span className="flex items-center gap-2 text-[11px] font-semibold text-[#34D399] bg-[#1F1F23] px-3 py-1.5 rounded-lg border border-[#34D399]/30 tracking-tighter">Elite</span>
+                        <span className="flex items-center gap-2 text-[11px] font-semibold text-[#34D399] bg-[#FB7185]/20 px-3 py-1.5 rounded-lg border border-[#34D399]/30 tracking-tighter">Elite</span>
                         <span className="flex items-center gap-2 text-[11px] font-semibold text-[#FBBF24] bg-[#1F1F23] px-3 py-1.5 rounded-lg border border-[#FBBF24]/30 tracking-tighter">Plan</span>
                         <span className="flex items-center gap-2 text-[11px] font-semibold text-[#FB7185] bg-[#1F1F23] px-3 py-1.5 rounded-lg border border-[#FB7185]/30 tracking-tighter">Critical</span>
                     </div>

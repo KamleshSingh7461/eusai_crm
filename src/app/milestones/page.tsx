@@ -407,7 +407,7 @@ export default function MilestonesPage() {
                                         </div>
                                         <div className="h-1 w-full bg-[#111113] rounded-full overflow-hidden">
                                             <div
-                                                className="h-full bg-[#1F1F23] transition-all duration-1000"
+                                                className="h-full bg-[#3B82F6] transition-all duration-1000"
                                                 style={{ width: `${(member.completed / member.total) * 100 || 0}%` }}
                                             />
                                         </div>
@@ -779,7 +779,7 @@ export default function MilestonesPage() {
                                     <NotionButton
                                         type="submit"
                                         disabled={isRemarking}
-                                        className="bg-[#1F1F23] hover:bg-[#1F1F23] text-white px-4 sm:px-8 shadow-xl shadow-blue-900/40 font-semibold text-[11px] h-10"
+                                        className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-4 sm:px-8 shadow-xl shadow-blue-900/40 font-semibold text-[11px] h-10"
                                     >
                                         {isRemarking ? 'Syncing...' : 'Sync Policy'}
                                     </NotionButton>

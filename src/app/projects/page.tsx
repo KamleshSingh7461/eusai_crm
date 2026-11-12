@@ -41,9 +41,9 @@ interface ProjectCardProps {
 function ProjectCard({ project, userRole, onDelete, onEdit, onClick }: ProjectCardProps) {
     // Calculate progress color
     const getProgressColor = (progress: number) => {
-        if (progress >= 100) return 'bg-[#1F1F23]'; // Notion Green
-        if (progress > 50) return 'bg-[#1F1F23]';   // Notion Blue
-        return 'bg-[#1F1F23]';                       // Notion Yellow
+        if (progress >= 100) return 'bg-[#34D399]'; // Notion Green
+        if (progress > 50) return 'bg-[#3B82F6]';   // Notion Blue
+        return 'bg-[#FBBF24]';                       // Notion Yellow
     };
 
     return (
@@ -228,7 +228,7 @@ export default function ProjectsPage() {
                         onClick={() => router.push('/projects/new')}
                         leftIcon={<Plus className="w-5 h-5" />}
                         size="md"
-                        className="bg-[#1F1F23] hover:bg-[#1F1F23] text-white shadow-lg shadow-blue-900/20"
+                        className="bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-blue-900/20"
                     >
                         New Project
                     </Button>

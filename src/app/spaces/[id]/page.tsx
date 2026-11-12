@@ -199,7 +199,7 @@ export default function SpaceDashboardPage() {
                     <p className="text-[var(--notion-text-secondary)] mb-6 text-sm">The space you are looking for doesn't exist or has been decommissioned.</p>
                     <button
                         onClick={() => router.push('/spaces')}
-                        className="w-full px-4 py-2 bg-[#1F1F23] text-white rounded-sm font-semibold text-sm hover:bg-[#1F1F23] transition-colors"
+                        className="w-full px-4 py-2 bg-[#3B82F6] text-white rounded-sm font-semibold text-sm hover:bg-[#2563EB] transition-colors"
                     >
                         Return to Directory
                     </button>
@@ -258,7 +258,7 @@ export default function SpaceDashboardPage() {
                             {canManageSpace && (
                                 <button
                                     onClick={() => setShowCreateProjectModal(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1F1F23] hover:bg-[#1F1F23] text-white rounded-sm font-semibold text-xs shadow-sm transition-colors"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-sm font-semibold text-xs shadow-sm transition-colors"
                                 >
                                     <Plus className="w-3.5 h-3.5" /> New Operation
                                 </button>
@@ -352,7 +352,7 @@ export default function SpaceDashboardPage() {
                                     {canManageSpace && (
                                         <button
                                             onClick={() => setShowCreateProjectModal(true)}
-                                            className="px-4 py-2 bg-[#1F1F23] text-white rounded-sm font-semibold text-xs hover:bg-[#1F1F23] transition-colors"
+                                            className="px-4 py-2 bg-[#3B82F6] text-white rounded-sm font-semibold text-xs hover:bg-[#2563EB] transition-colors"
                                         >
                                             Initialize First Operation
                                         </button>
@@ -375,8 +375,8 @@ export default function SpaceDashboardPage() {
                                                         </h4>
                                                         <span className={cn(
                                                             "px-2 py-0.5 rounded-sm text-[11px] font-semibold  ",
-                                                            project.status === 'EXECUTION' ? "bg-[#1F1F23] text-[#34D399]" :
-                                                                project.status === 'PLANNING' ? "bg-[#1F1F23] text-[#3B82F6]" :
+                                                            project.status === 'EXECUTION' ? "bg-[#34D399]/20 text-[#34D399]" :
+                                                                project.status === 'PLANNING' ? "bg-[#3B82F6]/20 text-[#3B82F6]" :
                                                                     "bg-[var(--notion-bg-tertiary)] text-[var(--notion-text-tertiary)]"
                                                         )}>
                                                             {project.status.replace('_', ' ')}
@@ -396,7 +396,7 @@ export default function SpaceDashboardPage() {
                                                                 setSelectedProjectIdForCreation(project.id);
                                                                 setShowCreateMilestoneModal(true);
                                                             }}
-                                                            className="px-2.5 py-1 text-[11px] font-semibold text-[#34D399] bg-[#1F1F23] hover:bg-[#1F1F23] rounded-sm border border-[#34D399]/30 transition-colors flex items-center gap-1"
+                                                            className="px-2.5 py-1 text-[11px] font-semibold text-[#34D399] bg-[#34D399]/10 hover:bg-[#34D399]/20 rounded-sm border border-[#34D399]/30 transition-colors flex items-center gap-1"
                                                         >
                                                             <Plus className="w-3 h-3" /> Milestone
                                                         </button>
@@ -407,7 +407,7 @@ export default function SpaceDashboardPage() {
                                                                 setSelectedProjectIdForCreation(project.id);
                                                                 setShowNewTaskModal(true);
                                                             }}
-                                                            className="px-2.5 py-1 text-[11px] font-semibold text-[#FBBF24] bg-[#1F1F23] hover:bg-[#1F1F23] rounded-sm border border-[#FBBF24]/30 transition-colors flex items-center gap-1"
+                                                            className="px-2.5 py-1 text-[11px] font-semibold text-[#FBBF24] bg-[#FBBF24]/10 hover:bg-[#FBBF24]/20 rounded-sm border border-[#FBBF24]/30 transition-colors flex items-center gap-1"
                                                         >
                                                             <Plus className="w-3 h-3" /> Task
                                                         </button>
@@ -452,7 +452,7 @@ export default function SpaceDashboardPage() {
                                                                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
                                                                             {ms.ownerUser && (
                                                                                 <span className="text-[var(--notion-text-secondary)] font-semibold flex items-center gap-1">
-                                                                                    <span className="w-4 h-4 rounded-full bg-[#1F1F23] text-[#34D399] flex items-center justify-center text-[11px] font-semibold">
+                                                                                    <span className="w-4 h-4 rounded-full bg-[#34D399]/20 text-[#34D399] flex items-center justify-center text-[11px] font-semibold">
                                                                                         {ms.ownerUser.name?.charAt(0) || 'U'}
                                                                                     </span>
                                                                                     {ms.ownerUser.name || ms.ownerUser.email}
@@ -461,7 +461,7 @@ export default function SpaceDashboardPage() {
                                                                             <span className="text-[var(--notion-text-tertiary)]">
                                                                                 Target: {new Date(ms.targetDate).toLocaleDateString()}
                                                                             </span>
-                                                                            <span className="px-1.5 py-0.5 rounded text-[11px] font-semibold bg-[#1F1F23] text-[#34D399]">
+                                                                            <span className="px-1.5 py-0.5 rounded text-[11px] font-semibold bg-[#34D399]/10 text-[#34D399]">
                                                                                 {ms.status}
                                                                             </span>
                                                                         </div>
@@ -516,7 +516,7 @@ export default function SpaceDashboardPage() {
                                                                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
                                                                             {task.assignedTo && (
                                                                                 <span className="text-[var(--notion-text-secondary)] font-semibold flex items-center gap-1">
-                                                                                    <span className="w-4 h-4 rounded-full bg-[#1F1F23] text-[#FBBF24] flex items-center justify-center text-[11px] font-semibold">
+                                                                                    <span className="w-4 h-4 rounded-full bg-[#FBBF24]/20 text-[#FBBF24] flex items-center justify-center text-[11px] font-semibold">
                                                                                         {task.assignedTo.name?.charAt(0) || 'U'}
                                                                                     </span>
                                                                                     {task.assignedTo.name || task.assignedTo.email}
@@ -527,7 +527,7 @@ export default function SpaceDashboardPage() {
                                                                             </span>
                                                                             <span className={cn(
                                                                                 "px-1.5 py-0.5 rounded text-[11px] font-semibold",
-                                                                                task.status === 'DONE' ? "bg-[#1F1F23] text-[#34D399]" : "bg-[#1F1F23] text-[#3B82F6]"
+                                                                                task.status === 'DONE' ? "bg-[#34D399]/20 text-[#34D399]" : "bg-[#3B82F6]/20 text-[#3B82F6]"
                                                                             )}>
                                                                                 {task.status}
                                                                             </span>
@@ -609,7 +609,7 @@ export default function SpaceDashboardPage() {
                                     <div key={member.id} className="flex items-center justify-between p-2 hover:bg-[var(--notion-bg-tertiary)] rounded-sm transition-colors border border-transparent hover:border-[var(--notion-border-default)]">
                                         <div className="flex items-center gap-3 min-w-0">
                                             <div className="relative shrink-0">
-                                                <div className="w-7 h-7 rounded-full bg-[#1F1F23] flex items-center justify-center font-semibold text-[#3B82F6] text-xs border border-white/10 overflow-hidden shadow-sm">
+                                                <div className="w-7 h-7 rounded-full bg-[#3B82F6]/20 flex items-center justify-center font-semibold text-[#3B82F6] text-xs border border-white/10 overflow-hidden shadow-sm">
                                                     {member.image ? (
                                                         <img src={member.image} alt={member.name || ''} className="w-full h-full object-cover" />
                                                     ) : (

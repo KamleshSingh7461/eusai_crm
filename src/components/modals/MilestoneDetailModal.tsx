@@ -282,7 +282,7 @@ export default function MilestoneDetailModal({ isOpen, onClose, onDelete, milest
                                     <div key={comment.id} className="bg-[#1F1F23] border border-[rgba(16,185,129,0.1)] rounded-xl overflow-hidden shadow-2xl">
                                         <div className="px-4 py-3 bg-[rgba(16,185,129,0.03)] border-b border-[rgba(16,185,129,0.05)] flex items-center justify-between">
                                             <div className="flex items-center gap-2.5">
-                                                <div className="w-6 h-6 rounded bg-[#111113] flex items-center justify-center text-[11px] font-semibold text-[#10B981] border border-[#10B981]/20">
+                                                <div className="w-6 h-6 rounded bg-[#10B981]/10 flex items-center justify-center text-[11px] font-semibold text-[#10B981] border border-[#10B981]/20">
                                                     {comment.user?.name?.charAt(0) || 'U'}
                                                 </div>
                                                 <span className="text-[11px] font-semibold text-white">{comment.user?.name}</span>

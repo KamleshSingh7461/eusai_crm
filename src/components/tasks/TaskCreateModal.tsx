@@ -249,7 +249,7 @@ export default function TaskCreateModal({ onClose, onSuccess, projectId, assigne
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="relative group px-5 sm:px-10 py-3 bg-[#1F1F23] hover:bg-[#1F1F23] text-white text-xs font-semibold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden flex items-center gap-2"
+                            className="relative group px-5 sm:px-10 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-semibold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden flex items-center gap-2"
                         >
                             <div className="absolute inset-0 bg-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                             {isLoading ? (

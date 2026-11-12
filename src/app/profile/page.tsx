@@ -72,9 +72,9 @@ export default function ProfilePage() {
 
     const getRoleBadgeColor = (role: string) => {
         switch (role) {
-            case 'ADMIN': return 'bg-[#1F1F23] text-white';
-            case 'PM': return 'bg-[#1F1F23] text-white';
-            default: return 'bg-[#1F1F23] text-white';
+            case 'ADMIN': return 'bg-[#FB7185] text-white';
+            case 'PM': return 'bg-[#3B82F6] text-white';
+            default: return 'bg-[#34D399] text-white';
         }
     };
 

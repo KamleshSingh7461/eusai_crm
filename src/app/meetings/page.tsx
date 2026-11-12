@@ -281,7 +281,7 @@ export default function MeetingsPage() {
                 <div className="relative">
                     <button
                         onClick={() => setIsNewMenuOpen(!isNewMenuOpen)}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-[#1F1F23] hover:bg-[#1F1F23] text-white rounded-lg font-semibold text-sm shadow-md transition-all active:scale-95"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg font-semibold text-sm shadow-md transition-all active:scale-95"
                     >
                         <Video className="w-4 h-4" />
                         <span>New Meeting</span>
@@ -392,7 +392,7 @@ export default function MeetingsPage() {
                                                         {meeting.attendees.slice(0, 5).map((guest, idx) => (
                                                             <div
                                                                 key={idx}
-                                                                className="w-5 h-5 rounded-full bg-[#1F1F23] text-[#3B82F6] flex items-center justify-center text-[11px] font-semibold border border-white/20"
+                                                                className="w-5 h-5 rounded-full bg-[#3B82F6]/20 text-[#3B82F6] flex items-center justify-center text-[11px] font-semibold border border-white/20"
                                                                 title={guest.name || guest.email}
                                                             >
                                                                 {guest.name?.charAt(0) || 'G'}
@@ -503,7 +503,7 @@ export default function MeetingsPage() {
                             />
                             <button
                                 onClick={() => copyToClipboard(createdInstantLink)}
-                                className="p-2 bg-[#1F1F23] hover:bg-[#1F1F23] text-white rounded-lg transition-colors flex items-center gap-1 text-xs font-semibold shrink-0"
+                                className="p-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg transition-colors flex items-center gap-1 text-xs font-semibold shrink-0"
                             >
                                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                                 {copied ? 'Copied' : 'Copy'}
@@ -645,7 +645,7 @@ export default function MeetingsPage() {
                                                     onChange={() => handleToggleGuest(user.id)}
                                                     className="rounded text-[#3B82F6]"
                                                 />
-                                                <div className="w-5 h-5 rounded-full bg-[#1F1F23] text-[#3B82F6] flex items-center justify-center font-semibold text-[11px]">
+                                                <div className="w-5 h-5 rounded-full bg-[#3B82F6]/20 text-[#3B82F6] flex items-center justify-center font-semibold text-[11px]">
                                                     {user.name?.charAt(0) || 'U'}
                                                 </div>
                                                 <span className="font-semibold text-heading">{user.name}</span>
@@ -780,7 +780,7 @@ export default function MeetingsPage() {
 
                             {/* Organizer Notice */}
                             <div className="flex items-center gap-3 p-3 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-xl">
-                                <div className="w-8 h-8 rounded-full bg-[#1F1F23] text-white flex items-center justify-center font-semibold text-xs">
+                                <div className="w-8 h-8 rounded-full bg-[#3B82F6] text-white flex items-center justify-center font-semibold text-xs">
                                     {currentUser?.name?.charAt(0) || 'O'}
                                 </div>
                                 <div className="flex flex-col">

@@ -437,7 +437,7 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                                             type="button"
                                                             onClick={() => updateEntry(entry.id, 'priority', p)}
                                                             className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold  transition-all border ${entry.priority === p
-                                                                ? 'bg-[#1F1F23] border-blue-500 text-white shadow-lg shadow-blue-900/40 scale-105'
+                                                                ? 'bg-[#3B82F6] border-blue-500 text-white shadow-lg shadow-blue-900/40 scale-105'
                                                                 : 'bg-white/5 border-white/5 text-zinc-400 hover:bg-white/10'
                                                                 }`}
                                                         >
@@ -497,7 +497,7 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="relative group px-5 sm:px-10 py-3 bg-[#1F1F23] hover:bg-[#1F1F23] text-white text-xs font-semibold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden"
+                            className="relative group px-5 sm:px-10 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-semibold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden"
                         >
                             <div className="absolute inset-0 bg-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                             <span className="relative z-10">

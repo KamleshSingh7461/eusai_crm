@@ -138,7 +138,7 @@ export default function NotesPage() {
                     </h1>
                     <button
                         onClick={createNote}
-                        className="p-2 bg-[#1F1F23] hover:bg-[#1F1F23] rounded-lg text-white transition-all shadow-lg hover:shadow-[#3B82F6]/25"
+                        className="p-2 bg-[#3B82F6] hover:bg-[#2563EB] rounded-lg text-white transition-all shadow-lg hover:shadow-[#3B82F6]/25"
                     >
                         <Plus className="w-5 h-5" />
                     </button>
@@ -174,7 +174,7 @@ export default function NotesPage() {
                                 className={cn(
                                     "p-4 rounded-xl border border-transparent cursor-pointer transition-all group relative overflow-hidden",
                                     activeNote?.id === note.id
-                                        ? "bg-[#1F1F23] border-[#3B82F6]/30 shadow-md"
+                                        ? "bg-[#3B82F6]/10 border-[#3B82F6]/30 shadow-md"
                                         : "bg-[#09090B] hover:bg-[#09090B] border-[rgba(255,255,255,0.05)]"
                                 )}
                             >
@@ -200,7 +200,7 @@ export default function NotesPage() {
                                     </button>
                                 </div>
                                 {activeNote?.id === note.id && (
-                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#1F1F23]" />
+                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#3B82F6]" />
                                 )}
                             </div>
                         ))

@@ -358,12 +358,12 @@ export default function UniversitiesPage() {
                                 </div>
                                 {((uni as any).milestones || []).some((m: any) => m.owner === userId) ? (
                                     <span className="flex items-center gap-1 text-[11px] font-semibold text-[#3B82F6] bg-blue-500/10 px-1.5 py-0.5 rounded-sm border border-blue-500/20">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#1F1F23] animate-pulse" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] animate-pulse" />
                                         My Active
                                     </span>
                                 ) : ((uni as any).milestones || []).length > 0 && (
                                     <span className="flex items-center gap-1 text-[11px] font-semibold text-[#34D399] bg-green-500/10 px-1.5 py-0.5 rounded-sm border border-green-400/25">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#1F1F23]" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#34D399]" />
                                         Team Active
                                     </span>
                                 )}
@@ -398,7 +398,7 @@ export default function UniversitiesPage() {
                                         </div>
                                         <div className="w-full h-1.5 bg-[var(--notion-bg-tertiary)] rounded-full overflow-hidden">
                                             <div
-                                                className="h-full bg-[#1F1F23] transition-all duration-500"
+                                                className="h-full bg-[#3B82F6] transition-all duration-500"
                                                 style={{ width: `${Math.round(uni.milestones.reduce((acc, m) => acc + (m.progress || 0), 0) / uni.milestones.length)}%` }}
                                             />
                                         </div>

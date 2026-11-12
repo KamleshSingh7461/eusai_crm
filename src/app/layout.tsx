@@ -29,8 +29,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geist.variable} ${geistMono.variable}`}>
-      <body className="font-sans antialiased">
+    // suppressHydrationWarning: browser extensions (Grammarly, password managers) add attributes to
+    // <html>/<body> before React loads. This only ignores attribute differences on these two tags.
+    <html lang="en" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
+      <body className="font-sans antialiased" suppressHydrationWarning>
         <EnvBadge />
         <Providers>
           <AppShell>

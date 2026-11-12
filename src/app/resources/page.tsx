@@ -194,7 +194,7 @@ export default function ResourceManagementPage() {
                         </div>
                         <p className="text-3xl font-semibold text-heading mb-1">{meta?.avgUtilization || 0}%</p>
                         <div className="w-full h-1 bg-[var(--notion-bg-tertiary)] rounded-full mt-2 overflow-hidden">
-                            <div className="h-full bg-[#1F1F23]" style={{ width: `${meta?.avgUtilization || 0}%` }} />
+                            <div className="h-full bg-[#34D399]" style={{ width: `${meta?.avgUtilization || 0}%` }} />
                         </div>
                         <p className="text-[11px] text-body font-semibold mt-2 font-mono">{meta?.highUtilizationCount || 0} Assets at Peak Load</p>
                     </div>
@@ -345,9 +345,9 @@ export default function ResourceManagementPage() {
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex-1 h-1.5 min-w-[60px] bg-[var(--notion-bg-tertiary)] rounded-full overflow-hidden">
                                                         <div
-                                                            className={`h-full transition-all duration-1000 ${res.utilization > 80 ? 'bg-[#1F1F23]' :
-                                                                res.utilization > 50 ? 'bg-[#1F1F23]' :
-                                                                    'bg-[#1F1F23]'
+                                                            className={`h-full transition-all duration-1000 ${res.utilization > 80 ? 'bg-[#FB7185]' :
+                                                                res.utilization > 50 ? 'bg-[#FBBF24]' :
+                                                                    'bg-[#34D399]'
                                                                 }`}
                                                             style={{ width: `${res.utilization}%` }}
                                                         />
@@ -492,7 +492,7 @@ export default function ResourceManagementPage() {
                         <div className="p-5 sm:p-8 pt-0">
                             <button
                                 type="submit"
-                                className="w-full py-4 bg-[#1F1F23] text-white rounded-sm font-semibold hover:bg-[#1F1F23] transition-all shadow-xl shadow-blue-500/10 flex items-center justify-center gap-2 text-xs"
+                                className="w-full py-4 bg-[#3B82F6] text-white rounded-sm font-semibold hover:bg-[#2563EB] transition-all shadow-xl shadow-blue-500/10 flex items-center justify-center gap-2 text-xs"
                             >
                                 <Zap className="w-4 h-4" /> Finalize Asset Provisioning
                             </button>

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { differenceInCalendarDays, format, parseISO } from 'date-fns';
-import { CalendarCheck2, CalendarOff, ChevronLeft, ChevronRight, Flag, Pencil, Plus, Trash2 } from 'lucide-react';
+import { CalendarCheck2, CalendarDays, CalendarOff, ChevronLeft, ChevronRight, Flag, List, Pencil, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/context/ToastContext';
 import PageHeader from '@/components/ui/PageHeader';
@@ -11,6 +12,11 @@ import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import EmptyState from '@/components/ui/EmptyState';
 import Badge from '@/components/ui/Badge';
+import HolidayCalendar from '@/components/holidays/HolidayCalendar';
+
+// people who file daily reports see their own filed/missed days on the calendar
+const REPORTING_ROLES = ['EMPLOYEE', 'INTERN', 'TEAM_LEADER', 'MANAGER'];
+const VIEW_KEY = 'eusai-holidays-view';
 
 interface Holiday { id: string; date: string; name: string }
 
@@ -39,6 +45,32 @@ export default function HolidaysPage() {
     const [date, setDate] = useState('');
     const [name, setName] = useState('');
     const [editingId, setEditingId] = useState<string | null>(null);
+    const { data: session } = useSession();
+    const role = ((session?.user as any)?.role || '').toUpperCase();
+    const [view, setView] = useState<'calendar' | 'list'>('calendar');
+    const [reportDays, setReportDays] = useState<Set<string> | null>(null);
+    const nameRef = useRef<HTMLInputElement>(null);
+    const formRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        try { const v = localStorage.getItem(VIEW_KEY); if (v === 'list' || v === 'calendar') setView(v); } catch { }
+    }, []);
+    const switchView = (v: 'calendar' | 'list') => { setView(v); try { localStorage.setItem(VIEW_KEY, v); } catch { } };
+
+    // this person's filed reports for the year, for the calendar's filed/missed dots
+    useEffect(() => {
+        if (!REPORTING_ROLES.includes(role)) { setReportDays(null); return; }
+        fetch(`/api/reports/daily?type=my&startDate=${year}-01-01&endDate=${year}-12-31T23:59:59`)
+            .then(r => (r.ok ? r.json() : null))
+            .then(j => setReportDays(new Set((j?.reports || []).map((r: any) => format(new Date(r.date), 'yyyy-MM-dd')))))
+            .catch(() => setReportDays(null));
+    }, [role, year]);
+
+    const pickDate = (d: string) => {
+        setEditingId(null); setDate(d); setName('');
+        formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => nameRef.current?.focus(), 250);
+    };
     const [busy, setBusy] = useState(false);
 
     const load = useCallback(async () => {
@@ -148,16 +180,27 @@ export default function HolidaysPage() {
             <div className="grid gap-5 lg:grid-cols-3">
                 <Card padding="none" className="overflow-hidden lg:col-span-2">
                     <div className="flex items-center justify-between gap-3 border-b border-[#232327] px-5 py-3">
-                        <h2 className="font-display text-[15px] font-semibold text-white">Holiday calendar</h2>
-                        <div className="flex items-center gap-1">
-                            <Button size="icon" variant="ghost" aria-label="Previous year" onClick={() => setYear(y => y - 1)}><ChevronLeft className="h-4 w-4" /></Button>
-                            <span className="w-12 text-center text-sm font-medium tabular-nums text-zinc-200">{year}</span>
-                            <Button size="icon" variant="ghost" aria-label="Next year" onClick={() => setYear(y => y + 1)}><ChevronRight className="h-4 w-4" /></Button>
+                        <div role="tablist" aria-label="View" className="inline-flex items-center gap-0.5 rounded-lg border border-[#232327] bg-[#111113] p-1">
+                            {([['calendar', 'Calendar', CalendarDays], ['list', 'List', List]] as const).map(([id, label, Icon]) => (
+                                <button key={id} role="tab" aria-selected={view === id} onClick={() => switchView(id)}
+                                    className={cn('flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-medium transition-colors', view === id ? 'bg-[#27272A] text-white' : 'text-zinc-400 hover:text-zinc-200')}>
+                                    <Icon className="h-4 w-4" />{label}
+                                </button>
+                            ))}
                         </div>
+                        {view === 'list' && (
+                            <div className="flex items-center gap-1">
+                                <Button size="icon" variant="ghost" aria-label="Previous year" onClick={() => setYear(y => y - 1)}><ChevronLeft className="h-4 w-4" /></Button>
+                                <span className="w-12 text-center text-sm font-medium tabular-nums text-zinc-200">{year}</span>
+                                <Button size="icon" variant="ghost" aria-label="Next year" onClick={() => setYear(y => y + 1)}><ChevronRight className="h-4 w-4" /></Button>
+                            </div>
+                        )}
                     </div>
 
-                    {loading ? (
+                    {loading && view === 'list' ? (
                         <div className="space-y-2 p-5">{[0, 1, 2].map(i => <div key={i} className="h-12 animate-pulse rounded-lg bg-[#18181B]" />)}</div>
+                    ) : view === 'calendar' ? (
+                        <HolidayCalendar year={year} onYearChange={setYear} holidays={holidays} reportDays={reportDays} canEdit={canEdit} onAdd={pickDate} onRemove={remove} />
                     ) : holidays.length === 0 ? (
                         <EmptyState icon={CalendarOff} title={`No holidays in ${year}`} description={canEdit ? 'Add one on the right. Weekends are already treated as days off.' : 'Your director hasn’t added any yet. Weekends are always days off.'} />
                     ) : (
@@ -201,11 +244,12 @@ export default function HolidaysPage() {
                 <div className="space-y-5">
                     {canEdit ? (
                         <Card padding="lg">
+                            <div ref={formRef} />
                             <h2 className="font-display text-[15px] font-semibold text-white">{editingId ? 'Rename holiday' : 'Add a holiday'}</h2>
                             <p className="mt-0.5 text-[13px] text-zinc-500">Nobody is asked for a report that day, and streaks carry on.</p>
                             <form onSubmit={submit} className="mt-4 space-y-3">
                                 <Input type="date" label="Date" value={date} onChange={e => setDate(e.target.value)} required disabled={!!editingId} />
-                                <Input label="Name" placeholder="Diwali" value={name} onChange={e => setName(e.target.value)} maxLength={80} required />
+                                <Input ref={nameRef} label="Name" placeholder="Diwali" value={name} onChange={e => setName(e.target.value)} maxLength={80} required />
                                 <div className="flex gap-2 pt-1">
                                     {editingId && <Button type="button" variant="secondary" className="flex-1" onClick={() => { setEditingId(null); setDate(''); setName(''); }}>Cancel</Button>}
                                     <Button type="submit" className="flex-1" isLoading={busy} disabled={!date || !name.trim()} leftIcon={editingId ? undefined : <Plus className="h-4 w-4" />}>{editingId ? 'Save name' : 'Add holiday'}</Button>

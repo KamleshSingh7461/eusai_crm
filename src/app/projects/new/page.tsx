@@ -290,7 +290,7 @@ export default function NewProjectPage() {
                             <Button
                                 type="submit"
                                 isLoading={isSubmitting}
-                                className="bg-[#1F1F23] hover:bg-[#1F1F23] text-white"
+                                className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
                             >
                                 Initiate Mission
                             </Button>

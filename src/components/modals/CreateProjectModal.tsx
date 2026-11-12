@@ -105,7 +105,7 @@ export default function CreateProjectModal({
                 {/* Header */}
                 <div className="p-5 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-primary)]">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-sm bg-[#1F1F23] flex items-center justify-center text-[#3B82F6]">
+                        <div className="w-9 h-9 rounded-sm bg-[#3B82F6]/15 flex items-center justify-center text-[#3B82F6]">
                             <Briefcase className="w-5 h-5" />
                         </div>
                         <div>
@@ -219,7 +219,7 @@ export default function CreateProjectModal({
                         <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-[#1F1F23] hover:bg-[#1F1F23] text-white"
+                            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
                         >
                             {isSubmitting ? (
                                 <span className="flex items-center gap-2">

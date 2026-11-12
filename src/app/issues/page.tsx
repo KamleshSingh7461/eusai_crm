@@ -30,6 +30,9 @@ import Button from '@/components/ui/Button';
 import IssueModal from '@/components/modals/IssueModal';
 import { NotionButton } from '@/components/notion';
 
+/** Who an issue belongs to: the assignee, else the legacy owner text, else the reporter. Never crashes on missing data. */
+const ownerOf = (issue: any): string => issue?.assignedTo?.name || issue?.owner || issue?.reporter?.name || 'Unassigned';
+
 export default function IssuesLogPage() {
     const { data: session } = useSession();
     const [issues, setIssues] = useState<any[]>([]);
@@ -81,7 +84,8 @@ export default function IssuesLogPage() {
             const matchesSearch =
                 issue.title.toLowerCase().includes(query) ||
                 issue.project?.name?.toLowerCase().includes(query) ||
-                issue.owner?.toLowerCase().includes(query);
+                ownerOf(issue).toLowerCase().includes(query) ||
+                (issue.reporter?.name || '').toLowerCase().includes(query);
 
             const projectMatch = filters.project === 'all' || issue.projectId === filters.project;
             const severityMatch = filters.severity === 'all' || issue.severity === filters.severity;
@@ -274,7 +278,7 @@ export default function IssuesLogPage() {
                                             <td className="px-5 py-5">
                                                 <span className={cn(
                                                     "px-2 py-1 rounded-sm text-[11px] font-semibold  ",
-                                                    issue.status === 'OPEN' ? 'bg-[#1F1F23] text-orange-400 border border-[#F43F5E]/20' :
+                                                    issue.status === 'OPEN' ? 'bg-[#F43F5E]/10 text-orange-400 border border-[#F43F5E]/20' :
                                                         issue.status === 'RESOLVING' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
                                                             'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                                 )}>
@@ -285,9 +289,9 @@ export default function IssuesLogPage() {
                                                 <div className="flex items-center gap-2">
                                                     <div className={cn(
                                                         "w-1.5 h-1.5 rounded-full",
-                                                        issue.severity === 'CRITICAL' ? 'bg-[#1F1F23] animate-pulse' :
-                                                            issue.severity === 'HIGH' ? 'bg-[#1F1F23]' :
-                                                                issue.severity === 'MEDIUM' ? 'bg-[#1F1F23]' : 'bg-[#1F1F23]'
+                                                        issue.severity === 'CRITICAL' ? 'bg-[#E11D48] animate-pulse' :
+                                                            issue.severity === 'HIGH' ? 'bg-[#FB7185]' :
+                                                                issue.severity === 'MEDIUM' ? 'bg-[#FBBF24]' : 'bg-[#22D3EE]'
                                                     )} />
                                                     <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.7)] tracking-tighter">{issue.severity}</span>
                                                 </div>
@@ -295,9 +299,9 @@ export default function IssuesLogPage() {
                                             <td className="px-5 py-5">
                                                 <div className="flex items-center gap-2.5">
                                                     <div className="w-7 h-7 rounded bg-[#111113] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-semibold text-white text-[11px] shadow-inner shrink-0">
-                                                        {issue.owner[0]}
+                                                        {ownerOf(issue).charAt(0).toUpperCase()}
                                                     </div>
-                                                    <span className="text-xs font-semibold text-[rgba(255,255,255,0.9)] tracking-tight">{issue.owner}</span>
+                                                    <span className="text-xs font-semibold text-[rgba(255,255,255,0.9)] tracking-tight">{ownerOf(issue)}</span>
                                                 </div>
                                             </td>
                                             <td className="px-5 py-5 text-right">

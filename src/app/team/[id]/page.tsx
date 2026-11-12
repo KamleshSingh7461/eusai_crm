@@ -474,7 +474,7 @@ export default function UserProfilePage() {
 
                                     <button
                                         onClick={handleExportCsv}
-                                        className="bg-[#1F1F23] hover:bg-[#111113] text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-lg active:scale-95"
+                                        className="bg-[#34D399] hover:bg-[#10B981] text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-lg active:scale-95"
                                     >
                                         <FileSpreadsheet className="w-4 h-4" />
                                         Export CSV Sheet

@@ -101,7 +101,7 @@ function FeatureCard({ icon, title, description, color }: any) {
 function QuickStartStep({ number, title, description }: any) {
     return (
         <div className="flex gap-4">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#1F1F23] text-white flex items-center justify-center font-semibold text-sm">
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#3B82F6] text-white flex items-center justify-center font-semibold text-sm">
                 {number}
             </div>
             <div>

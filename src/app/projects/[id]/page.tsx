@@ -103,7 +103,7 @@ export default function ProjectDetailPage() {
                     <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-6" />
                     <h2 className="text-2xl font-semibold text-[rgba(255,255,255,0.9)] mb-2">Project Not Found</h2>
                     <p className="text-[rgba(255,255,255,0.7)] text-sm mb-8">This project doesn't exist or has been deleted.</p>
-                    <Button onClick={() => router.push('/projects')} variant="primary" className="w-full bg-[#1F1F23] hover:bg-[#1F1F23]">
+                    <Button onClick={() => router.push('/projects')} variant="primary" className="w-full bg-[#3B82F6] hover:bg-[#2563EB]">
                         Back to Portfolio
                     </Button>
                 </div>
@@ -218,7 +218,7 @@ export default function ProjectDetailPage() {
                                     </Button>
                                     <Button
                                         onClick={() => setShowEditModal(true)}
-                                        className="bg-[#1F1F23] hover:bg-[#1F1F23] text-white"
+                                        className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
                                     >
                                         Edit Details
                                     </Button>
@@ -292,7 +292,7 @@ export default function ProjectDetailPage() {
 
                     <div className="bg-[#18181B] p-6 rounded-lg border border-[rgba(255,255,255,0.09)] shadow-lg hover:shadow-xl transition-all">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-2 bg-[#1F1F23] rounded-lg">
+                            <div className="p-2 bg-[#3B82F6]/10 rounded-lg">
                                 <CheckCircle2 className="w-5 h-5 text-[#3B82F6]" />
                             </div>
                             <span className="text-2xl font-semibold text-[rgba(255,255,255,0.9)]">{stats.tasks.total}</span>
@@ -301,7 +301,7 @@ export default function ProjectDetailPage() {
                         <div className="flex items-center gap-2 mt-2">
                             <div className="flex-1 h-1.5 bg-[rgba(255,255,255,0.1)] rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-[#1F1F23] transition-all duration-1000"
+                                    className="h-full bg-[#3B82F6] transition-all duration-1000"
                                     style={{ width: `${stats.tasks.total > 0 ? (stats.tasks.completed / stats.tasks.total) * 100 : 0}%` }}
                                 />
                             </div>
@@ -402,7 +402,7 @@ export default function ProjectDetailPage() {
                                     <Button
                                         onClick={() => setShowTaskModal(true)}
                                         size="sm"
-                                        className="h-8 text-[11px] font-semibold bg-[#1F1F23] hover:bg-[#1F1F23] text-white"
+                                        className="h-8 text-[11px] font-semibold bg-blue-600 hover:bg-blue-500 text-white"
                                     >
                                         New Task
                                     </Button>

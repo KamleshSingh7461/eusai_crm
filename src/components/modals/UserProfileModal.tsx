@@ -209,7 +209,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                 {/* Header */}
                 <div className="p-6 border-b border-[#FFFFFF14] flex items-center justify-between bg-[#FFFFFF08]">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-[#1F1F23] flex items-center justify-center text-white shadow-md">
+                        <div className="w-10 h-10 rounded-lg bg-[#3B82F6] flex items-center justify-center text-white shadow-md">
                             <UserIcon className="w-6 h-6" />
                         </div>
                         <div>
@@ -429,7 +429,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                                     variant="primary"
                                     size="sm"
                                     leftIcon={<Download className="w-4 h-4" />}
-                                    className="bg-[#1F1F23] hover:bg-[#111113] text-white shadow-sm font-semibold text-xs shrink-0"
+                                    className="bg-[#34D399] hover:bg-[#10B981] text-white shadow-sm font-semibold text-xs shrink-0"
                                 >
                                     Export to Sheet (CSV)
                                 </Button>

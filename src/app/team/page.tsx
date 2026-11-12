@@ -238,7 +238,7 @@ export default function TeamPage() {
     const getRoleColor = (role: string) => {
         switch (role) {
             case 'DIRECTOR': return 'bg-[#A78BFA1F] text-[#8B5CF6]';    // Purple
-            case 'MANAGEMENT': return 'bg-[#1F1F23] text-[#974F0C]';  // Gold (read-only)
+            case 'MANAGEMENT': return 'bg-[#FFF7D6] text-[#974F0C]';  // Gold (read-only)
             case 'MANAGER': return 'bg-[#3B82F61F] text-[#3B82F6]';     // Blue
             case 'TEAM_LEADER': return 'bg-[#34D3991F] text-[#059669]'; // Green
             case 'EMPLOYEE': return 'bg-[#FFFFFF14] text-heading';       // Gray
@@ -478,7 +478,7 @@ export default function TeamPage() {
                                                     </div>
                                                     <div className="w-16 h-1 bg-[var(--notion-bg-tertiary)] rounded-full mt-1 overflow-hidden">
                                                         <div
-                                                            className={`h-full ${user.performanceScore && user.performanceScore >= 80 ? 'bg-[#1F1F23]' : user.performanceScore && user.performanceScore >= 60 ? 'bg-[#1F1F23]' : 'bg-[#1F1F23]'}`}
+                                                            className={`h-full ${user.performanceScore && user.performanceScore >= 80 ? 'bg-[#34D399]' : user.performanceScore && user.performanceScore >= 60 ? 'bg-[#FBBF24]' : 'bg-[#FB7185]'}`}
                                                             style={{ width: `${user.performanceScore || 0}%` }}
                                                         ></div>
                                                     </div>
@@ -816,7 +816,7 @@ export default function TeamPage() {
                                                 </div>
 
                                                 <div className="py-2 flex justify-center">
-                                                    <div className="bg-[#1F1F23] text-white px-6 py-2 rounded font-sans font-medium opacity-90 cursor-not-allowed">
+                                                    <div className="bg-[#3B82F6] text-white px-6 py-2 rounded font-sans font-medium opacity-90 cursor-not-allowed">
                                                         Initiate Secure Uplink
                                                     </div>
                                                 </div>
@@ -840,7 +840,7 @@ export default function TeamPage() {
                 <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
                     <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-md animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
                         <div className="p-6 bg-[#FB71851F] border-b border-[#FB718533] flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#1F1F23] flex items-center justify-center text-white shrink-0 shadow-sm">
+                            <div className="w-10 h-10 rounded-full bg-[#E11D48] flex items-center justify-center text-white shrink-0 shadow-sm">
                                 <AlertTriangle className="w-5 h-5" />
                             </div>
                             <div>
@@ -854,7 +854,7 @@ export default function TeamPage() {
                             </p>
                             <div className="p-3 bg-[var(--notion-bg-secondary)] rounded-md border border-[var(--notion-border-default)] text-xs text-[var(--notion-text-secondary)] space-y-1.5">
                                 <p className="font-semibold text-heading flex items-center gap-1.5">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#1F1F23]"></span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#E11D48]"></span>
                                     The following will happen:
                                 </p>
                                 <ul className="list-disc pl-4 space-y-1 text-[var(--notion-text-tertiary)]">
@@ -877,7 +877,7 @@ export default function TeamPage() {
                                     type="button"
                                     onClick={handleConfirmDeleteUser}
                                     disabled={isDeletingUser}
-                                    className="px-4 py-2 text-xs font-semibold rounded-md bg-[#1F1F23] hover:bg-[#1F1F23] text-white transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                                    className="px-4 py-2 text-xs font-semibold rounded-md bg-[#E11D48] hover:bg-[#F43F5E] text-white transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
                                 >
                                     {isDeletingUser ? (
                                         <>

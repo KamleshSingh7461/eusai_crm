@@ -216,7 +216,7 @@ export default function NotificationCenter() {
                                                     </p>
                                                 </div>
                                                 {!notification.isRead && (
-                                                    <div className="w-2 h-2 bg-[#1F1F23] rounded-full mt-1.5 flex-shrink-0" />
+                                                    <div className="w-2 h-2 bg-[#3B82F6] rounded-full mt-1.5 flex-shrink-0" />
                                                 )}
                                             </div>
                                         </div>

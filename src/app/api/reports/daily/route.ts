@@ -4,6 +4,15 @@ import { isReportWindowOpen } from '@/lib/reportWindow';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getSubordinateIds } from '@/lib/hierarchy';
+import { getMobileSession } from '@/lib/auth-mobile';
+
+// Reports are stored against the server's local midnight, so a plain "yyyy-MM-dd" means that local day
+// (new Date("2026-11-12") would mean UTC midnight and drop the first day on non-UTC servers).
+const DAY_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+const parseDay = (value: string) => {
+    const m = DAY_ONLY.exec(value);
+    return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(value);
+};
 
 // GET /api/reports/daily - Fetch daily reports
 export async function GET(request: NextRequest) {
@@ -24,7 +33,7 @@ export async function GET(request: NextRequest) {
         const endDate = searchParams.get('endDate');
         const type = searchParams.get('type');
 
-        const targetDate = dateParam ? new Date(dateParam) : new Date();
+        const targetDate = dateParam ? parseDay(dateParam) : new Date();
         targetDate.setHours(0, 0, 0, 0);
 
         const allowedIds = await getSubordinateIds(currentUserId, userRole);
@@ -64,8 +73,9 @@ export async function GET(request: NextRequest) {
             where.date = targetDate;
         } else if (startDate && endDate) {
             where.date = {
-                gte: new Date(startDate),
-                lte: new Date(endDate)
+                gte: parseDay(startDate),
+                // a plain end date includes that whole day
+                lte: DAY_ONLY.test(endDate) ? new Date(parseDay(endDate).getTime() + 86_399_999) : parseDay(endDate)
             };
         }
 
@@ -145,18 +155,33 @@ export async function GET(request: NextRequest) {
 
 // POST /api/reports/daily - Submit daily report
 export async function POST(request: NextRequest) {
+    // The report is always filed for the signed-in person; a userId in the body is ignored.
+    const session = (await getServerSession(authOptions)) || (await getMobileSession());
+    if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized', message: 'Sign in to submit your report.' }, { status: 401 });
+    }
+    const userId = (session.user as any).id as string;
+    const role = ((session.user as any).role || '').toUpperCase();
+
     try {
-        const body = await request.json();
-        const {
-            userId,
-            tasksCompleted,
-            hoursWorked,
-            utilization,
-            accomplishments,
-            challenges,
-            tomorrowPlan,
-            projectId
-        } = body;
+        const body = await request.json().catch(() => ({}));
+        const { utilization, projectId } = body;
+        const text = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+        const accomplishments = text(body.accomplishments, 5000);
+        const challenges = text(body.challenges, 3000) || null;
+        const tomorrowPlan = text(body.tomorrowPlan, 3000) || null;
+        const tasksCompleted = Number(body.tasksCompleted ?? 0);
+        const hoursWorked = Number(body.hoursWorked ?? 0);
+
+        if (!accomplishments) {
+            return NextResponse.json({ error: 'Invalid report', message: 'Describe what you got done today.' }, { status: 400 });
+        }
+        if (!Number.isInteger(tasksCompleted) || tasksCompleted < 0 || tasksCompleted > 200) {
+            return NextResponse.json({ error: 'Invalid report', message: 'Tasks completed must be a whole number between 0 and 200.' }, { status: 400 });
+        }
+        if (!Number.isFinite(hoursWorked) || hoursWorked < 0 || hoursWorked > 24) {
+            return NextResponse.json({ error: 'Invalid report', message: 'Hours worked must be between 0 and 24.' }, { status: 400 });
+        }
 
         const parsedUtilization = utilization !== undefined ? parseInt(utilization, 10) : 80;
         const validUtilization = isNaN(parsedUtilization) ? 80 : Math.max(0, Math.min(100, parsedUtilization));
@@ -164,8 +189,8 @@ export async function POST(request: NextRequest) {
         // 1. Time Window Validation (5:00 PM - 11:59 PM IST)
         const isWithinWindow = isReportWindowOpen();
 
-        // Directors/Managers can force submit outside the window
-        const isForced = body.forceSubmission === true;
+        // Only Directors and Managers can submit outside the window
+        const isForced = body.forceSubmission === true && ['DIRECTOR', 'MANAGER'].includes(role);
 
         if (!isWithinWindow && !isForced) {
             return NextResponse.json({
@@ -199,7 +224,8 @@ export async function POST(request: NextRequest) {
                     accomplishments,
                     challenges,
                     tomorrowPlan,
-                    projectId,
+                    // only touch the project link when the client sends one, so editing never clears it
+                    ...(projectId !== undefined ? { projectId: projectId || null } : {}),
                     submittedAt: new Date()
                 }
             });
@@ -215,7 +241,7 @@ export async function POST(request: NextRequest) {
                     accomplishments,
                     challenges,
                     tomorrowPlan,
-                    projectId
+                    projectId: projectId || null
                 }
             });
         }

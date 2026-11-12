@@ -249,7 +249,7 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="px-6 py-2 text-sm font-semibold text-white bg-[#1F1F23] hover:bg-[#1F1F23] rounded-md disabled:opacity-50 transition-all flex items-center gap-2 tracking-wide hover:transform hover:scale-105 active:scale-95"
+                            className="px-6 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-md disabled:opacity-50 transition-all flex items-center gap-2 tracking-wide hover:transform hover:scale-105 active:scale-95"
                         >
                             {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                             {initialData ? 'Update Record' : 'Report issue'}

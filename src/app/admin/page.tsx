@@ -136,7 +136,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Security Notice */}
-            <div className="bg-[#1F1F23] p-6 rounded-xl text-white">
+            <div className="bg-[#E6EAF0] p-6 rounded-xl text-white">
                 <div className="flex gap-4">
                     <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
                         <Shield className="w-5 h-5 text-amber-400" />

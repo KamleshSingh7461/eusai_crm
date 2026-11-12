@@ -300,12 +300,12 @@ export default function ReportsPage() {
                                 <p className="text-sm text-[var(--notion-text-tertiary)] italic">No critical risks identified.</p>
                             ) : (
                                 kpiData.risks?.map((risk: any) => (
-                                    <div key={risk.id} className="p-2 border border-[#7f1d1d]/30 bg-[#1F1F23] rounded-sm flex items-start gap-2">
+                                    <div key={risk.id} className="p-2 border border-[#7f1d1d]/30 bg-[#450a0a]/20 rounded-sm flex items-start gap-2">
                                         <AlertTriangle className="w-4 h-4 text-[#ef4444] flex-shrink-0 mt-0.5" />
                                         <div className="overflow-hidden">
                                             <p className="text-sm font-semibold text-[var(--notion-text-primary)] truncate">{risk.title}</p>
                                             <div className="flex gap-2 text-[11px] items-center mt-1">
-                                                <span className="font-semibold text-[#ef4444] bg-[#1F1F23] px-1 rounded-sm">{risk.severity}</span>
+                                                <span className="font-semibold text-red-400 bg-red-500/15 px-1 rounded-sm">{risk.severity}</span>
                                                 <span className="text-[var(--notion-text-tertiary)] truncate max-w-[100px]">{risk.source}</span>
                                             </div>
                                         </div>
@@ -328,7 +328,7 @@ export default function ReportsPage() {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <div className="w-16 h-1.5 bg-[var(--notion-bg-tertiary)] rounded-full overflow-hidden">
-                                            <div className="h-full bg-[#1F1F23]" style={{ width: `${dept.avgEfficiency}%` }} />
+                                            <div className="h-full bg-[#34D399]" style={{ width: `${dept.avgEfficiency}%` }} />
                                         </div>
                                         <span className="text-xs font-semibold text-[var(--notion-text-secondary)] w-8 text-right">{dept.avgEfficiency}%</span>
                                     </div>
@@ -347,7 +347,7 @@ export default function ReportsPage() {
                             {employees.topPerformers.map((emp: any) => (
                                 <Link href={`/team/${emp.id}`} key={emp.id} className="flex items-center justify-between group hover:bg-[var(--notion-bg-tertiary)] p-2 rounded-sm transition-all">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-[#1F1F23] text-[#3B82F6] flex items-center justify-center font-semibold text-xs ring-2 ring-transparent group-hover:ring-[#3B82F6] transition-all">
+                                        <div className="w-8 h-8 rounded-full bg-[#3B82F6]/20 text-[#3B82F6] flex items-center justify-center font-semibold text-xs ring-2 ring-transparent group-hover:ring-[#3B82F6] transition-all">
                                             {emp.name[0]}
                                         </div>
                                         <div>
@@ -383,7 +383,7 @@ export default function ReportsPage() {
                                         </span>
                                     </div>
                                     <div className="w-full h-1.5 bg-[var(--notion-bg-tertiary)] rounded-full overflow-hidden">
-                                        <div className="h-full bg-[#1F1F23]" style={{ width: `${p.progress}%` }} />
+                                        <div className="h-full bg-[#3B82F6]" style={{ width: `${p.progress}%` }} />
                                     </div>
                                     <div className="flex justify-between mt-1">
                                         <span className="text-[11px] text-[var(--notion-text-tertiary)]">Progress</span>
@@ -404,10 +404,10 @@ export default function ReportsPage() {
                             <p className="text-[11px] font-semibold text-[var(--notion-text-tertiary)] mb-1">Completion</p>
                             <div className="text-2xl font-semibold text-[var(--notion-text-primary)] mb-2">{tasks.completionRate}%</div>
                             <div className="w-full h-1 bg-[var(--notion-border-default)] rounded-full">
-                                <div className="h-full bg-[#1F1F23]" style={{ width: `${tasks.completionRate}%` }} />
+                                <div className="h-full bg-[#34D399]" style={{ width: `${tasks.completionRate}%` }} />
                             </div>
                         </div>
-                        <div className="p-4 bg-[#1F1F23] rounded-sm text-center border border-[#7f1d1d]/30">
+                        <div className="p-4 bg-[#450a0a]/20 rounded-sm text-center border border-[#7f1d1d]/30">
                             <p className="text-[11px] font-semibold text-[#ef4444] mb-1">Overdue</p>
                             <div className="text-2xl font-semibold text-[#ef4444] mb-2">{tasks.overdue}</div>
                             <p className="text-[11px] text-[#fca5a5]">Tasks missed deadline</p>
@@ -446,7 +446,7 @@ export default function ReportsPage() {
                                     <tr key={emp.id} className="border-b border-[var(--notion-border-default)] hover:bg-[var(--notion-bg-hover)] group transition-colors">
                                         <td className="py-3">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-8 h-8 rounded-full bg-[#1F1F23] text-[#3B82F6] flex items-center justify-center font-semibold text-xs">
+                                                <div className="w-8 h-8 rounded-full bg-[#3B82F6]/20 text-[#3B82F6] flex items-center justify-center font-semibold text-xs">
                                                     {emp.name[0]}
                                                 </div>
                                                 <span className="text-sm font-semibold text-[var(--notion-text-secondary)]">{emp.name}</span>
@@ -508,7 +508,7 @@ export default function ReportsPage() {
                         <p className="text-[11px] font-semibold text-[var(--notion-text-tertiary)] mb-1">Avg Utilization</p>
                         <p className="text-2xl font-semibold text-[var(--notion-text-primary)]">{stats.avgUtilization}%</p>
                         <div className="w-full h-1 bg-[var(--notion-bg-tertiary)] mt-2 rounded-full overflow-hidden">
-                            <div className="h-full bg-[#1F1F23]" style={{ width: `${stats.avgUtilization}%` }} />
+                            <div className="h-full bg-[#a855f7]" style={{ width: `${stats.avgUtilization}%` }} />
                         </div>
                     </div>
                     <div className="bg-[var(--notion-bg-secondary)] p-5 rounded-sm border border-[var(--notion-border-default)]">
@@ -525,7 +525,7 @@ export default function ReportsPage() {
                         {team.map((member: any) => (
                             <div key={member.id} className="p-4 border border-[var(--notion-border-default)] rounded-sm hover:border-[#3B82F6] transition-colors relative bg-[var(--notion-bg-tertiary)]">
                                 <div className="flex items-center gap-3 mb-3">
-                                    <div className="w-10 h-10 rounded-full bg-[#1F1F23] flex items-center justify-center text-[#3B82F6] font-semibold text-xs overflow-hidden">
+                                    <div className="w-10 h-10 rounded-full bg-[#3B82F6]/20 flex items-center justify-center text-[#3B82F6] font-semibold text-xs overflow-hidden">
                                         {member.image ? <img src={member.image} alt={member.name} className="w-full h-full object-cover" /> : member.name[0]}
                                     </div>
                                     <div>
@@ -573,7 +573,7 @@ export default function ReportsPage() {
                     {!isDirector && (
                         <Link
                             href="/reports/submit"
-                            className="bg-[#1F1F23] hover:bg-[#1F1F23] text-white px-4 py-2 rounded-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-sm text-sm w-full xs:w-auto"
+                            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-4 py-2 rounded-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-sm text-sm w-full xs:w-auto"
                         >
                             <Plus className="w-4 h-4" />
                             Submit Report
@@ -581,7 +581,7 @@ export default function ReportsPage() {
                     )}
                     <button
                         onClick={handleExportCsv}
-                        className="bg-[#1F1F23] hover:bg-[#111113] text-white px-4 py-2 rounded-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-sm text-sm w-full xs:w-auto"
+                        className="bg-[#34D399] hover:bg-[#10B981] text-white px-4 py-2 rounded-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-sm text-sm w-full xs:w-auto"
                     >
                         <FileSpreadsheet className="w-4 h-4" />
                         Export CSV Sheet
@@ -603,7 +603,7 @@ export default function ReportsPage() {
                         onClick={() => setActiveTab('MY')}
                         className={cn(
                             "pb-4 text-sm font-semibold transition-all relative whitespace-nowrap",
-                            activeTab === 'MY' ? "text-[#3B82F6] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#1F1F23]" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]"
+                            activeTab === 'MY' ? "text-[#3B82F6] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#3B82F6]" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]"
                         )}
                     >
                         Personnel Logs
@@ -616,7 +616,7 @@ export default function ReportsPage() {
                                 onClick={() => setActiveTab('KPI')}
                                 className={cn(
                                     "pb-4 text-sm font-semibold transition-all relative whitespace-nowrap",
-                                    activeTab === 'KPI' ? "text-[#3B82F6] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#1F1F23]" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]"
+                                    activeTab === 'KPI' ? "text-[#3B82F6] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#3B82F6]" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]"
                                 )}
                             >
                                 Performance KPIs
@@ -626,7 +626,7 @@ export default function ReportsPage() {
                             onClick={() => setActiveTab('TEAM')}
                             className={cn(
                                 "pb-4 text-sm font-semibold transition-all relative whitespace-nowrap",
-                                activeTab === 'TEAM' ? "text-[#3B82F6] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#1F1F23]" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]"
+                                activeTab === 'TEAM' ? "text-[#3B82F6] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#3B82F6]" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]"
                             )}
                         >
                             Team reports
@@ -636,7 +636,7 @@ export default function ReportsPage() {
                                 onClick={() => setActiveTab('RESOURCES')}
                                 className={cn(
                                     "pb-4 text-sm font-semibold transition-all relative whitespace-nowrap",
-                                    activeTab === 'RESOURCES' ? "text-[#3B82F6] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#1F1F23]" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]"
+                                    activeTab === 'RESOURCES' ? "text-[#3B82F6] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-[#3B82F6]" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]"
                                 )}
                             >
                                 Resource Utilization
@@ -733,7 +733,7 @@ export default function ReportsPage() {
                                                 setStartDate(start.toISOString().split('T')[0]);
                                                 setEndDate(now.toISOString().split('T')[0]);
                                             }}
-                                            className="px-2 py-1 text-[#3B82F6] hover:bg-[#1F1F23] rounded-sm transition-colors"
+                                            className="px-2 py-1 text-[#3B82F6] hover:bg-[#3B82F6]/10 rounded-sm transition-colors"
                                         >
                                             7D
                                         </button>
@@ -746,7 +746,7 @@ export default function ReportsPage() {
                                                 setStartDate(start.toISOString().split('T')[0]);
                                                 setEndDate(now.toISOString().split('T')[0]);
                                             }}
-                                            className="px-2 py-1 text-[#3B82F6] hover:bg-[#1F1F23] rounded-sm transition-colors"
+                                            className="px-2 py-1 text-[#3B82F6] hover:bg-[#3B82F6]/10 rounded-sm transition-colors"
                                         >
                                             30D
                                         </button>
@@ -758,7 +758,7 @@ export default function ReportsPage() {
                                                 setStartDate(start.toISOString().split('T')[0]);
                                                 setEndDate(now.toISOString().split('T')[0]);
                                             }}
-                                            className="px-2 py-1 text-[#3B82F6] hover:bg-[#1F1F23] rounded-sm transition-colors"
+                                            className="px-2 py-1 text-[#3B82F6] hover:bg-[#3B82F6]/10 rounded-sm transition-colors"
                                         >
                                             This Month
                                         </button>
@@ -769,13 +769,13 @@ export default function ReportsPage() {
                                 <div className="flex items-center gap-2 border border-[var(--notion-border-default)] rounded-sm p-0.5 bg-[var(--notion-bg-primary)]">
                                     <button
                                         onClick={() => setViewMode('table')}
-                                        className={cn("px-3 py-1 text-[11px] font-semibold  rounded-sm transition-all", viewMode === 'table' ? "bg-[#1F1F23] text-white" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]")}
+                                        className={cn("px-3 py-1 text-[11px] font-semibold  rounded-sm transition-all", viewMode === 'table' ? "bg-[#3B82F6] text-white" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]")}
                                     >
                                         Table View
                                     </button>
                                     <button
                                         onClick={() => setViewMode('cards')}
-                                        className={cn("px-3 py-1 text-[11px] font-semibold  rounded-sm transition-all", viewMode === 'cards' ? "bg-[#1F1F23] text-white" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]")}
+                                        className={cn("px-3 py-1 text-[11px] font-semibold  rounded-sm transition-all", viewMode === 'cards' ? "bg-[#3B82F6] text-white" : "text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)]")}
                                     >
                                         Feed View
                                     </button>
@@ -815,7 +815,7 @@ export default function ReportsPage() {
                                                     </td>
                                                     <td className="px-4 py-3 font-semibold text-[var(--notion-text-primary)] whitespace-nowrap">
                                                         <div className="flex items-center gap-2">
-                                                            <div className="w-6 h-6 rounded-full bg-[#1F1F23] text-white flex items-center justify-center font-semibold text-[11px] overflow-hidden shrink-0">
+                                                            <div className="w-6 h-6 rounded-full bg-[#3B82F6] text-white flex items-center justify-center font-semibold text-[11px] overflow-hidden shrink-0">
                                                                 {report.user.image ? <img src={report.user.image} alt={report.user.name} className="w-full h-full object-cover" /> : report.user.name[0]}
                                                             </div>
                                                             <div className="flex flex-col">
@@ -835,8 +835,8 @@ export default function ReportsPage() {
                                                     <td className="px-4 py-3 text-center">
                                                         <span className={cn(
                                                             "px-2 py-0.5 rounded-full text-[11px] font-semibold",
-                                                            (report.utilization || 0) >= 80 ? "bg-[#1F1F23] text-[#34D399]" :
-                                                                (report.utilization || 0) >= 50 ? "bg-[#1F1F23] text-[#FBBF24]" : "bg-[#1F1F23] text-[#FB7185]"
+                                                            (report.utilization || 0) >= 80 ? "bg-[#34D399]/20 text-[#34D399]" :
+                                                                (report.utilization || 0) >= 50 ? "bg-[#FBBF24]/20 text-[#FBBF24]" : "bg-[#FB7185]/20 text-[#FB7185]"
                                                         )}>
                                                             {report.utilization || 0}%
                                                         </span>
@@ -863,7 +863,7 @@ export default function ReportsPage() {
                                     {filteredReports.map((report: DailyReport) => (
                                         <div key={report.id} className="p-5 bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm hover:border-[#3B82F6] transition-all group relative">
                                             {report.challenges && report.challenges.trim().length > 10 && (
-                                                <div className="absolute top-0 left-0 w-1 h-full bg-[#1F1F23]" />
+                                                <div className="absolute top-0 left-0 w-1 h-full bg-[#FB7185]" />
                                             )}
 
                                             <div className="flex justify-between items-start mb-4">
@@ -872,11 +872,11 @@ export default function ReportsPage() {
                                                         {report.user.image ? (
                                                             <img src={report.user.image} alt={report.user.name} className="w-12 h-12 rounded-sm object-cover border border-[var(--notion-border-default)]" />
                                                         ) : (
-                                                            <div className="w-12 h-12 rounded-sm bg-[#1F1F23] flex items-center justify-center text-white text-lg font-semibold">
+                                                            <div className="w-12 h-12 rounded-sm bg-[#3B82F6] flex items-center justify-center text-white text-lg font-semibold">
                                                                 {report.user.name[0]}
                                                             </div>
                                                         )}
-                                                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--notion-bg-secondary)] flex items-center justify-center ${report.challenges ? 'bg-[#1F1F23]' : 'bg-[#1F1F23]'}`}>
+                                                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[var(--notion-bg-secondary)] flex items-center justify-center ${report.challenges ? 'bg-[#FBBF24]' : 'bg-[#34D399]'}`}>
                                                             {report.challenges ? <AlertTriangle className="w-2 h-2 text-white" /> : <CheckCircle className="w-2 h-2 text-white" />}
                                                         </div>
                                                     </div>
@@ -897,16 +897,16 @@ export default function ReportsPage() {
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-wrap gap-2">
-                                                    <div className="px-3 py-1 bg-[#1F1F23] text-[#34D399] text-[11px] font-semibold rounded-sm flex items-center gap-1.5">
+                                                    <div className="px-3 py-1 bg-[#34D399]/20 text-[#34D399] text-[11px] font-semibold rounded-sm flex items-center gap-1.5">
                                                         <CheckCircle2 className="w-3 h-3" />
                                                         {report.tasksCompleted} Tasks
                                                     </div>
-                                                    <div className="px-3 py-1 bg-[#1F1F23] text-[#3B82F6] text-[11px] font-semibold rounded-sm flex items-center gap-1.5">
+                                                    <div className="px-3 py-1 bg-[#3B82F6]/20 text-[#3B82F6] text-[11px] font-semibold rounded-sm flex items-center gap-1.5">
                                                         <Clock className="w-3 h-3" />
                                                         {report.hoursWorked}h
                                                     </div>
                                                     {report.utilization !== undefined && report.utilization !== null && (
-                                                        <div className="px-3 py-1 bg-[#1F1F23] text-[#a855f7] text-[11px] font-semibold rounded-sm flex items-center gap-1.5">
+                                                        <div className="px-3 py-1 bg-[#a855f7]/20 text-[#a855f7] text-[11px] font-semibold rounded-sm flex items-center gap-1.5">
                                                             <Activity className="w-3 h-3" />
                                                             {report.utilization}% Util
                                                         </div>
@@ -925,7 +925,7 @@ export default function ReportsPage() {
                                                 {(report.challenges || report.tomorrowPlan) && (
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         {report.challenges && (
-                                                            <div className="bg-[#1F1F23] p-3 border-l-2 border-[#FBBF24] rounded-r-sm">
+                                                            <div className="bg-[#FBBF24]/10 p-3 border-l-2 border-[#FBBF24] rounded-r-sm">
                                                                 <p className="text-[11px] font-semibold text-[#FBBF24] mb-1 flex items-center gap-1.5">
                                                                     <AlertTriangle className="w-3 h-3" /> Challenges
                                                                 </p>
@@ -957,7 +957,7 @@ export default function ReportsPage() {
                     <div className="bg-[#111113] border border-white/[0.08] rounded-2xl max-w-xl w-full p-6 space-y-6 relative text-[var(--notion-text-primary)] animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between border-b border-[var(--notion-border-default)] pb-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-sm bg-[#1F1F23] text-[#3B82F6] flex items-center justify-center font-semibold">
+                                <div className="w-8 h-8 rounded-sm bg-[#3B82F6]/20 text-[#3B82F6] flex items-center justify-center font-semibold">
                                     <FileText className="w-4 h-4" />
                                 </div>
                                 <div>
@@ -988,7 +988,7 @@ export default function ReportsPage() {
                             {selectedReportForView.challenges && (
                                 <div>
                                     <h4 className="text-[11px] font-semibold text-[#FB7185] mb-1.5">Challenges & Impediments</h4>
-                                    <div className="bg-[#1F1F23] border border-[#FB7185]/30 p-4 rounded-sm text-xs text-[#FB7185] whitespace-pre-wrap leading-relaxed font-medium">
+                                    <div className="bg-[#FB7185]/10 border border-[#FB7185]/30 p-4 rounded-sm text-xs text-[#FB7185] whitespace-pre-wrap leading-relaxed font-medium">
                                         {selectedReportForView.challenges}
                                     </div>
                                 </div>
@@ -997,7 +997,7 @@ export default function ReportsPage() {
                             {selectedReportForView.tomorrowPlan && (
                                 <div>
                                     <h4 className="text-[11px] font-semibold text-[#34D399] mb-1.5">Next Cycle Plan</h4>
-                                    <div className="bg-[#1F1F23] border border-[#34D399]/30 p-4 rounded-sm text-xs text-[#34D399] whitespace-pre-wrap leading-relaxed font-medium">
+                                    <div className="bg-[#34D399]/10 border border-[#34D399]/30 p-4 rounded-sm text-xs text-[#34D399] whitespace-pre-wrap leading-relaxed font-medium">
                                         {selectedReportForView.tomorrowPlan}
                                     </div>
                                 </div>

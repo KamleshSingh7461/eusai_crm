@@ -336,7 +336,7 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated, defaultPr
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="relative group px-4 sm:px-8 py-2.5 bg-[#1F1F23] hover:bg-[#1F1F23] text-white text-xs font-semibold rounded-xl shadow-lg shadow-blue-900/20 disabled:opacity-50 transition-all flex items-center gap-2 overflow-hidden"
+                                className="relative group px-4 sm:px-8 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-semibold rounded-xl shadow-lg shadow-blue-900/20 disabled:opacity-50 transition-all flex items-center gap-2 overflow-hidden"
                             >
                                 <div className="absolute inset-0 bg-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
                                 {isSubmitting ? (
