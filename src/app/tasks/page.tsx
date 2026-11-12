@@ -110,7 +110,13 @@ function TasksContent() {
         const id = params.get('taskId');
         if (!id || tasks.length === 0) return;
         const task = tasks.find(t => t.id === id);
-        if (task) setSelectedTaskForDetail(task);
+        if (task) {
+            setSelectedTaskForDetail(task);
+            // open once: drop the parameter so closing the dialog sticks when the list refreshes
+            const url = new URL(window.location.href);
+            url.searchParams.delete('taskId');
+            window.history.replaceState(null, '', url.pathname + url.search);
+        }
     }, [params, tasks]);
 
     // /tasks?new=1 (from the Create menu) opens the new-task dialog.

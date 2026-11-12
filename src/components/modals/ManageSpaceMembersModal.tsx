@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Search, Check, Users, UserPlus, Shield, Loader2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
 
 interface User {
     id: string;
@@ -88,8 +89,6 @@ export default function ManageSpaceMembersModal({
         }
     };
 
-    if (!isOpen) return null;
-
     const filteredUsers = allUsers.filter(u =>
         u.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -97,28 +96,20 @@ export default function ManageSpaceMembersModal({
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-            <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-xl flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
-                
-                {/* Header */}
-                <div className="p-5 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-primary)]">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-sm bg-[#3B82F6]/15 flex items-center justify-center text-[#3B82F6]">
-                            <UserPlus className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h2 className="text-base font-semibold text-[var(--notion-text-primary)]">Manage Personnel</h2>
-                            <p className="text-xs text-[var(--notion-text-tertiary)]">Assign or remove CRM employees from <span className="font-semibold text-[#3B82F6]">{spaceName}</span></p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-1 text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)] hover:bg-[var(--notion-bg-tertiary)] rounded-sm transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
+        <Modal
+            open={isOpen}
+            onClose={onClose}
+            size="md"
+            title="Department members"
+            description={<>Add or remove people in <span className="font-medium text-zinc-200">{spaceName}</span></>}
+            icon={<ModalIcon><UserPlus /></ModalIcon>}
+            bodyClassName="p-0 sm:p-0"
+            footer={<>
+                <p className="text-xs text-zinc-500 sm:mr-auto max-sm:basis-full max-sm:flex-none"><span className="font-semibold text-zinc-200">{selectedMemberIds.length}</span> selected</p>
+                <Button variant="ghost" onClick={onClose} disabled={isSaving}>Cancel</Button>
+                <Button onClick={handleSave} isLoading={isSaving}>Save members</Button>
+            </>}
+        >
                 {/* Search Input */}
                 <div className="p-4 border-b border-[var(--notion-border-default)] bg-[var(--notion-bg-primary)]">
                     <div className="relative">
@@ -184,34 +175,6 @@ export default function ManageSpaceMembersModal({
                     )}
                 </div>
 
-                {/* Footer */}
-                <div className="p-4 border-t border-[var(--notion-border-default)] bg-[var(--notion-bg-primary)] flex items-center justify-between">
-                    <p className="text-xs text-[var(--notion-text-tertiary)] font-medium">
-                        <span className="font-semibold text-[var(--notion-text-primary)]">{selectedMemberIds.length}</span> assigned members
-                    </p>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="secondary"
-                            onClick={onClose}
-                            disabled={isSaving}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={handleSave}
-                            disabled={isSaving}
-                            className="bg-[#3B82F6] hover:bg-[#0047B3] text-white"
-                        >
-                            {isSaving ? (
-                                <span className="flex items-center gap-2">
-                                    <Loader2 className="w-4 h-4 animate-spin" /> Saving...
-                                </span>
-                            ) : 'Save Personnel Assignment'}
-                        </Button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
+        </Modal>
     );
 }

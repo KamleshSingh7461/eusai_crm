@@ -29,6 +29,7 @@ import Button from '@/components/ui/Button';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/context/ToastContext';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
 
 interface MeetingAttendee {
     id?: string;
@@ -311,7 +312,7 @@ export default function MeetingsPage() {
                                 <Plus className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" />
                                 <div>
                                     <div className="font-semibold">Start an instant meeting</div>
-                                    <div className="text-[11px] text-subheading font-normal">Launch meeting room immediately</div>
+                                    <div className="text-[11px] text-subheading font-normal">Opens Google Meet now</div>
                                 </div>
                             </button>
 
@@ -321,8 +322,8 @@ export default function MeetingsPage() {
                             >
                                 <Calendar className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
                                 <div>
-                                    <div className="font-semibold">Schedule with Full Details</div>
-                                    <div className="text-[11px] text-subheading font-normal">Set guests, permissions & protocols</div>
+                                    <div className="font-semibold">Schedule a meeting</div>
+                                    <div className="text-[11px] text-subheading font-normal">Pick a time and invite people</div>
                                 </div>
                             </button>
                         </div>
@@ -453,8 +454,8 @@ export default function MeetingsPage() {
                             <div className="flex items-center gap-3">
                                 <Video className="w-5 h-5 text-emerald-400" />
                                 <div>
-                                    <div className="font-semibold text-sm text-heading">Instant Google Meet</div>
-                                    <div className="text-xs text-subheading">Launch video room right now</div>
+                                    <div className="font-semibold text-sm text-heading">Start a meeting now</div>
+                                    <div className="text-xs text-subheading">Opens Google Meet in a new tab</div>
                                 </div>
                             </div>
                             <ExternalLink className="w-4 h-4 text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -467,8 +468,8 @@ export default function MeetingsPage() {
                             <div className="flex items-center gap-3">
                                 <LinkIcon className="w-5 h-5 text-blue-400" />
                                 <div>
-                                    <div className="font-semibold text-sm text-heading">Shareable Link for Later</div>
-                                    <div className="text-xs text-subheading">Generate & copy Meet link</div>
+                                    <div className="font-semibold text-sm text-heading">Get a link for later</div>
+                                    <div className="text-xs text-subheading">Copy a Meet link to share</div>
                                 </div>
                             </div>
                             <ChevronRight className="w-4 h-4 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -479,21 +480,12 @@ export default function MeetingsPage() {
 
             {/* Modal 1: Shareable Meeting Link Modal ("Create a meeting for later") */}
             {isInstantMeetingModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-                    <div className="bg-[#111113] border border-white/[0.08] rounded-2xl max-w-md w-full p-6 space-y-6 animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-heading flex items-center gap-2">
-                                <Video className="w-5 h-5 text-[#3B82F6]" /> Here's your joining information
-                            </h3>
-                            <button onClick={() => setIsInstantMeetingModalOpen(false)} className="text-subheading hover:text-heading">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <p className="text-xs text-subheading leading-relaxed">
-                            Send this link to people you want to meet with. Make sure you save it so you can use it later too.
-                        </p>
-
+                <Modal open onClose={() => setIsInstantMeetingModalOpen(false)} size="sm" title="Your meeting link" description="Share it with the people you want to meet, and keep it to use later." icon={<ModalIcon><Video /></ModalIcon>}
+                    footer={<>
+                        <Button type="button" variant="ghost" onClick={() => setIsInstantMeetingModalOpen(false)}>Close</Button>
+                        <Button type="button" variant="success" onClick={() => window.open(createdInstantLink, '_blank')} leftIcon={<Video className="h-4 w-4" />}>Join now</Button>
+                    </>}
+                >
                         <div className="flex items-center gap-2 p-3 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-xl">
                             <input
                                 type="text"
@@ -509,35 +501,18 @@ export default function MeetingsPage() {
                                 {copied ? 'Copied' : 'Copy'}
                             </button>
                         </div>
-
-                        <div className="flex justify-end gap-3 pt-2">
-                            <button
-                                onClick={() => window.open(createdInstantLink, '_blank')}
-                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-xs transition-colors flex items-center gap-1.5"
-                            >
-                                <Video className="w-4 h-4" /> Join Room Now
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                </Modal>
             )}
 
             {/* Modal 2: Comprehensive Google Calendar / Google Meet Schedule Modal */}
             {isScheduleModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/80 animate-in fade-in duration-200 overflow-y-auto">
-                    <div className="bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden my-8 animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-                        {/* Header */}
-                        <div className="px-6 py-4 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-tertiary)]/50 shrink-0">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-5 h-5 text-[#3B82F6]" />
-                                <h2 className="text-base font-semibold text-heading">Schedule Event & Meeting Protocol</h2>
-                            </div>
-                            <button onClick={() => setIsScheduleModalOpen(false)} className="text-subheading hover:text-heading transition-colors">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleCreateMeeting} className="p-6 overflow-y-auto space-y-6 flex-1">
+                <Modal open onClose={() => setIsScheduleModalOpen(false)} size="lg" title="Schedule a meeting" description="Creates a calendar invite with a Google Meet link for everyone you add." icon={<ModalIcon><Calendar /></ModalIcon>} bodyClassName="space-y-6" closeOnBackdrop={false}
+                    onSubmit={handleCreateMeeting}
+                    footer={<>
+                        <Button type="button" variant="ghost" onClick={() => setIsScheduleModalOpen(false)}>Cancel</Button>
+                        <Button type="submit" variant="primary" isLoading={isSubmitting}>Save and send invites</Button>
+                    </>}
+                >
                             {/* Title Field */}
                             <div>
                                 <input
@@ -554,7 +529,7 @@ export default function MeetingsPage() {
                             <div className="space-y-3 bg-[var(--notion-bg-primary)] p-4 rounded-xl border border-[var(--notion-border-default)]">
                                 <div className="flex items-center justify-between mb-1">
                                     <span className="text-xs font-semibold text-subheading flex items-center gap-1.5">
-                                        <Clock className="w-3.5 h-3.5 text-[#3B82F6]" /> Date & Time Protocol
+                                        <Clock className="w-3.5 h-3.5 text-[#3B82F6]" /> Date and time
                                     </span>
                                     <label className="flex items-center gap-2 text-xs font-semibold text-subheading cursor-pointer">
                                         <input
@@ -616,7 +591,7 @@ export default function MeetingsPage() {
                             {/* Guests & Guest Permissions */}
                             <div className="space-y-3 bg-[var(--notion-bg-primary)] p-4 rounded-xl border border-[var(--notion-border-default)]">
                                 <span className="text-xs font-semibold text-subheading flex items-center gap-1.5">
-                                    <Users className="w-3.5 h-3.5 text-emerald-400" /> Guests & Attendees ({formData.selectedGuestIds.length})
+                                    <Users className="w-3.5 h-3.5 text-emerald-400" /> Guests ({formData.selectedGuestIds.length})
                                 </span>
 
                                 {/* Search CRM Users */}
@@ -624,7 +599,7 @@ export default function MeetingsPage() {
                                     <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-subheading" />
                                     <input
                                         type="text"
-                                        placeholder="Search & select CRM guests..."
+                                        placeholder="Search people to invite"
                                         value={userSearchQuery}
                                         onChange={e => setUserSearchQuery(e.target.value)}
                                         className="w-full bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-lg pl-9 pr-3 py-1.5 text-xs text-heading focus:outline-none"
@@ -636,29 +611,28 @@ export default function MeetingsPage() {
                                     {filteredUsers.map(user => (
                                         <label
                                             key={user.id}
-                                            className="flex items-center justify-between p-1.5 hover:bg-[var(--notion-bg-tertiary)] rounded cursor-pointer transition-colors text-xs"
+                                            className="flex items-center gap-2 p-1.5 hover:bg-[var(--notion-bg-tertiary)] rounded cursor-pointer transition-colors text-xs"
                                         >
-                                            <div className="flex items-center gap-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={formData.selectedGuestIds.includes(user.id)}
-                                                    onChange={() => handleToggleGuest(user.id)}
-                                                    className="rounded text-[#3B82F6]"
-                                                />
-                                                <div className="w-5 h-5 rounded-full bg-[#3B82F6]/20 text-[#3B82F6] flex items-center justify-center font-semibold text-[11px]">
-                                                    {user.name?.charAt(0) || 'U'}
-                                                </div>
-                                                <span className="font-semibold text-heading">{user.name}</span>
-                                                <span className="text-[11px] text-subheading">({user.role})</span>
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.selectedGuestIds.includes(user.id)}
+                                                onChange={() => handleToggleGuest(user.id)}
+                                                className="rounded text-[#3B82F6] shrink-0"
+                                            />
+                                            <div className="w-6 h-6 shrink-0 rounded-full bg-[#3B82F6]/20 text-[#3B82F6] flex items-center justify-center font-semibold text-[11px]">
+                                                {user.name?.charAt(0) || 'U'}
                                             </div>
-                                            <span className="text-[11px] text-subheading">{user.email}</span>
+                                            <div className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between sm:gap-3">
+                                                <p className="truncate font-semibold text-heading">{user.name} <span className="font-normal text-[11px] text-subheading capitalize">· {String(user.role || '').replace(/_/g, ' ').toLowerCase()}</span></p>
+                                                <p className="truncate text-[11px] text-subheading">{user.email}</p>
+                                            </div>
                                         </label>
                                     ))}
                                 </div>
 
                                 {/* Guest Permissions */}
                                 <div className="pt-2 border-t border-[var(--notion-border-default)]/40 space-y-2">
-                                    <span className="text-[11px] font-semibold text-subheading">Guest Permissions</span>
+                                    <span className="text-[11px] font-semibold text-subheading">Guests can</span>
                                     <div className="flex flex-wrap gap-4 text-xs text-subheading font-medium">
                                         <label className="flex items-center gap-1.5 cursor-pointer">
                                             <input
@@ -695,7 +669,7 @@ export default function MeetingsPage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-semibold text-subheading mb-1.5 flex items-center gap-1.5">
-                                        <Video className="w-3.5 h-3.5 text-[#3B82F6]" /> Google Meet Link
+                                        <Video className="w-3.5 h-3.5 text-[#3B82F6]" /> Google Meet link
                                     </label>
                                     <div className="flex items-center gap-2">
                                         <input
@@ -791,7 +765,7 @@ export default function MeetingsPage() {
 
                             {/* Description / Operational Briefing */}
                             <div>
-                                <label className="block text-xs font-semibold text-subheading mb-1.5">Operational Briefing & Description</label>
+                                <label className="block text-xs font-semibold text-subheading mb-1.5">Description</label>
                                 <textarea
                                     rows={3}
                                     value={formData.description}
@@ -800,15 +774,7 @@ export default function MeetingsPage() {
                                     placeholder="Add meeting agenda, documents, or instructions for guests..."
                                 />
                             </div>
-
-                            {/* Submit & Cancel */}
-                            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--notion-border-default)]">
-                                <Button type="button" variant="ghost" onClick={() => setIsScheduleModalOpen(false)}>Cancel</Button>
-                                <Button type="submit" variant="primary" isLoading={isSubmitting}>Save & Send Invites</Button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                </Modal>
             )}
         </div>
     );

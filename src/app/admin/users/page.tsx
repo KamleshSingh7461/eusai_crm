@@ -12,10 +12,12 @@ import {
     UserPlus,
     Mail,
     UserCog,
-    X
+    X,
+    UserRound,
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
 
 export default function UserManagement() {
     const [users, setUsers] = useState<any[]>([]);
@@ -200,7 +202,7 @@ export default function UserManagement() {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-center gap-4 text-xs font-medium text-[#8B94A5]">
                                             <div className="flex flex-col items-center" title="Projects">
-                                                <span className="text-[#E6EAF0] font-semibold">{user._count?.projects || 0}</span>
+                                                <span className="text-[#E6EAF0] font-semibold">{user._count?.managedProjects || 0}</span>
                                                 <span className="scale-75">PRJ</span>
                                             </div>
                                             <div className="flex flex-col items-center" title="Tasks">
@@ -279,14 +281,7 @@ export default function UserManagement() {
 
             {/* User Details Modal */}
             {isDetailModalOpen && selectedUser && (
-                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-                    <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-lg animate-in zoom-in duration-200 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
-                        <div className="px-6 py-4 flex items-center justify-between border-b border-[#FFFFFF14]">
-                            <h2 className="text-lg font-semibold text-[#E6EAF0]">User Details</h2>
-                            <button onClick={() => setIsDetailModalOpen(false)} className="text-[#8B94A5] hover:text-[#E6EAF0]">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+                <Modal open onClose={() => setIsDetailModalOpen(false)} size="md" title="User details" description={selectedUser.email} icon={<ModalIcon><UserRound /></ModalIcon>} bodyClassName="p-0 sm:p-0">
                         <div className="p-6 space-y-6">
                             <div className="flex items-center gap-4">
                                 <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center text-[#3B82F6] font-semibold text-xl">
@@ -295,7 +290,7 @@ export default function UserManagement() {
                                 <div>
                                     <h3 className="text-xl font-semibold text-[#E6EAF0]">{selectedUser.name || 'No Name'}</h3>
                                     <p className="text-sm text-[#8B94A5]">{selectedUser.email}</p>
-                                    <div className="mt-1 inline-flex items-center px-2 py-0.5 roundedElement bg-[#A78BFA1F] text-[#8B5CF6] text-[11px] font-semibold">
+                                    <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded-md bg-[#A78BFA1F] text-[#8B5CF6] text-[11px] font-semibold">
                                         {selectedUser.role}
                                     </div>
                                 </div>
@@ -304,16 +299,18 @@ export default function UserManagement() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="space-y-1">
                                     <span className="text-[11px] font-semibold text-[#8B94A5]">Reports To</span>
-                                    <div className="text-sm text-[#E6EAF0] flex items-center gap-2">
-                                        {selectedUser.manager ? (
-                                            <>
-                                                <div className="w-5 h-5 rounded-full bg-white/[0.03] flex items-center justify-center text-[11px] font-semibold">
-                                                    {selectedUser.manager.name?.charAt(0)}
-                                                </div>
-                                                {selectedUser.manager.name}
-                                            </>
+                                    <div className="text-sm text-[#E6EAF0] flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                                        {selectedUser.reportingManagers?.length ? (
+                                            selectedUser.reportingManagers.map((m: any) => (
+                                                <span key={m.id} className="flex items-center gap-2">
+                                                    <span className="w-5 h-5 rounded-full bg-[#1F1F23] flex items-center justify-center text-[10px] font-semibold text-zinc-300">
+                                                        {m.name?.charAt(0)}
+                                                    </span>
+                                                    {m.name || m.email}
+                                                </span>
+                                            ))
                                         ) : (
-                                            <span className="text-[#8B94A5] italic underline decoration-dotted">No direct manager</span>
+                                            <span className="text-[#8B94A5] italic">No direct manager</span>
                                         )}
                                     </div>
                                 </div>
@@ -328,10 +325,10 @@ export default function UserManagement() {
                             <div className="space-y-2">
                                 <span className="text-[11px] font-semibold text-[#8B94A5]">Subordinates</span>
                                 <div className="flex flex-wrap gap-2">
-                                    {selectedUser.subordinates && selectedUser.subordinates.length > 0 ? (
-                                        selectedUser.subordinates.map((sub: any) => (
+                                    {selectedUser.reportingSubordinates && selectedUser.reportingSubordinates.length > 0 ? (
+                                        selectedUser.reportingSubordinates.map((sub: any) => (
                                             <div key={sub.id} className="flex items-center gap-2 px-2 py-1 bg-[#FFFFFF0A] rounded text-xs text-[#E6EAF0] border border-[#FFFFFF14]">
-                                                <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center text-[11px] font-semibold border border-[#FFFFFF14]">
+                                                <div className="w-4 h-4 rounded-full bg-[#1F1F23] flex items-center justify-center text-[10px] font-semibold text-zinc-300 border border-[#FFFFFF14]">
                                                     {sub.name?.charAt(0)}
                                                 </div>
                                                 {sub.name}
@@ -347,7 +344,7 @@ export default function UserManagement() {
                             <div className="pt-4 border-t border-[#FFFFFF14]">
                                 <div className="grid grid-cols-3 gap-4 text-center">
                                     <div className="p-3 bg-white/[0.03] rounded-lg border border-[#FFFFFF14]">
-                                        <div className="text-xl font-semibold text-[#3B82F6]">{selectedUser._count?.projects || 0}</div>
+                                        <div className="text-xl font-semibold text-[#3B82F6]">{selectedUser._count?.managedProjects || 0}</div>
                                         <div className="text-[11px] font-semibold text-[#8B94A5]">Projects</div>
                                     </div>
                                     <div className="p-3 bg-white/[0.03] rounded-lg border border-[#FFFFFF14]">
@@ -361,8 +358,8 @@ export default function UserManagement() {
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    
+                </Modal>
             )}
         </div>
     );

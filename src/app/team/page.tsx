@@ -29,6 +29,8 @@ import {
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
 
 interface User {
     id: string;
@@ -567,26 +569,16 @@ export default function TeamPage() {
 
             {/* Modal (Shared for Invite & Edit) */}
             {(isInviteModalOpen || isEditModalOpen) && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-                    <div className={cn(
-                        "w-full bg-[#111113] border border-white/[0.08] rounded-t-3xl sm:rounded-2xl  overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[92vh]",
-                        !isEditModalOpen && formData.email ? "max-w-5xl" : "max-w-lg"
-                    )}>
-                        <div className="p-6 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-secondary)] shrink-0">
-                            <h3 className="text-lg font-semibold text-heading">
-                                {isEditModalOpen ? 'Edit Member Config' : 'Invite New Member'}
-                            </h3>
-                            <button
-                                onClick={() => { setIsInviteModalOpen(false); setIsEditModalOpen(false); }}
-                                className="p-1 hover:bg-[var(--notion-bg-tertiary)] rounded-sm text-body"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto">
-                            <div className={cn("p-6", !isEditModalOpen && formData.email ? "grid grid-cols-1 lg:grid-cols-2 gap-8" : "")}>
+                <Modal open onClose={() => { setIsInviteModalOpen(false); setIsEditModalOpen(false); }} size={!isEditModalOpen && formData.email ? 'xl' : 'md'} title={isEditModalOpen ? 'Edit member' : 'Invite a member'} description={isEditModalOpen ? 'Change their role, departments and reporting line.' : 'They get an email invite to join EUSAI.'} icon={<ModalIcon><UserPlus /></ModalIcon>}
+                    onSubmit={isEditModalOpen ? handleUpdate : handleInvite}
+                    footer={<>
+                        <Button type="button" variant="ghost" onClick={() => { setIsInviteModalOpen(false); setIsEditModalOpen(false); }}>Cancel</Button>
+                        <Button type="submit" leftIcon={<CheckCircle2 className="h-4 w-4" />}>{isEditModalOpen ? 'Save changes' : 'Send invite'}</Button>
+                    </>}
+                >
+                            <div className={cn(!isEditModalOpen && formData.email ? "grid grid-cols-1 lg:grid-cols-2 gap-8" : "")}>
                                 {/* Left Column: Form */}
-                                <form onSubmit={isEditModalOpen ? handleUpdate : handleInvite} className="space-y-4 flex flex-col h-full">
+                                <div className="space-y-4 flex flex-col h-full">
                                     {!isEditModalOpen && (
                                         <div className="space-y-1.5">
                                             <label className="text-xs font-semibold text-body">Email Address</label>
@@ -744,30 +736,14 @@ export default function TeamPage() {
                                         )}
                                     </div>
 
-                                    <div className="pt-4 flex justify-end gap-2 mt-auto">
-                                        <button
-                                            type="button"
-                                            onClick={() => { setIsInviteModalOpen(false); setIsEditModalOpen(false); }}
-                                            className="px-4 py-2 hover:bg-[var(--notion-bg-tertiary)] rounded-sm text-subheading font-medium text-sm"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="btn-eusai-create flex items-center gap-2 px-4 py-2"
-                                        >
-                                            <CheckCircle2 className="w-4 h-4" />
-                                            {isEditModalOpen ? 'Save Changes' : 'Send Invite'}
-                                        </button>
-                                    </div>
-                                </form>
+                                </div>
 
                                 {/* Right Column: Email Preview */}
                                 {!isEditModalOpen && formData.email && (
                                     <div className="border-t lg:border-t-0 lg:border-l border-[var(--notion-border-default)] pt-6 lg:pt-0 lg:pl-8 flex flex-col h-full">
                                         <div className="flex items-center gap-2 mb-3">
                                             <Mail className="w-4 h-4 text-[#3B82F6]" />
-                                            <h4 className="text-xs font-semibold text-heading">Email Template Preview</h4>
+                                            <h4 className="text-xs font-semibold text-heading">Email preview</h4>
                                         </div>
                                         <div className="bg-[#09090B] border border-[#131720] rounded-md p-4 space-y-4 shadow-inner flex-1">
                                             {/* Email Header */}
@@ -775,7 +751,7 @@ export default function TeamPage() {
                                                 <div className="space-y-1">
                                                     <div className="flex items-center gap-2 text-xs">
                                                         <span className="text-[#888] w-12">From:</span>
-                                                        <span className="text-white font-medium">EUSAI Recon <span className="text-[#666]">&lt;security@eusaiteam.com&gt;</span></span>
+                                                        <span className="text-white font-medium">EUSAI Alert System <span className="text-[#666]">&lt;alert@eusaiteam.com&gt;</span></span>
                                                     </div>
                                                     <div className="flex items-center gap-2 text-xs">
                                                         <span className="text-[#888] w-12">To:</span>
@@ -798,18 +774,16 @@ export default function TeamPage() {
                                             </div>
 
                                             {/* Email Body */}
-                                            <div className="space-y-4 text-sm text-[#CCCCCC] font-mono leading-relaxed">
-                                                <p>CLASSIFIED - INTERNAL USE ONLY</p>
+                                            <div className="space-y-4 text-sm text-[#CCCCCC] leading-relaxed">
+                                                <p>Hi {formData.name || 'there'},</p>
 
-                                                <p>Attention {formData.name || 'Member'},</p>
-
-                                                <p>You now have access to the EUSAI workspace. Your role is: <span className="text-[#34D399] font-semibold">[{formData.role}]</span>.</p>
+                                                <p>You now have access to the EUSAI workspace. Your role: <span className="text-[#34D399] font-semibold">[{formData.role}]</span>.</p>
 
                                                 <div className="bg-[#111] border border-[#333] p-3 rounded space-y-2">
-                                                    <p className="text-xs text-[#888]">INITIALIZATION DIRECTIVES:</p>
+                                                    <p className="text-xs text-[#888]">GETTING STARTED</p>
                                                     <ol className="list-decimal pl-4 space-y-1 text-xs">
                                                         <li>Sign in using the link below.</li>
-                                                        <li>Authenticate using your registered Google Workspace credentials.</li>
+                                                        <li>Use your registered Google Workspace account.</li>
                                                         <li>Open tasks and milestones that need attention.</li>
                                                         <li>Daily reports are accepted between 5:00 PM and 11:59 PM IST.</li>
                                                     </ol>
@@ -817,38 +791,30 @@ export default function TeamPage() {
 
                                                 <div className="py-2 flex justify-center">
                                                     <div className="bg-[#3B82F6] text-white px-6 py-2 rounded font-sans font-medium opacity-90 cursor-not-allowed">
-                                                        Initiate Secure Uplink
+                                                        Sign in
                                                     </div>
                                                 </div>
 
                                                 <p className="text-xs text-[#666]">
-                                                    Auth Token: {Math.random().toString(36).substring(2, 15).toUpperCase()} <br />
-                                                    Transmission Origin: EUSAI Command Center
+                                                    Sent by EUSAI
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
                                 )}
                             </div>
-                        </div>
-                    </div>
-                </div>
+                </Modal>
             )}
 
             {/* Delete Confirmation Modal (Director Only) */}
             {userToDelete && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-                    <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-md animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
-                        <div className="p-6 bg-[#FB71851F] border-b border-[#FB718533] flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#E11D48] flex items-center justify-center text-white shrink-0 shadow-sm">
-                                <AlertTriangle className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-[#E11D48] text-base leading-tight">Permanently Delete User</h3>
-                                <p className="text-xs text-[#F43F5E] mt-0.5 font-medium">This action cannot be undone</p>
-                            </div>
-                        </div>
-                        <div className="p-6 space-y-4">
+                <Modal open onClose={() => setUserToDelete(null)} size="sm" title="Delete user permanently" description="This can't be undone." icon={<ModalIcon tone="rose"><AlertTriangle /></ModalIcon>}
+                    footer={<>
+                        <Button type="button" variant="ghost" onClick={() => setUserToDelete(null)} disabled={isDeletingUser}>Cancel</Button>
+                        <Button type="button" variant="danger" onClick={handleConfirmDeleteUser} isLoading={isDeletingUser} leftIcon={<Trash2 className="h-4 w-4" />}>Delete permanently</Button>
+                    </>}
+                >
+                        <div className="space-y-4">
                             <p className="text-sm text-[var(--notion-text-primary)] leading-relaxed">
                                 Are you sure you want to permanently delete <strong className="font-semibold text-heading">{userToDelete.name || userToDelete.email}</strong>?
                             </p>
@@ -864,37 +830,9 @@ export default function TeamPage() {
                                     <li>Historical milestones will be safely transferred to your director account.</li>
                                 </ul>
                             </div>
-                            <div className="flex items-center justify-end gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setUserToDelete(null)}
-                                    disabled={isDeletingUser}
-                                    className="px-4 py-2 text-xs font-semibold rounded-md border border-[var(--notion-border-default)] hover:bg-[var(--notion-bg-tertiary)] text-subheading transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleConfirmDeleteUser}
-                                    disabled={isDeletingUser}
-                                    className="px-4 py-2 text-xs font-semibold rounded-md bg-[#E11D48] hover:bg-[#F43F5E] text-white transition-colors flex items-center gap-1.5 shadow-sm disabled:opacity-50"
-                                >
-                                    {isDeletingUser ? (
-                                        <>
-                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                            Deleting...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                            Permanently Delete
-                                        </>
-                                    )}
-                                </button>
-                            </div>
                         </div>
-                    </div>
-                </div>
+                    
+                </Modal>
             )}
 
         </div>

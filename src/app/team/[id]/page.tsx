@@ -31,6 +31,7 @@ import {
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import Button from '@/components/ui/Button';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
 
 // --- DATA INTERFACES ---
 
@@ -131,10 +132,10 @@ export default function UserProfilePage() {
             "Hours Worked",
             "Utilization (%)",
             "Accomplishments",
-            "Challenges / Impediments",
-            "Next Cycle Plan",
-            "Project Scope",
-            "Submitted Timestamp"
+            "Challenges",
+            "Tomorrow's Plan",
+            "Project",
+            "Submitted at"
         ];
 
         const csvRows = [headers.join(",")];
@@ -149,7 +150,7 @@ export default function UserProfilePage() {
                 `"${(r.accomplishments || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
                 `"${(r.challenges || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
                 `"${(r.tomorrowPlan || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
-                `"${(r.project?.name || 'General Operations').replace(/"/g, '""')}"`,
+                `"${(r.project?.name || 'General work').replace(/"/g, '""')}"`,
                 `"${r.submittedAt ? new Date(r.submittedAt).toLocaleString() : ''}"`
             ];
             csvRows.push(row.join(","));
@@ -236,8 +237,8 @@ export default function UserProfilePage() {
             <div className="flex bg-[#09090B] h-screen items-center justify-center">
                 <div className="text-center space-y-4">
                     <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto" />
-                    <h2 className="text-2xl font-semibold text-white tracking-tighter">Access Denied: Subject Not Found</h2>
-                    <Button onClick={() => router.back()}>Return to Headquarters</Button>
+                    <h2 className="text-2xl font-semibold text-white tracking-tighter">Member not found</h2>
+                    <Button onClick={() => router.back()}>Go back</Button>
                 </div>
             </div>
         );
@@ -249,7 +250,7 @@ export default function UserProfilePage() {
             <div className="flex items-center gap-2 text-[11px] font-semibold text-white/30 mb-2">
                 <Link href="/" className="hover:text-white transition-colors">Home</Link>
                 <ChevronRight className="w-3 h-3" />
-                <Link href="/team" className="hover:text-white transition-colors">Garrison</Link>
+                <Link href="/team" className="hover:text-white transition-colors">Team</Link>
                 <ChevronRight className="w-3 h-3" />
                 <span className="text-blue-400">Profile</span>
             </div>
@@ -282,11 +283,11 @@ export default function UserProfilePage() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <Briefcase className="w-3.5 h-3.5 text-blue-400" />
-                                {user.department || 'Operations'}
+                                {user.department || 'No department'}
                             </div>
                             <div className="flex items-center gap-2">
                                 <Shield className="w-3.5 h-3.5 text-green-400" />
-                                Status: Active Combatant
+                                Active member
                             </div>
                         </div>
                     </div>
@@ -294,31 +295,31 @@ export default function UserProfilePage() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <ProfileMetricCard
                             icon={TrendingUp}
-                            label="Efficacy Rating"
+                            label="Efficiency"
                             value={`${user.performanceScore || 0}%`}
                             color="green"
-                            description={`${user.performanceTrend === 'UP' ? 'Trending Positive' : user.performanceTrend === 'DOWN' ? 'Delta Negative' : 'Stable'}`}
+                            description={`${user.performanceTrend === 'UP' ? 'Trending up' : user.performanceTrend === 'DOWN' ? 'Trending down' : 'Stable'}`}
                         />
                         <ProfileMetricCard
                             icon={Award}
                             label="Rank"
-                            value={`#${user.rank || 'N/A'}`}
+                            value={user.rank ? `#${user.rank}` : '—'}
                             color="blue"
-                            description="Garrison Standing"
+                            description="Position in the team"
                         />
                         <ProfileMetricCard
                             icon={Target}
                             label="Active work"
                             value={(user as any).activeTasks.length + (user as any).activeMilestones.length}
                             color="purple"
-                            description="Current Workload"
+                            description="Open tasks and milestones"
                         />
                         <ProfileMetricCard
                             icon={BriefcaseIcon}
-                            label="Resource Yield"
+                            label="Total work"
                             value={user.tasks.length + user.milestones.length}
                             color="yellow"
-                            description="Historical Total"
+                            description="Tasks and milestones, all time"
                         />
                     </div>
                 </div>
@@ -328,7 +329,7 @@ export default function UserProfilePage() {
                 {/* Sidebar Navigation Context */}
                 <div className="lg:col-span-1 space-y-10">
                     <div>
-                        <h4 className="text-[11px] font-semibold text-white/30 mb-6">Alignment Chain</h4>
+                        <h4 className="text-[11px] font-semibold text-white/30 mb-6">Reports to</h4>
                         <div className="space-y-4">
                             {user.reportingManagers.map((mgr: any) => (
                                 <div key={mgr.id} className="flex items-center gap-4 p-4 rounded-2xl bg-[#09090B] border border-white/5 group hover:border-blue-500/30 transition-all cursor-pointer">
@@ -337,7 +338,7 @@ export default function UserProfilePage() {
                                     </div>
                                     <div>
                                         <p className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{mgr.name}</p>
-                                        <p className="text-[11px] font-semibold text-white/30 tracking-tighter">Commanding Officer</p>
+                                        <p className="text-[11px] font-semibold text-white/30 tracking-tighter">Manager</p>
                                     </div>
                                 </div>
                             ))}
@@ -345,7 +346,7 @@ export default function UserProfilePage() {
                     </div>
 
                     <div>
-                        <h4 className="text-[11px] font-semibold text-white/30 mb-6">Contacts ({user.reportingSubordinates.length})</h4>
+                        <h4 className="text-[11px] font-semibold text-white/30 mb-6">Team members ({user.reportingSubordinates.length})</h4>
                         <div className="grid grid-cols-5 gap-2">
                             {user.reportingSubordinates.map((sub: any) => (
                                 <div key={sub.id} title={sub.name} className="w-10 h-10 rounded-xl bg-[#09090B] border border-white/10 flex items-center justify-center text-[11px] font-semibold hover:border-blue-500 transition-all cursor-pointer">
@@ -356,7 +357,7 @@ export default function UserProfilePage() {
                     </div>
                 </div>
 
-                {/* Main Intel Tabs */}
+                {/* Tabs */}
                 <div className="lg:col-span-3 space-y-8">
                     <div className="flex max-w-full items-center gap-2 overflow-x-auto p-1 bg-[#09090B] border border-white/10 rounded-2xl w-fit [scrollbar-width:none] [&>button]:shrink-0 [&>button]:whitespace-nowrap">
                         <button
@@ -366,7 +367,7 @@ export default function UserProfilePage() {
                                 activeTab === 'LOGS' ? "bg-blue-600 text-white shadow-xl shadow-blue-600/20" : "text-white/40 hover:text-white"
                             )}
                         >
-                            Tactical Logs
+                            Daily reports
                         </button>
                         <button
                             onClick={() => setActiveTab('MISSIONS')}
@@ -477,7 +478,7 @@ export default function UserProfilePage() {
                                         className="bg-[#34D399] hover:bg-[#10B981] text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-lg active:scale-95"
                                     >
                                         <FileSpreadsheet className="w-4 h-4" />
-                                        Export CSV Sheet
+                                        Export CSV
                                     </button>
                                 </div>
                             </div>
@@ -494,10 +495,10 @@ export default function UserProfilePage() {
                                                 <th className="px-5 py-4 text-[11px] font-semibold text-white/40">Date</th>
                                                 <th className="px-5 py-4 text-[11px] font-semibold text-white/40 text-center">Tasks</th>
                                                 <th className="px-5 py-4 text-[11px] font-semibold text-white/40 text-center">Hours</th>
-                                                <th className="px-5 py-4 text-[11px] font-semibold text-white/40 text-center">Utilization</th>
+                                                <th className="px-5 py-4 text-[11px] font-semibold text-white/40 text-center">Efficiency</th>
                                                 <th className="px-5 py-4 text-[11px] font-semibold text-white/40">Accomplishments</th>
                                                 <th className="px-5 py-4 text-[11px] font-semibold text-white/40">Challenges</th>
-                                                <th className="px-5 py-4 text-[11px] font-semibold text-white/40">Next Plan</th>
+                                                <th className="px-5 py-4 text-[11px] font-semibold text-white/40">Tomorrow's plan</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5 text-xs">
@@ -558,7 +559,7 @@ export default function UserProfilePage() {
                                                         </div>
                                                         <div>
                                                             <h5 className="text-sm font-semibold text-white">Report for {new Date(report.date).toLocaleDateString('en-GB')}</h5>
-                                                            <p className="text-[11px] font-semibold text-white/30">{report.project?.name || 'General Operations'}</p>
+                                                            <p className="text-[11px] font-semibold text-white/30">{report.project?.name || 'General work'}</p>
                                                         </div>
                                                     </div>
                                                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-semibold text-white/20">
@@ -576,7 +577,7 @@ export default function UserProfilePage() {
                                                     </div>
                                                     {report.challenges && (
                                                         <div>
-                                                            <p className="text-[11px] font-semibold text-red-400/60 mb-1.5">Blocking Maneuvers</p>
+                                                            <p className="text-[11px] font-semibold text-red-400/60 mb-1.5">Challenges</p>
                                                             <p className="text-sm text-white/60 italic leading-relaxed">{report.challenges}</p>
                                                         </div>
                                                     )}
@@ -593,7 +594,7 @@ export default function UserProfilePage() {
                             <div className="space-y-6">
                                 <h4 className="text-[11px] font-semibold text-white/30 pl-2">Assigned Milestones</h4>
                                 {user.activeMilestones.length === 0 ? (
-                                    <p className="text-xs font-semibold text-white/10 italic p-6 border border-white/5 rounded-2xl">No critical milestones assigned</p>
+                                    <p className="text-xs font-semibold text-white/10 italic p-6 border border-white/5 rounded-2xl">No milestones assigned</p>
                                 ) : (
                                     user.activeMilestones.map((ms: any) => (
                                         <div key={ms.id} className="p-6 rounded-2xl bg-[#09090B] border border-white/5 hover:border-blue-500/30 transition-all">
@@ -603,7 +604,7 @@ export default function UserProfilePage() {
                                             </div>
                                             <h5 className="text-sm font-semibold text-white mb-2 tracking-tight">{ms.title}</h5>
                                             <div className="flex items-center gap-2 mb-4">
-                                                <span className="text-[11px] font-semibold text-white/20">{ms.project?.name || 'GENERAL'}</span>
+                                                <span className="text-[11px] font-semibold text-white/20">{ms.project?.name || 'General'}</span>
                                             </div>
                                             <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
                                                 <div className="h-full bg-blue-500" style={{ width: `${ms.progress}%` }} />
@@ -615,13 +616,13 @@ export default function UserProfilePage() {
                             <div className="space-y-6">
                                 <h4 className="text-[11px] font-semibold text-white/30 pl-2">Active Tasks</h4>
                                 {user.activeTasks.length === 0 ? (
-                                    <p className="text-xs font-semibold text-white/10 italic p-6 border border-white/5 rounded-2xl">Task buffer empty</p>
+                                    <p className="text-xs font-semibold text-white/10 italic p-6 border border-white/5 rounded-2xl">No open tasks</p>
                                 ) : (
                                     user.activeTasks.map((task: any) => (
                                         <div key={task.id} className="p-6 rounded-2xl bg-[#09090B] border border-white/5 flex items-center justify-between group hover:bg-[#09090B] transition-all">
                                             <div>
                                                 <h5 className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors tracking-tight">{task.title}</h5>
-                                                <p className="text-[11px] font-semibold text-white/20 mt-1.5">{task.project?.name || 'GENERAL'}</p>
+                                                <p className="text-[11px] font-semibold text-white/20 mt-1.5">{task.project?.name || 'General'}</p>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-[11px] font-semibold text-white/40">Deadline</p>
@@ -641,7 +642,7 @@ export default function UserProfilePage() {
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                        <span className="text-[11px] font-semibold text-white/30">Efficiency Delta</span>
+                                        <span className="text-[11px] font-semibold text-white/30">Change</span>
                                     </div>
                                 </div>
                             </div>
@@ -669,7 +670,7 @@ export default function UserProfilePage() {
                                     </div>
                                 ))}
                                 {user.weeklyReports.length === 0 && (
-                                    <p className="text-sm font-semibold text-white/10 text-center py-20">Insufficient performance data for predictive analysis</p>
+                                    <p className="text-sm font-semibold text-white/10 text-center py-20">Not enough reports yet to show performance</p>
                                 )}
                             </div>
                         </div>
@@ -678,29 +679,16 @@ export default function UserProfilePage() {
             </div>
             {/* Report Full Text Detail Modal */}
             {selectedReportForView && (
-                <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200" onClick={() => setSelectedReportForView(null)}>
-                    <div className="bg-[#111113] border border-white/[0.08] rounded-2xl max-w-xl w-full p-6 space-y-6 relative animate-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between border-b border-[rgba(255,255,255,0.08)] pb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-semibold">
-                                    <FileText className="w-4 h-4" />
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-semibold text-white">
-                                        Daily Report ({new Date(selectedReportForView.date).toLocaleDateString()})
-                                    </h3>
-                                    <span className="text-[11px] font-semibold text-white/40">
-                                        {selectedReportForView.user?.name || user?.name}
-                                    </span>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setSelectedReportForView(null)}
-                                className="p-1.5 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
+                <Modal open onClose={() => setSelectedReportForView(null)} size="lg" title={`Daily report · ${new Date(selectedReportForView.date).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}`} description={selectedReportForView.user?.name || user?.name} icon={<ModalIcon><FileText /></ModalIcon>} bodyClassName="space-y-5"
+                    footer={<>
+                        <div className="mr-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-400 max-sm:basis-full">
+                            <span>Tasks done <strong className="font-semibold text-white">{selectedReportForView.tasksCompleted}</strong></span>
+                            <span>Hours <strong className="font-semibold text-white">{selectedReportForView.hoursWorked}h</strong></span>
+                            <span>Efficiency <strong className="font-semibold text-white">{selectedReportForView.utilization}%</strong></span>
                         </div>
+                        <Button type="button" variant="secondary" onClick={() => setSelectedReportForView(null)}>Close</Button>
+                    </>}
+                >
 
                         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                             <div>
@@ -712,7 +700,7 @@ export default function UserProfilePage() {
 
                             {selectedReportForView.challenges && (
                                 <div>
-                                    <h4 className="text-[11px] font-semibold text-red-400 mb-1.5">Challenges & Impediments</h4>
+                                    <h4 className="text-[11px] font-semibold text-red-400 mb-1.5">Challenges</h4>
                                     <div className="bg-[#18181B] border border-red-500/20 p-4 rounded-xl text-sm text-red-200/90 whitespace-pre-wrap leading-relaxed">
                                         {selectedReportForView.challenges}
                                     </div>
@@ -721,29 +709,14 @@ export default function UserProfilePage() {
 
                             {selectedReportForView.tomorrowPlan && (
                                 <div>
-                                    <h4 className="text-[11px] font-semibold text-emerald-400 mb-1.5">Next Cycle Plan</h4>
+                                    <h4 className="text-[11px] font-semibold text-emerald-400 mb-1.5">Tomorrow's plan</h4>
                                     <div className="bg-[#18181B] border border-emerald-500/20 p-4 rounded-xl text-sm text-emerald-200/90 whitespace-pre-wrap leading-relaxed">
                                         {selectedReportForView.tomorrowPlan}
                                     </div>
                                 </div>
                             )}
                         </div>
-
-                        <div className="flex items-center justify-between border-t border-[rgba(255,255,255,0.08)] pt-4 text-xs font-semibold text-white/40">
-                            <div className="flex items-center gap-4">
-                                <span>Tasks: <strong className="text-blue-400 font-semibold">{selectedReportForView.tasksCompleted}</strong></span>
-                                <span>Hours: <strong className="text-white font-semibold">{selectedReportForView.hoursWorked}h</strong></span>
-                                <span>Utilization: <strong className="text-purple-400 font-semibold">{selectedReportForView.utilization}%</strong></span>
-                            </div>
-                            <button
-                                onClick={() => setSelectedReportForView(null)}
-                                className="px-5 py-2 bg-[#18181B] hover:bg-[#1F1F23] text-white rounded-lg text-xs font-semibold transition-all shadow-md active:scale-95"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                </Modal>
             )}
         </div>
     );

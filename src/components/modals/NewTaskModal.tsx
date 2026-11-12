@@ -15,6 +15,10 @@ import {
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/context/ToastContext';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
+import { FieldLabel, fieldClass, fieldErrorClass } from '@/components/ui/Field';
+import { cn } from '@/lib/utils';
 
 const taskSchema = z.object({
     title: z.string().min(3, 'Title is required'),
@@ -145,211 +149,111 @@ export default function NewTaskModal({ isOpen, onClose, onTaskCreated, defaultPr
         }
     };
 
-    if (!isOpen) return null;
+    const me = (session?.user as any)?.id;
+    const priority = watch('priority');
+    const PRIORITIES = [
+        { val: '1', label: 'Low', active: 'border-zinc-500/50 bg-zinc-700/40 text-zinc-100' },
+        { val: '2', label: 'Medium', active: 'border-amber-500/50 bg-amber-500/15 text-amber-300' },
+        { val: '3', label: 'High', active: 'border-rose-500/50 bg-rose-500/15 text-rose-300' },
+    ];
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-            <div className="bg-[#111113] border border-white/[0.08] rounded-2xl border-white/[0.08] rounded-2xl relative w-full rounded-b-none sm:rounded-b-3xl max-w-xl animate-in zoom-in-95 duration-300 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
-                {/* Glossy background detail */}
-
-                {/* Header */}
-                <div className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-6 border-b border-[rgba(255,255,255,0.06)]">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#3B82F6] flex items-center justify-center shadow-lg shadow-blue-900/20">
-                            <Briefcase className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                            <h2 className="font-display text-lg font-semibold text-white">New task</h2>
-                            <p className="text-xs text-zinc-400 font-medium">Assign work with a deadline and priority</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
+        <Modal
+            open={isOpen}
+            onClose={onClose}
+            size="md"
+            title="New task"
+            description="Assign work with a deadline and priority."
+            icon={<ModalIcon><Briefcase /></ModalIcon>}
+            onSubmit={handleSubmit(onSubmit)}
+            footer={<>
+                <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+                <Button type="submit" isLoading={isSubmitting} leftIcon={<Plus className="h-4 w-4" />}>Create task</Button>
+            </>}
+        >
+            <div className="space-y-5">
+                <div>
+                    <FieldLabel htmlFor="task-title" required>Title</FieldLabel>
+                    <input id="task-title" {...register('title')} placeholder="What needs to be done?" className={cn(fieldClass, errors.title && fieldErrorClass)} />
+                    {errors.title && <p className="mt-1.5 text-xs text-rose-400">{errors.title.message}</p>}
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="relative z-10 p-5 sm:p-8 space-y-6">
-                    {/* Title */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Task Title
-                        </label>
-                        <input
-                            {...register('title')}
-                            placeholder="What needs to be done?"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-fg-muted focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-medium"
-                        />
-                        {errors.title && <p className="text-[11px] font-semibold text-red-400 ml-1 animate-pulse">{errors.title.message}</p>}
+                <div>
+                    <FieldLabel htmlFor="task-description">Description</FieldLabel>
+                    <textarea id="task-description" {...register('description')} rows={3} placeholder="Add details and context" className={cn(fieldClass, 'h-auto resize-y py-2.5 leading-relaxed')} />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <FieldLabel htmlFor="task-project">Project</FieldLabel>
+                        <select id="task-project" {...register('projectId')} className={fieldClass}>
+                            <option value="">No project</option>
+                            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
                     </div>
-
-                    {/* Description */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500" /> Description
-                        </label>
-                        <textarea
-                            {...register('description')}
-                            rows={3}
-                            placeholder="Add details and context"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-fg-muted focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-none font-medium leading-relaxed"
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {/* Project */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                                <Briefcase className="w-3 h-3 text-blue-400" /> Project
-                            </label>
-                            <div className="relative">
-                                <select
-                                    {...register('projectId')}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
-                                >
-                                    <option value="" className="bg-[#09090B]">No Project</option>
-                                    {projects.map(p => (
-                                        <option key={p.id} value={p.id} className="bg-[#09090B]">{p.name}</option>
-                                    ))}
-                                </select>
-                            </div>
+                    <div>
+                        <div className="flex items-baseline justify-between gap-2">
+                            <FieldLabel htmlFor="task-assignee">{isMultiSelectMode ? 'Assignees' : 'Assignee'}</FieldLabel>
+                            <button type="button" onClick={() => setIsMultiSelectMode(!isMultiSelectMode)} className="mb-1.5 text-xs font-medium text-blue-400 hover:text-blue-300">
+                                {isMultiSelectMode ? 'Assign one person' : 'Assign several'}
+                            </button>
                         </div>
-
-                        {/* Assignee */}
-                        <div className="space-y-2">
-                            <div className="flex flex-wrap items-center justify-between gap-3">
-                                <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                                    <UserIcon className="w-3 h-3 text-purple-400" /> Assignees
-                                </label>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsMultiSelectMode(!isMultiSelectMode)}
-                                    className="text-[11px] font-semibold text-[#3B82F6] tracking-tighter hover:underline"
-                                >
-                                    {isMultiSelectMode ? "Switch to Single" : "Bulk Assign"}
-                                </button>
-                            </div>
-
-                            {isMultiSelectMode ? (
-                                <div className="w-full bg-white/5 border border-white/10 rounded-xl p-3 max-h-32 overflow-y-auto space-y-2 scrollbar-hide">
-                                    {[
-                                        ...(session?.user ? [{ id: (session.user as any).id, name: 'Assign to Me', role: 'Self' }] : []),
-                                        ...teamMembers.filter(u => u.id !== (session?.user as any)?.id)
-                                    ].map(u => (
-                                        <label key={u.id} className="flex items-center gap-3 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedAssignees.includes(u.id)}
-                                                onChange={() => toggleAssignee(u.id)}
-                                                className="w-4 h-4 rounded border-white/10 bg-white/5 text-[#3B82F6] focus:ring-0 focus:ring-offset-0 transition-all"
-                                            />
-                                            <span className="text-xs font-medium text-gray-300 group-hover:text-white transition-colors">{u.name}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="relative">
-                                    <select
-                                        {...register('assignedToId')}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
-                                    >
-                                        <option value="" className="bg-[#09090B]">Select Member...</option>
-                                        <option value={(session?.user as any)?.id} className="bg-[#09090B]">Assign to Me</option>
-                                        {teamMembers.filter(u => u.id !== (session?.user as any)?.id).map(u => (
-                                            <option key={u.id} value={u.id} className="bg-[#09090B]">{u.name} ({u.role})</option>
-                                        ))}
-                                    </select>
-                                    {errors.assignedToId && <p className="text-[11px] font-semibold text-red-400 mt-1">{errors.assignedToId.message}</p>}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {/* Deadline */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                                <Calendar className="w-3 h-3 text-green-400" /> Due Date
-                            </label>
-                            <input
-                                type="date"
-                                {...register('deadline')}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all cursor-pointer text-sm font-medium [color-scheme:dark]"
-                            />
-                        </div>
-
-                        {/* Category */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                                <Flag className="w-3 h-3 text-yellow-400" /> Category
-                            </label>
-                            <select
-                                {...register('category')}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500/50 hover:bg-white/10 transition-all appearance-none cursor-pointer text-sm font-medium"
-                            >
-                                <option value="EUSAI_AGREEMENT" className="bg-[#09090B]">EUSAI Agreement</option>
-                                <option value="SPORTS_LOGO" className="bg-[#09090B]">Sports Logo Agreement</option>
-                                <option value="MOU" className="bg-[#09090B]">MOU Integration</option>
-                                <option value="BUSINESS_ORDER" className="bg-[#09090B]">Business Order</option>
-                                <option value="CUSTOM" className="bg-[#09090B]">Custom Task</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Form Controls */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 pt-6 border-t border-[rgba(255,255,255,0.06)]">
-                        {/* Priority Section */}
-                        <div className="flex items-center gap-4">
-                            <label className="text-sm font-medium text-zinc-300">Priority:</label>
-                            <div className="flex gap-2">
-                                {[
-                                    { val: '1', label: 'Low', color: 'bg-green-500/20 text-green-400 border-green-500/30' },
-                                    { val: '2', label: 'Med', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-                                    { val: '3', label: 'High', color: 'bg-red-500/20 text-red-400 border-red-500/30' }
-                                ].map(p => (
-                                    <button
-                                        key={p.val}
-                                        type="button"
-                                        onClick={() => setValue('priority', p.val)}
-                                        className={`px-3 py-1 rounded-md text-[11px] font-semibold  border transition-all ${watch('priority') === p.val
-                                            ? `${p.color} ring-2 ring-white/10 scale-105 shadow-lg`
-                                            : 'bg-white/5 text-zinc-400 border-white/5 hover:bg-white/10'
-                                            }`}
-                                    >
-                                        {p.label}
-                                    </button>
+                        {isMultiSelectMode ? (
+                            <div className="max-h-40 space-y-0.5 overflow-y-auto rounded-lg border border-[#2F2F35] bg-[#18181B] p-1.5">
+                                {[...(session?.user ? [{ id: me, name: 'Me', role: 'Self' }] : []), ...teamMembers.filter(u => u.id !== me)].map(u => (
+                                    <label key={u.id} className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 hover:bg-[#1F1F23]">
+                                        <input type="checkbox" checked={selectedAssignees.includes(u.id)} onChange={() => toggleAssignee(u.id)} className="h-4 w-4 rounded accent-blue-600" />
+                                        <span className="text-sm text-zinc-200">{u.name}</span>
+                                    </label>
                                 ))}
                             </div>
-                            <input type="hidden" {...register('priority')} />
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="px-6 py-2.5 text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="relative group px-4 sm:px-8 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-semibold rounded-xl shadow-lg shadow-blue-900/20 disabled:opacity-50 transition-all flex items-center gap-2 overflow-hidden"
-                            >
-                                <div className="absolute inset-0 bg-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                                {isSubmitting ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                    <Plus className="w-4 h-4" />
-                                )}
-                                {isSubmitting ? 'Synchronizing...' : 'Create task'}
-                            </button>
-                        </div>
+                        ) : (
+                            <>
+                                <select id="task-assignee" {...register('assignedToId')} className={cn(fieldClass, errors.assignedToId && fieldErrorClass)}>
+                                    <option value="">Choose a person</option>
+                                    <option value={me}>Me</option>
+                                    {teamMembers.filter(u => u.id !== me).map(u => <option key={u.id} value={u.id}>{u.name} ({u.role.replace(/_/g, ' ').toLowerCase()})</option>)}
+                                </select>
+                                {errors.assignedToId && <p className="mt-1.5 text-xs text-rose-400">{errors.assignedToId.message}</p>}
+                            </>
+                        )}
                     </div>
-                </form>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <FieldLabel htmlFor="task-deadline" required>Due date</FieldLabel>
+                        <input id="task-deadline" type="date" {...register('deadline')} className={cn(fieldClass, '[color-scheme:dark]', errors.deadline && fieldErrorClass)} />
+                        {errors.deadline && <p className="mt-1.5 text-xs text-rose-400">{errors.deadline.message}</p>}
+                    </div>
+                    <div>
+                        <FieldLabel htmlFor="task-category">Category</FieldLabel>
+                        <select id="task-category" {...register('category')} className={fieldClass}>
+                            <option value="EUSAI_AGREEMENT">EUSAI agreement</option>
+                            <option value="SPORTS_LOGO">Sports logo agreement</option>
+                            <option value="MOU">MOU</option>
+                            <option value="BUSINESS_ORDER">Business order</option>
+                            <option value="CUSTOM">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <FieldLabel>Priority</FieldLabel>
+                    <div role="radiogroup" aria-label="Priority" className="grid grid-cols-3 gap-1.5">
+                        {PRIORITIES.map(p => (
+                            <button key={p.val} type="button" role="radio" aria-checked={priority === p.val} onClick={() => setValue('priority', p.val)}
+                                className={cn('h-9 rounded-lg border text-sm font-medium transition-colors',
+                                    priority === p.val ? p.active : 'border-[#2F2F35] bg-[#18181B] text-zinc-400 hover:text-zinc-200')}>
+                                {p.label}
+                            </button>
+                        ))}
+                    </div>
+                    <input type="hidden" {...register('priority')} />
+                </div>
+
+                {isLoadingData && <p className="flex items-center gap-2 text-xs text-zinc-500"><Loader2 className="h-3.5 w-3.5 animate-spin" />Loading projects and people…</p>}
             </div>
-        </div>
+        </Modal>
     );
 }

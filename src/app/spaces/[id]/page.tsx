@@ -260,7 +260,7 @@ export default function SpaceDashboardPage() {
                                     onClick={() => setShowCreateProjectModal(true)}
                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-sm font-semibold text-xs shadow-sm transition-colors"
                                 >
-                                    <Plus className="w-3.5 h-3.5" /> New Operation
+                                    <Plus className="w-3.5 h-3.5" /> New project
                                 </button>
                             )}
                             {canCreateMilestones && space.projects.length > 0 && (
@@ -332,14 +332,14 @@ export default function SpaceDashboardPage() {
                         <section>
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-sm font-semibold text-[var(--notion-text-tertiary)] flex items-center gap-2">
-                                    <Layout className="w-4 h-4" /> Operations & Detailed Briefs
+                                    <Layout className="w-4 h-4" /> Projects
                                 </h3>
                                 {canManageSpace && (
                                     <button
                                         onClick={() => setShowCreateProjectModal(true)}
                                         className="text-xs font-semibold text-[#3B82F6] hover:underline flex items-center gap-1"
                                     >
-                                        <Plus className="w-3 h-3" /> Add Operation
+                                        <Plus className="w-3 h-3" /> Add project
                                     </button>
                                 )}
                             </div>
@@ -354,7 +354,7 @@ export default function SpaceDashboardPage() {
                                             onClick={() => setShowCreateProjectModal(true)}
                                             className="px-4 py-2 bg-[#3B82F6] text-white rounded-sm font-semibold text-xs hover:bg-[#2563EB] transition-colors"
                                         >
-                                            Initialize First Operation
+                                            Create the first project
                                         </button>
                                     )}
                                 </div>

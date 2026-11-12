@@ -23,6 +23,9 @@ import { StatusBadge } from '@/components/notion';
 import type { StatusType } from '@/components/notion/StatusBadge';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/context/ToastContext';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
+import Badge from '@/components/ui/Badge';
 
 interface Task {
     id: string;
@@ -56,7 +59,7 @@ export default function TaskDetailModal({ isOpen, onClose, onDelete, task }: Tas
     const { showToast } = useToast();
     const [isDeleting, setIsDeleting] = React.useState(false);
 
-    if (!isOpen || !task) return null;
+    if (!task) return null;
 
     const userRole = (session?.user as any)?.role;
     const userId = (session?.user as any)?.id;
@@ -73,7 +76,7 @@ export default function TaskDetailModal({ isOpen, onClose, onDelete, task }: Tas
     };
 
     const handleDelete = async () => {
-        if (!confirm('Are you sure you want to decommission this strategic objective? This action is irreversible.')) return;
+        if (!confirm("Delete this task? This can't be undone.")) return;
 
         setIsDeleting(true);
         try {
@@ -114,221 +117,102 @@ export default function TaskDetailModal({ isOpen, onClose, onDelete, task }: Tas
         }
     };
 
+    const overdueNow = new Date(task.deadline) < new Date() && task.status !== 'DONE';
+    const PRIORITY = task.priority === 3 ? { label: 'High priority', tone: 'rose' as const } : task.priority === 2 ? { label: 'Medium priority', tone: 'amber' as const } : { label: 'Low priority', tone: 'slate' as const };
+
     return (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-            <div
-                className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full rounded-b-none sm:rounded-b-3xl max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Header */}
-                <div className="px-6 py-5 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg">
-                            <CheckSquare className="w-5 h-5 text-white" />
-                        </div>
-                        <h3 className="font-display text-base font-semibold text-white">Task details</h3>
+        <Modal
+            open={isOpen}
+            onClose={onClose}
+            size="lg"
+            title={task.title}
+            description={<span className="inline-flex flex-wrap items-center gap-2"><StatusBadge status={mapStatusForBadge(task.status)} size="sm" /><Badge tone={PRIORITY.tone}>{PRIORITY.label}</Badge>{overdueNow && <Badge tone="rose">Overdue</Badge>}</span>}
+            icon={<ModalIcon><CheckSquare /></ModalIcon>}
+            footer={<>
+                {canDelete && (
+                    <Button variant="ghost" className="text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 sm:mr-auto" isLoading={isDeleting} leftIcon={<Trash2 className="h-4 w-4" />} onClick={handleDelete}>Delete task</Button>
+                )}
+                {isSenior && isOverdue && (
+                    <Button variant="secondary" leftIcon={<BellRing className="h-4 w-4 text-amber-400" />} onClick={handleSendOverdueReminder}>Send reminder</Button>
+                )}
+                <Button variant="secondary" onClick={onClose}>Close</Button>
+            </>}
+        >
+            <div className="space-y-6">
+                <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-[#232327] bg-[#232327] sm:grid-cols-2">
+                    <div className="bg-[#111113] px-4 py-3">
+                        <dt className="flex items-center gap-1.5 text-xs text-zinc-500"><Calendar className="h-3.5 w-3.5" />Due</dt>
+                        <dd className={cn('mt-1 text-sm font-medium', overdueNow ? 'text-rose-400' : 'text-zinc-100')}>
+                            {new Date(task.deadline).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' })}
+                        </dd>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="text-[rgba(255,255,255,0.3)] hover:text-white transition-colors p-2 hover:bg-[rgba(255,255,255,0.05)] rounded-full"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-8">
-                    {/* Title and Status */}
-                    <div className="space-y-4">
-                        <div className="flex flex-wrap items-center gap-3">
-                            <StatusBadge status={mapStatusForBadge(task.status)} size="sm" />
-                            <div className={cn(
-                                "text-[11px] font-semibold px-2 py-0.5 rounded-sm border inline-flex items-center gap-1.5 shadow-sm",
-                                task.priority === 3 ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                    task.priority === 2 ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
-                                        'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                            )}>
-                                <Activity className="w-3 h-3" />
-                                {task.priority === 3 ? 'Priority: High' : task.priority === 2 ? 'Priority: Medium' : 'Priority: Low'}
-                            </div>
-                        </div>
-                        <h2 className="text-2xl sm:text-3xl font-semibold text-white tracking-tighter leading-tight">
-                            {task.title}
-                        </h2>
+                    <div className="bg-[#111113] px-4 py-3">
+                        <dt className="flex items-center gap-1.5 text-xs text-zinc-500"><User className="h-3.5 w-3.5" />Assigned to</dt>
+                        <dd className="mt-1 flex items-center gap-2">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-800 text-[10px] font-semibold text-zinc-200">{task.assignedTo?.name?.charAt(0) || '?'}</span>
+                            <span className="text-sm font-medium text-zinc-100">{task.assignedTo?.name || 'Unassigned'}</span>
+                            {task.assignedTo?.role && <span className="text-xs text-zinc-500">{task.assignedTo.role.replace(/_/g, ' ').toLowerCase()}</span>}
+                        </dd>
                     </div>
-
-                    {/* Metadata Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] rounded-xl p-5">
-                        <div className="space-y-1.5">
-                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] flex items-center gap-2">
-                                <Calendar className="w-3 h-3" />
-                                Deadline Protocol
-                            </span>
-                            <div className="text-sm font-semibold text-white flex items-center gap-2">
-                                {new Date(task.deadline).toLocaleDateString(undefined, {
-                                    weekday: 'long',
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                })}
-                                {new Date(task.deadline) < new Date() && task.status !== 'DONE' && (
-                                    <span className="text-[11px] bg-red-500 text-white px-2 py-0.5 rounded font-semibold tracking-tighter shadow-lg shadow-red-900/20">Overdue</span>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] flex items-center gap-2">
-                                <User className="w-3 h-3" />
-                                Mission Assignee
-                            </span>
-                            <div className="flex items-center gap-2.5">
-                                <div className="w-7 h-7 rounded bg-[#111113] border border-[rgba(255,255,255,0.08)] flex items-center justify-center font-semibold text-white text-[11px] shadow-inner">
-                                    {task.assignedTo?.name?.charAt(0) || 'U'}
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-semibold text-white leading-tight">{task.assignedTo?.name || "Unassigned"}</span>
-                                    <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] tracking-tight">{task.assignedTo?.role || "Personnel"}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] flex items-center gap-2">
-                                <Briefcase className="w-3 h-3" />
-                                Strategic Project
-                            </span>
-                            <div className="text-sm font-semibold text-[#3B82F6] flex items-center gap-2">
-                                {task.project?.name || "General Operations"}
-                            </div>
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] flex items-center gap-2">
-                                <Clock className="w-3 h-3" />
-                                Last Intelligence Sync
-                            </span>
-                            <div className="text-sm font-semibold text-[rgba(255,255,255,0.5)]">
-                                {new Date(task.updatedAt).toLocaleString()}
-                            </div>
-                        </div>
+                    <div className="bg-[#111113] px-4 py-3">
+                        <dt className="flex items-center gap-1.5 text-xs text-zinc-500"><Briefcase className="h-3.5 w-3.5" />Project</dt>
+                        <dd className="mt-1 text-sm font-medium text-zinc-100">{task.project?.name || 'No project'}</dd>
                     </div>
-
-                    {/* Description */}
-                    <div className="space-y-3">
-                        <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] flex items-center gap-2">
-                            <Target className="w-3 h-3 text-[#3B82F6]" />
-                            Operational Briefing
-                        </span>
-                        <div className="bg-[#18181B] border border-[rgba(255,255,255,0.05)] rounded-xl p-6 shadow-inner text-sm text-[rgba(255,255,255,0.85)] leading-relaxed whitespace-pre-wrap font-medium tracking-tight">
-                            {task.description || "No description yet."}
-                        </div>
+                    <div className="bg-[#111113] px-4 py-3">
+                        <dt className="flex items-center gap-1.5 text-xs text-zinc-500"><Clock className="h-3.5 w-3.5" />Last updated</dt>
+                        <dd className="mt-1 text-sm text-zinc-300">{new Date(task.updatedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</dd>
                     </div>
+                </dl>
 
-                    {/* Mission Evidence ... */}
-                    {task.comments && task.comments.length > 0 && (
-                        <div className="space-y-4 pt-4 border-t border-[rgba(255,255,255,0.05)]">
-                            <span className="text-[11px] font-semibold text-[#10B981] flex items-center gap-2">
-                                <Activity className="w-3 h-3" />
-                                Mission Evidence & Audit Trail
-                            </span>
+                <section>
+                    <h3 className="mb-2 text-xs font-medium text-zinc-500">Description</h3>
+                    <p className="whitespace-pre-wrap rounded-lg border border-[#232327] bg-[#18181B] px-4 py-3 text-sm leading-relaxed text-zinc-200">
+                        {task.description || <span className="text-zinc-500">No description added.</span>}
+                    </p>
+                </section>
 
-                            <div className="space-y-4">
-                                {task.comments.map((comment) => (
-                                    <div key={comment.id} className="bg-[#111113] border border-[rgba(16,185,129,0.1)] rounded-xl overflow-hidden shadow-xl">
-                                        <div className="px-4 py-3 bg-[rgba(16,185,129,0.05)] border-b border-[rgba(16,185,129,0.05)] flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-6 h-6 rounded bg-[#09090B] border border-[rgba(255,255,255,0.1)] flex items-center justify-center text-[11px] font-semibold text-white">
-                                                    {comment.user?.name?.charAt(0) || 'U'}
-                                                </div>
-                                                <span className="text-[11px] font-semibold text-white">{comment.user?.name}</span>
-                                                <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] px-1.5 py-0.5 bg-black/20 rounded">{comment.user?.role}</span>
-                                            </div>
-                                            <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.2)]">
-                                                {new Date(comment.timestamp).toLocaleString()}
-                                            </span>
+                {task.comments && task.comments.length > 0 && (
+                    <section>
+                        <h3 className="mb-2 flex items-center gap-1.5 text-xs font-medium text-zinc-500"><Activity className="h-3.5 w-3.5" />Completion notes and evidence</h3>
+                        <ul className="space-y-3">
+                            {task.comments.map(comment => (
+                                <li key={comment.id} className="rounded-lg border border-[#232327] bg-[#18181B]">
+                                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#232327] px-4 py-2.5">
+                                        <div className="flex items-center gap-2">
+                                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-800 text-[10px] font-semibold text-zinc-200">{comment.user?.name?.charAt(0) || '?'}</span>
+                                            <span className="text-sm font-medium text-zinc-100">{comment.user?.name}</span>
+                                            {comment.user?.role && <span className="text-xs text-zinc-500">{comment.user.role.replace(/_/g, ' ').toLowerCase()}</span>}
                                         </div>
-                                        <div className="p-4 space-y-3">
-                                            <p className="text-sm text-[rgba(255,255,255,0.7)] leading-relaxed italic">
-                                                "{comment.text}"
-                                            </p>
-
-                                            {/* Attachments Display */}
-                                            {comment.attachments && Array.isArray(comment.attachments) && comment.attachments.length > 0 && (
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
-                                                    {comment.attachments.map((url: string, idx: number) => {
-                                                        const isImage = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-                                                        return (
-                                                            <a
-                                                                key={idx}
-                                                                href={url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="flex items-center gap-3 p-3 bg-black/20 border border-[rgba(255,255,255,0.05)] rounded-lg hover:bg-black/40 transition-all group"
-                                                            >
-                                                                {isImage ? (
-                                                                    <div className="w-10 h-10 rounded bg-[#09090B] flex items-center justify-center overflow-hidden shrink-0 border border-white/5">
-                                                                        <img src={url} alt="Proof" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="w-10 h-10 rounded bg-[#09090B] flex items-center justify-center shrink-0 border border-white/5 text-[#10B981]">
-                                                                        <FileText className="w-5 h-5" />
-                                                                    </div>
-                                                                )}
-                                                                <div className="flex flex-col min-w-0">
-                                                                    <span className="text-[11px] font-semibold text-white truncate">Evidence Ledger #{idx + 1}</span>
-                                                                    <span className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] flex items-center gap-1">
-                                                                        View Documentation <ExternalLink className="w-2 h-2" />
-                                                                    </span>
-                                                                </div>
-                                                            </a>
-                                                        );
-                                                    })}
-                                                </div>
-                                            )}
-                                        </div>
+                                        <span className="text-xs text-zinc-500">{new Date(comment.timestamp).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}</span>
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Footer */}
-                <div className="px-4 sm:px-8 py-6 border-t border-[rgba(255,255,255,0.08)] bg-transparent shrink-0 flex items-center justify-between">
-                    <div className="flex gap-3">
-                        {isSenior && isOverdue && (
-                            <button
-                                onClick={handleSendOverdueReminder}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 rounded-lg text-[11px] font-semibold transition-all border border-orange-500/30 active:scale-95 shadow-md"
-                            >
-                                <BellRing className="w-4 h-4 animate-pulse" />
-                                Send Overdue Reminder (Email & Push)
-                            </button>
-                        )}
-                        {canDelete && (
-                            <button
-                                onClick={handleDelete}
-                                disabled={isDeleting}
-                                className="flex items-center gap-2 px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-[11px] font-semibold transition-all border border-red-500/20 active:scale-95 disabled:opacity-50"
-                            >
-                                {isDeleting ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                ) : (
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                )}
-                                Decommission
-                            </button>
-                        )}
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="px-4 sm:px-8 py-2.5 bg-[#18181B] hover:bg-[#1F1F23] text-white rounded-lg text-[11px] font-semibold transition-all border border-[rgba(255,255,255,0.05)] active:scale-95 shadow-lg"
-                    >
-                        Dismiss
-                    </button>
-                </div>
+                                    <div className="space-y-3 px-4 py-3">
+                                        <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">{comment.text}</p>
+                                        {Array.isArray(comment.attachments) && comment.attachments.length > 0 && (
+                                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                                {comment.attachments.map((url: string, idx: number) => {
+                                                    const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
+                                                    return (
+                                                        <a key={idx} href={url} target="_blank" rel="noopener noreferrer"
+                                                            className="flex items-center gap-3 rounded-lg border border-[#2F2F35] bg-[#111113] p-2.5 transition-colors hover:bg-[#1F1F23]">
+                                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-zinc-800 text-zinc-300">
+                                                                {isImage ? <img src={url} alt="" className="h-full w-full object-cover" /> : <FileText className="h-4 w-4" />}
+                                                            </span>
+                                                            <span className="min-w-0">
+                                                                <span className="block truncate text-sm text-zinc-100">Attachment {idx + 1}</span>
+                                                                <span className="flex items-center gap-1 text-xs text-zinc-500">Open <ExternalLink className="h-3 w-3" /></span>
+                                                            </span>
+                                                        </a>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                )}
             </div>
-        </div>
+        </Modal>
     );
 }

@@ -265,3 +265,25 @@
 }
 :root[data-chat-thread] { --tabbar-h: 0px; }
 :root[data-chat-thread] .app-tabbar { display: none; }
+
+/* Popups: fields still carrying older translucent styles get the same solid look as the shared fields.
+   Matching only those old classes leaves bare inputs inside composite controls (search boxes) alone. */
+.modal-body :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]), select, textarea):is([class*="bg-[#"], [class*="bg-white/"], [class*="rgba(255"], [class*="bg-[var(--notion"], [class*="bg-black"]) {
+  background-color: #18181B;
+  border: 1px solid #2F2F35;
+  border-radius: 0.5rem;
+  color: #FAFAFA;
+  font-size: 0.875rem;
+  box-shadow: none;
+}
+.modal-body :is(input, select):is([class*="bg-[#"], [class*="bg-white/"], [class*="rgba(255"], [class*="bg-[var(--notion"], [class*="bg-black"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  min-height: 2.5rem;
+}
+.modal-body :is(input, select, textarea):focus-visible {
+  outline: none;
+  border-color: rgb(59 130 246 / 0.7);
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.15);
+}
+.modal-body :is(input, textarea)::placeholder {
+  color: #71717A;
+}

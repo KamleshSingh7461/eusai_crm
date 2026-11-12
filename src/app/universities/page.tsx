@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { useRouter } from 'next/navigation';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
 
 interface University {
     id: string;
@@ -436,20 +438,14 @@ export default function UniversitiesPage() {
 
             {/* Create University Modal */}
             {isCreateModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-                    <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-lg animate-in zoom-in-95 duration-300 h-[80vh] flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
-                        <div className="p-6 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-secondary)] shrink-0">
-                            <h3 className="text-lg font-semibold text-heading">Add University</h3>
-                            <button
-                                onClick={() => setIsCreateModalOpen(false)}
-                                className="p-1 hover:bg-[var(--notion-bg-tertiary)] rounded-sm text-body"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-6">
-                            <form id="create-uni-form" onSubmit={handleCreate} className="space-y-4">
+                <Modal open onClose={() => setIsCreateModalOpen(false)} size="md" title="Add a university" description="Add a partner or prospect with its contact details." icon={<ModalIcon><Plus /></ModalIcon>}
+                    onSubmit={handleCreate}
+                    footer={<>
+                        <Button type="button" variant="ghost" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
+                        <Button type="submit" leftIcon={<CheckCircle2 className="h-4 w-4" />}>Save university</Button>
+                    </>}
+                >
+                            <div className="space-y-4">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold text-body">University Name</label>
                                     <input
@@ -538,48 +534,20 @@ export default function UniversitiesPage() {
                                         placeholder="Notes about this university..."
                                     />
                                 </div>
-                            </form>
-                        </div>
-
-                        <div className="p-4 border-t border-[var(--notion-border-default)] bg-[var(--notion-bg-secondary)] flex justify-end gap-2 shrink-0">
-                            <button
-                                onClick={() => setIsCreateModalOpen(false)}
-                                className="px-4 py-2 hover:bg-[var(--notion-bg-tertiary)] rounded-sm text-subheading font-medium text-sm"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                form="create-uni-form"
-                                className="btn-eusai-create flex items-center gap-2 px-4 py-2"
-                            >
-                                <CheckCircle2 className="w-4 h-4" />
-                                Save University
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                            </div>
+                </Modal>
             )}
 
             {/* Create Order Modal */}
             {isOrderModalOpen && selectedUniversityForOrder && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-                    <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-lg animate-in zoom-in-95 duration-300 flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
-                        <div className="p-6 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-secondary)] shrink-0">
-                            <div>
-                                <h3 className="text-lg font-semibold text-heading">New Business Order</h3>
-                                <p className="text-xs text-body">For {selectedUniversityForOrder.name}</p>
-                            </div>
-                            <button
-                                onClick={() => setIsOrderModalOpen(false)}
-                                className="p-1 hover:bg-[var(--notion-bg-tertiary)] rounded-sm text-body"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <div className="p-6">
-                            <form id="create-order-form" onSubmit={handleCreateOrder} className="space-y-4">
+                <Modal open onClose={() => setIsOrderModalOpen(false)} size="md" title="New business order" description={`For ${selectedUniversityForOrder.name}`} icon={<ModalIcon tone="emerald"><Plus /></ModalIcon>}
+                    onSubmit={handleCreateOrder}
+                    footer={<>
+                        <Button type="button" variant="ghost" onClick={() => setIsOrderModalOpen(false)}>Cancel</Button>
+                        <Button type="submit" leftIcon={<TrendingUp className="h-4 w-4" />}>Create order</Button>
+                    </>}
+                >
+                            <div className="space-y-4">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold text-body">Order Title</label>
                                     <input
@@ -652,27 +620,8 @@ export default function UniversitiesPage() {
                                         placeholder="Order details..."
                                     />
                                 </div>
-                            </form>
-                        </div>
-
-                        <div className="p-4 border-t border-[var(--notion-border-default)] bg-[var(--notion-bg-secondary)] flex justify-end gap-2 shrink-0">
-                            <button
-                                onClick={() => setIsOrderModalOpen(false)}
-                                className="px-4 py-2 hover:bg-[var(--notion-bg-tertiary)] rounded-sm text-subheading font-medium text-sm"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                form="create-order-form"
-                                className="btn-eusai-create flex items-center gap-2 px-4 py-2"
-                            >
-                                <TrendingUp className="w-4 h-4" />
-                                Create Order
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                            </div>
+                </Modal>
             )}
         </div>
     );

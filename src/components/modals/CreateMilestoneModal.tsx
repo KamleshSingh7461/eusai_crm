@@ -6,6 +6,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import { X, Flag, Briefcase, Plus, Trash2, Layout, Calendar, AlertCircle } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
 
 interface CreateMilestoneModalProps {
     isOpen: boolean;
@@ -205,41 +206,29 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
         }
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-            <div className="bg-[#111113] border border-white/[0.08] rounded-2xl relative w-full rounded-b-none sm:rounded-b-3xl max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
-                {/* Glossy background detail */}
-
-                {/* Header */}
-                <div className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-6 border-b border-[rgba(255,255,255,0.06)]">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#3B82F6] flex items-center justify-center shadow-lg shadow-blue-900/20">
-                            <Layout className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                            <h2 className="font-display text-lg font-semibold text-white">New milestone</h2>
-                            <p className="text-xs text-zinc-400 font-medium">Define high-impact milestones and objectives</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="relative z-10 flex-1 overflow-y-auto p-5 sm:p-8 space-y-8 scrollbar-thin scrollbar-thumb-white/10">
+        <Modal
+            open={isOpen}
+            onClose={onClose}
+            size="lg"
+            title="New milestone"
+            description="Set an agreement, MOU, logo or business-order goal with an owner and a target date."
+            icon={<ModalIcon tone="violet"><Layout /></ModalIcon>}
+            onSubmit={handleSubmit}
+            closeOnBackdrop={false}
+            footer={<>
+                <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+                <Button type="submit" isLoading={isSubmitting}>{entries.length > 1 ? `Create ${entries.length} milestones` : 'Create milestone'}</Button>
+            </>}
+        >
+                <div className="space-y-6">
 
                     {/* Global Settings */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-white/5 border border-white/10 rounded-2xl">
                         <div className="space-y-2">
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                                    Assign All To
+                                    Assign all to
                                 </label>
                                 <button
                                     type="button"
@@ -292,7 +281,7 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                                Project Context
+                                Project
                             </label>
                             {isLoadingProjects ? (
                                 <div className="h-11 flex items-center text-xs text-zinc-400 gap-2">
@@ -325,7 +314,7 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                                         <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-[11px] font-semibold text-white border border-white/10">
                                             {index + 1}
                                         </div>
-                                        <h3 className="text-xs font-semibold text-white">Milestone Objective</h3>
+                                        <h3 className="text-xs font-semibold text-white">Milestone goal</h3>
                                     </div>
                                     {entries.length > 1 && (
                                         <button
@@ -482,31 +471,10 @@ export default function CreateMilestoneModal({ isOpen, onClose, onSuccess, defau
                         className="w-full py-6 bg-white/5 border-2 border-dashed border-white/10 rounded-2xl text-zinc-400 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all font-semibold text-xs flex items-center justify-center gap-3 group"
                     >
                         <Plus className="w-5 h-5 group-hover:scale-125 transition-transform" />
-                        Add New Objective to Workspace
+                        Add a new milestone
                     </button>
 
-                    {/* Footer Actions */}
-                    <div className="flex justify-end gap-6 pt-8 border-t border-[rgba(255,255,255,0.06)] sticky bottom-0 bg-[#09090B] pb-0 mt-8 z-10 box-content">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-6 py-3 text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="relative group px-5 sm:px-10 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-semibold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden"
-                        >
-                            <div className="absolute inset-0 bg-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                            <span className="relative z-10">
-                                {isSubmitting ? 'Synchronizing...' : (entries.length > 1 ? `Execute ${entries.length} Deployments` : 'Initialize Milestone')}
-                            </span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                </div>
+        </Modal>
     );
 }

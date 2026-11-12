@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
 
 const issueSchema = z.object({
     title: z.string().min(3, 'Summary is required'),
@@ -118,24 +120,21 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
         }
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-            <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full rounded-b-none sm:rounded-b-3xl max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-                {/* Header */}
-                <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-[rgba(255,255,255,0.08)] bg-white/[0.02]">
-                    <div className="flex items-center gap-2">
-                        <h2 className="text-lg font-semibold text-[rgba(255,255,255,0.9)] tracking-tight">
-                            {initialData ? 'Update Issue' : 'Report an issue'}
-                        </h2>
-                    </div>
-                    <button onClick={onClose} className="text-[rgba(255,255,255,0.4)] hover:text-white transition-colors">
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-5">
+        <Modal
+            open={isOpen}
+            onClose={onClose}
+            size="md"
+            title={initialData ? 'Update issue' : 'Report an issue'}
+            description={initialData ? 'Change the details, status or resolution.' : 'Flag a blocker so the right person can resolve it.'}
+            icon={<ModalIcon tone="amber"><AlertTriangle /></ModalIcon>}
+            onSubmit={handleSubmit(onSubmit)}
+            footer={<>
+                <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+                <Button type="submit" isLoading={isSubmitting}>{initialData ? 'Save changes' : 'Report issue'}</Button>
+            </>}
+        >
+                <div className="space-y-5">
                     {/* Title */}
                     <div className="space-y-1.5">
                         <label className="text-sm font-medium text-zinc-300">Summary</label>
@@ -237,26 +236,7 @@ export default function IssueModal({ isOpen, onClose, onIssueCreated, initialDat
                         </div>
                     )}
 
-                    {/* Actions */}
-                    <div className="flex flex-wrap items-center justify-end gap-3 pt-6 border-t border-[rgba(255,255,255,0.08)]">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 text-sm font-semibold text-[rgba(255,255,255,0.5)] hover:text-white hover:bg-[rgba(255,255,255,0.05)] rounded-md transition-colors tracking-wide"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="px-6 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-md disabled:opacity-50 transition-all flex items-center gap-2 tracking-wide hover:transform hover:scale-105 active:scale-95"
-                        >
-                            {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                            {initialData ? 'Update Record' : 'Report issue'}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                </div>
+        </Modal>
     );
 }

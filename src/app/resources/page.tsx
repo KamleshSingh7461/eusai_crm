@@ -27,6 +27,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
 import { useSession } from 'next-auth/react';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
 
 interface Resource {
     id: string;
@@ -274,7 +276,7 @@ export default function ResourceManagementPage() {
                         <table className="w-full text-left border-collapse min-w-[1000px]">
                             <thead className="bg-[var(--notion-bg-secondary)] border-b border-[var(--notion-border-default)]">
                                 <tr>
-                                    <th className="px-6 py-4 text-[11px] font-semibold text-body">Resource Identity</th>
+                                    <th className="px-6 py-4 text-[11px] font-semibold text-body">Resource</th>
                                     <th className="px-6 py-4 text-[11px] font-semibold text-body">Type / Specification</th>
                                     <th className="px-6 py-4 text-[11px] font-semibold text-body">Deployment Status</th>
                                     <th className="px-6 py-4 text-[11px] font-semibold text-body">Project Alignment</th>
@@ -387,37 +389,18 @@ export default function ResourceManagementPage() {
 
             {/* Resource Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-                    <form onSubmit={handleAddResource} className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-xl animate-in zoom-in-95 duration-300 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
-                        <div className="p-6 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-secondary)]">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2bg-[#3B82F61F] rounded-sm text-[#3B82F6]">
-                                    <Box className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-heading">Synthetic Asset Provisioning</h3>
-                                    <p className="text-[11px] text-body font-semibold">Global Inventory Management</p>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setIsModalOpen(false)}
-                                className="p-2 hover:bg-[var(--notion-bg-tertiary)] rounded-sm transition-colors text-body hover:text-heading"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
+                <Modal open onClose={() => setIsModalOpen(false)} size="lg" title="Add a resource" description="Register a person, tool, material or compute resource and allocate it to projects." icon={<ModalIcon><Box /></ModalIcon>} onSubmit={handleAddResource} bodyClassName="p-0 sm:p-0" footer={<><Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button><Button type="submit" leftIcon={<Zap className="h-4 w-4" />}>Add resource</Button></>}>
 
                         <div className="p-5 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="col-span-2 space-y-2">
-                                    <label className="text-[11px] font-semibold text-body">Resource Identity</label>
+                                    <label className="text-[11px] font-semibold text-body">Name</label>
                                     <input
                                         required
                                         value={newResource.name}
                                         onChange={e => setNewResource({ ...newResource, name: e.target.value })}
                                         className="w-full bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm px-4 py-3 text-heading font-semibold placeholder:font-normal focus:border-[#3B82F6] focus:bg-[var(--notion-bg-primary)] transition-all outline-none"
-                                        placeholder="e.g. Senior Mission Engineer, H100 Cluster..."
+                                        placeholder="e.g. Designer, laptop, meeting room"
                                     />
                                 </div>
 
@@ -437,7 +420,7 @@ export default function ResourceManagementPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[11px] font-semibold text-body">Valuation (₹/hr)</label>
+                                    <label className="text-[11px] font-semibold text-body">Cost per hour (₹)</label>
                                     <div className="relative">
                                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-body font-semibold">₹</div>
                                         <input
@@ -457,12 +440,12 @@ export default function ResourceManagementPage() {
                                         value={newResource.role}
                                         onChange={e => setNewResource({ ...newResource, role: e.target.value })}
                                         className="w-full bg-[var(--notion-bg-secondary)] border border-[var(--notion-border-default)] rounded-sm px-4 py-3 text-heading font-medium focus:border-[#3B82F6] focus:bg-[var(--notion-bg-primary)] transition-all outline-none"
-                                        placeholder="Detailed technical specification or mission role"
+                                        placeholder="What it is or what this person does"
                                     />
                                 </div>
 
                                 <div className="col-span-2 space-y-3">
-                                    <label className="text-[11px] font-semibold text-body">Linked project</label>
+                                    <label className="text-[11px] font-semibold text-body">Projects</label>
                                     <div className="grid grid-cols-2 gap-2 p-4 bg-[#FFFFFF0A] rounded-sm border border-[var(--notion-border-default)] max-h-40 overflow-y-auto">
                                         {projects.map(p => (
                                             <label key={p.id} className="flex items-center gap-3 p-2 bg-[var(--notion-bg-primary)] border border-[var(--notion-border-default)] rounded-sm cursor-pointer hover:border-[#3B82F6] transition-all group">
@@ -489,16 +472,8 @@ export default function ResourceManagementPage() {
                             </div>
                         </div>
 
-                        <div className="p-5 sm:p-8 pt-0">
-                            <button
-                                type="submit"
-                                className="w-full py-4 bg-[#3B82F6] text-white rounded-sm font-semibold hover:bg-[#2563EB] transition-all shadow-xl shadow-blue-500/10 flex items-center justify-center gap-2 text-xs"
-                            >
-                                <Zap className="w-4 h-4" /> Finalize Asset Provisioning
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    
+                </Modal>
             )}
         </div>
     );

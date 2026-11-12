@@ -6,7 +6,7 @@ import { sendEmail } from '@/lib/email';
 
 export async function POST(
     request: NextRequest,
-    context: { params: Promise<{ id: string }> } | { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     const session = await getServerSession(authOptions);
 
@@ -20,7 +20,7 @@ export async function POST(
     }
 
     try {
-        const resolvedParams = await (context.params instanceof Promise ? context.params : Promise.resolve(context.params));
+        const resolvedParams = await context.params;
         const id = resolvedParams.id;
 
         const targetUser = await prisma.user.findUnique({
@@ -36,15 +36,15 @@ export async function POST(
         const emailHtml = `
             <div style="font-family: monospace; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ccc;">
                 <h2 style="color: #0052CC; border-bottom: 2px solid #0052CC; padding-bottom: 10px;">CLASSIFIED - INTERNAL USE ONLY</h2>
-                <p>Attention ${targetUser.name || 'Member'},</p>
+                <p>Hi ${targetUser.name || 'there'},</p>
                 <p>Your EUSAI workspace invitation has been sent.</p>
-                <p>Your designated role parameter is: <strong style="color: #36B37E;">[${targetUser.role}]</strong>.</p>
+                <p>Your role: <strong style="color: #36B37E;">[${targetUser.role}]</strong>.</p>
                 
                 <div style="background-color: #f4f5f7; border: 1px solid #dfe1e6; padding: 15px; margin: 20px 0; border-radius: 4px;">
-                    <p style="font-size: 12px; color: #5e6c84; font-weight: bold; margin-top: 0;">INITIALIZATION DIRECTIVES:</p>
+                    <p style="font-size: 12px; color: #5e6c84; font-weight: bold; margin-top: 0;">GETTING STARTED</p>
                     <ol style="font-size: 14px; margin-bottom: 0; padding-left: 20px;">
                         <li>Sign in using the link below.</li>
-                        <li>Authenticate using your registered Google Workspace credentials.</li>
+                        <li>Use your registered Google Workspace account.</li>
                         <li>Open tasks and milestones that need attention.</li>
                         <li>Daily reports are accepted between 5:00 PM and 11:59 PM IST.</li>
                     </ol>
@@ -55,7 +55,6 @@ export async function POST(
                 </div>
                 
                 <div style="font-size: 11px; color: #7a869a; border-top: 1px solid #dfe1e6; padding-top: 15px;">
-                    <p style="margin: 0 0 5px 0;">Auth Token: ${Math.random().toString(36).substring(2, 15).toUpperCase()}</p>
                     <p style="margin: 0;">Sent by EUSAI</p>
                 </div>
             </div>

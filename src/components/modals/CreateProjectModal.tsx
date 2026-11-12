@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Briefcase, Calendar, DollarSign, User as UserIcon, Loader2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
 
 interface User {
     id: string;
@@ -96,36 +97,24 @@ export default function CreateProjectModal({
         }
     };
 
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-            <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-lg flex flex-col max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
-                
-                {/* Header */}
-                <div className="p-5 border-b border-[var(--notion-border-default)] flex items-center justify-between bg-[var(--notion-bg-primary)]">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-sm bg-[#3B82F6]/15 flex items-center justify-center text-[#3B82F6]">
-                            <Briefcase className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h2 className="text-base font-semibold text-[var(--notion-text-primary)]">New Operation (Project)</h2>
-                            <p className="text-xs text-[var(--notion-text-tertiary)]">Initialize a project under space <span className="font-semibold text-[#3B82F6]">{spaceName}</span></p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-1 text-[var(--notion-text-tertiary)] hover:text-[var(--notion-text-primary)] hover:bg-[var(--notion-bg-tertiary)] rounded-sm transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <Modal
+            open={isOpen}
+            onClose={onClose}
+            size="md"
+            title="New project"
+            description={<>In the <span className="font-medium text-zinc-200">{spaceName}</span> department</>}
+            icon={<ModalIcon><Briefcase /></ModalIcon>}
+            onSubmit={handleSubmit}
+            footer={<>
+                <Button type="button" variant="ghost" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+                <Button type="submit" isLoading={isSubmitting}>Create project</Button>
+            </>}
+        >
+                <div className="space-y-4">
                     <div>
                         <label className="block text-xs font-semibold text-[var(--notion-text-tertiary)] mb-1">
-                            Operation Name *
+                            Project name *
                         </label>
                         <input
                             type="text"
@@ -139,7 +128,7 @@ export default function CreateProjectModal({
 
                     <div>
                         <label className="block text-xs font-semibold text-[var(--notion-text-tertiary)] mb-1">
-                            Description / Mission Brief
+                            Description
                         </label>
                         <textarea
                             rows={3}
@@ -153,7 +142,7 @@ export default function CreateProjectModal({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-semibold text-[var(--notion-text-tertiary)] mb-1">
-                                Start Date
+                                Start date
                             </label>
                             <input
                                 type="date"
@@ -164,7 +153,7 @@ export default function CreateProjectModal({
                         </div>
                         <div>
                             <label className="block text-xs font-semibold text-[var(--notion-text-tertiary)] mb-1">
-                                End Date
+                                End date
                             </label>
                             <input
                                 type="date"
@@ -190,7 +179,7 @@ export default function CreateProjectModal({
                         </div>
                         <div>
                             <label className="block text-xs font-semibold text-[var(--notion-text-tertiary)] mb-1">
-                                Project Lead / Manager
+                                Project lead
                             </label>
                             <select
                                 value={managerId}
@@ -207,30 +196,7 @@ export default function CreateProjectModal({
                         </div>
                     </div>
 
-                    <div className="pt-4 border-t border-[var(--notion-border-default)] flex items-center justify-end gap-2">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={onClose}
-                            disabled={isSubmitting}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
-                        >
-                            {isSubmitting ? (
-                                <span className="flex items-center gap-2">
-                                    <Loader2 className="w-4 h-4 animate-spin" /> Creating...
-                                </span>
-                            ) : 'Initialize Operation'}
-                        </Button>
-                    </div>
-                </form>
-
-            </div>
-        </div>
+                </div>
+        </Modal>
     );
 }

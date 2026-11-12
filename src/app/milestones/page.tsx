@@ -38,6 +38,7 @@ import StatCard from '@/components/ui/StatCard';
 import Button from '@/components/ui/Button';
 import MilestoneDetailModal from '@/components/modals/MilestoneDetailModal';
 import CompletionModal from '@/components/modals/CompletionModal';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
 
 interface Milestone {
     id: string;
@@ -119,7 +120,13 @@ export default function MilestonesPage() {
                 // ?milestoneId=<id> (from the dashboards) opens that milestone
                 const wanted = new URLSearchParams(window.location.search).get('milestoneId');
                 const match = wanted && Array.isArray(data) ? data.find((m: any) => m.id === wanted) : null;
-                if (match) setSelectedMilestoneForDetail(match);
+                if (match) {
+                    setSelectedMilestoneForDetail(match);
+                    // open once: drop the parameter so later refreshes don't reopen it
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('milestoneId');
+                    window.history.replaceState(null, '', url.pathname + url.search);
+                }
             } else {
                 showToast('Failed to load milestones', 'error');
             }
@@ -719,74 +726,42 @@ export default function MilestonesPage() {
 
                 {/* Governance Intervention Layer (Modal) */}
                 {selectedMilestone && (
-                    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-                        <div className="bg-[#111113] border border-white/[0.08] rounded-2xl w-full max-w-lg animate-in zoom-in-95 duration-300 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
-                            <div className="px-4 sm:px-8 py-6 border-b border-[rgba(255,255,255,0.08)] flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <Activity className="w-5 h-5 text-[#3B82F6]" />
-                                    <h3 className="text-[11px] font-semibold text-white">Assessment</h3>
-                                </div>
-                                <button onClick={() => setSelectedMilestone(null)} className="text-[rgba(255,255,255,0.3)] hover:text-white transition-colors p-2 hover:bg-[rgba(255,255,255,0.05)] rounded-full">
-                                    <X className="w-5 h-5" />
-                                </button>
+                    <Modal
+                        open
+                        onClose={() => setSelectedMilestone(null)}
+                        size="md"
+                        title="Leadership remarks"
+                        description={<>{selectedMilestone.title}{selectedMilestone.project ? <span className="text-zinc-500"> · {selectedMilestone.project.name}</span> : null}</>}
+                        icon={<ModalIcon tone="amber"><Activity /></ModalIcon>}
+                        onSubmit={handleAddRemark}
+                        footer={<>
+                            <Button type="button" variant="ghost" onClick={() => setSelectedMilestone(null)}>Cancel</Button>
+                            <Button type="submit" isLoading={isRemarking}>Save remarks</Button>
+                        </>}
+                    >
+                        <div className="space-y-5">
+                            <div>
+                                <label htmlFor="remark-text" className="mb-1.5 block text-[13px] font-medium text-zinc-300">Remarks for the owner<span className="ml-0.5 text-rose-400">*</span></label>
+                                <textarea
+                                    id="remark-text"
+                                    required
+                                    value={remarkText}
+                                    onChange={e => setRemarkText(e.target.value)}
+                                    rows={6}
+                                    className="w-full resize-y rounded-lg border border-[#2F2F35] bg-[#18181B] px-3 py-2.5 text-sm leading-relaxed text-zinc-100 placeholder:text-zinc-500 focus:border-blue-500/70 focus:outline-none focus:ring-[3px] focus:ring-blue-500/15"
+                                    placeholder="Instructions, context or concerns for the milestone owner"
+                                />
+                                <p className="mt-1.5 text-xs text-zinc-500">Shown on the milestone; the owner is notified.</p>
                             </div>
-                            <form onSubmit={handleAddRemark} className="p-5 sm:p-8 space-y-8">
-                                <div className="space-y-2">
-                                    <label className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] block">Active Initiative</label>
-                                    <div className="text-lg font-semibold text-white tracking-tight flex items-center gap-2">
-                                        {selectedMilestone.title}
-                                        {selectedMilestone.project && <span className="text-[11px] font-semibold text-[#3B82F6] bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/10">{selectedMilestone.project.name}</span>}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <label className="text-[11px] font-semibold text-[rgba(255,255,255,0.3)] block">Assessment</label>
-                                    <textarea
-                                        required
-                                        autoFocus
-                                        value={remarkText}
-                                        onChange={e => setRemarkText(e.target.value)}
-                                        className="w-full bg-[#18181B] border border-[rgba(255,255,255,0.1)] rounded-lg p-4 text-sm font-semibold tracking-tight focus:ring-1 focus:ring-[#3B82F6] transition-all min-h-[160px] text-white resize-none shadow-inner placeholder-[rgba(255,255,255,0.2)]"
-                                        placeholder="Add instructions and context"
-                                    />
-                                </div>
-
-                                <div className="flex items-center gap-4 p-5 bg-red-500/5 rounded-lg border border-red-500/20 shadow-inner">
-                                    <input
-                                        type="checkbox"
-                                        id="modal-flag-toggle"
-                                        checked={isFlaggedChecked}
-                                        onChange={e => setIsFlaggedChecked(e.target.checked)}
-                                        className="w-5 h-5 rounded border-[rgba(255,255,255,0.2)] bg-[#09090B] text-red-300 focus:ring-red-600 cursor-pointer"
-                                    />
-                                    <div className="flex flex-col">
-                                        <label htmlFor="modal-flag-toggle" className="text-[11px] font-semibold text-red-400 cursor-pointer flex items-center gap-2">
-                                            Elevate Strategic Concern
-                                        </label>
-                                        <span className="text-[11px] text-red-400/50 font-semibold tracking-tight mt-0.5">Mandatory executive review triggered</span>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-4 justify-end pt-8 border-t border-[rgba(255,255,255,0.08)]">
-                                    <NotionButton
-                                        type="button"
-                                        variant="default"
-                                        onClick={() => setSelectedMilestone(null)}
-                                        className="bg-transparent border-[rgba(255,255,255,0.1)] text-[rgba(255,255,255,0.5)] px-6 font-semibold text-[11px]"
-                                    >
-                                        Abort
-                                    </NotionButton>
-                                    <NotionButton
-                                        type="submit"
-                                        disabled={isRemarking}
-                                        className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-4 sm:px-8 shadow-xl shadow-blue-900/40 font-semibold text-[11px] h-10"
-                                    >
-                                        {isRemarking ? 'Syncing...' : 'Sync Policy'}
-                                    </NotionButton>
-                                </div>
-                            </form>
+                            <label htmlFor="modal-flag-toggle" className={cn("flex cursor-pointer items-start gap-3 rounded-lg border px-4 py-3 transition-colors", isFlaggedChecked ? "border-rose-500/40 bg-rose-500/[0.07]" : "border-[#2F2F35] bg-[#18181B] hover:border-[#3A3A41]")}>
+                                <input type="checkbox" id="modal-flag-toggle" checked={isFlaggedChecked} onChange={e => setIsFlaggedChecked(e.target.checked)} className="mt-0.5 h-4 w-4 cursor-pointer rounded accent-rose-600" />
+                                <span>
+                                    <span className="block text-sm font-medium text-zinc-100">Flag this milestone</span>
+                                    <span className="block text-xs text-zinc-500">Marks it as needing attention on dashboards until the flag is removed.</span>
+                                </span>
+                            </label>
                         </div>
-                    </div>
+                    </Modal>
                 )}
             </div>
         </div>

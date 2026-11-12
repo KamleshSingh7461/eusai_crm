@@ -13,6 +13,8 @@ import {
     CheckCircle2
 } from 'lucide-react';
 import { useToast } from '@/context/ToastContext';
+import Modal, { ModalIcon } from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
 
 interface ProjectEditModalProps {
     project: any;
@@ -78,30 +80,20 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-black/70 animate-in fade-in duration-200">
-            <div className="bg-[#111113] border border-white/[0.08] rounded-2xl border-white/[0.08] rounded-2xl relative w-full rounded-b-none sm:rounded-b-3xl max-w-2xl animate-in zoom-in-95 duration-300 max-h-[92vh] overflow-y-auto rounded-b-none sm:rounded-b-3xl">
-                {/* Glossy background detail */}
-
-                {/* Header */}
-                <div className="relative z-10 flex items-center justify-between px-4 sm:px-8 py-6 border-b border-[rgba(255,255,255,0.06)]">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#3B82F6] flex items-center justify-center shadow-lg shadow-blue-900/20">
-                            <Layout className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                            <h2 className="font-display text-lg font-semibold text-white">Edit project</h2>
-                            <p className="text-xs text-zinc-400 font-medium">Update the details for {project.name}</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="relative z-10 p-5 sm:p-8 space-y-8 max-h-[85vh] overflow-y-auto scrollbar-hide">
+        <Modal
+            open
+            onClose={onClose}
+            size="lg"
+            title="Edit project"
+            description={project.name}
+            icon={<ModalIcon><Layout /></ModalIcon>}
+            onSubmit={handleSubmit}
+            footer={<>
+                <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
+                <Button type="submit" isLoading={isLoading} leftIcon={<CheckCircle2 className="h-4 w-4" />}>Save changes</Button>
+            </>}
+        >
+                <div className="space-y-6">
                     {/* Project name */}
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
@@ -146,7 +138,7 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             rows={4}
-                            placeholder="Enter detailed mission parameters and context..."
+                            placeholder="What is this project about?"
                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-fg-muted focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all resize-none font-medium leading-relaxed"
                         />
                     </div>
@@ -167,7 +159,7 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
-                                <Calendar className="w-3 h-3 text-red-400" /> Target Recovery Date
+                                <Calendar className="w-3 h-3 text-red-400" /> Target date
                             </label>
                             <input
                                 type="date"
@@ -220,33 +212,7 @@ export default function ProjectEditModal({ project, onClose, onSuccess }: Projec
                         </div>
                     </div>
 
-                    {/* Footer Actions */}
-                    <div className="flex flex-wrap items-center justify-end gap-3 pt-8 mt-4 border-t border-[rgba(255,255,255,0.06)]">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-6 py-3 text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="relative group px-5 sm:px-12 py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-semibold rounded-xl shadow-xl shadow-blue-900/30 disabled:opacity-50 transition-all overflow-hidden flex items-center gap-2"
-                        >
-                            <div className="absolute inset-0 bg-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-                            {isLoading ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <CheckCircle2 className="w-4 h-4" />
-                            )}
-                            <span className="relative z-10">
-                                {isLoading ? 'Synchronizing...' : 'Save changes'}
-                            </span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                </div>
+        </Modal>
     );
 }
