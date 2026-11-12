@@ -8,6 +8,7 @@ import { FieldHint, FieldLabel, fieldClass } from '@/components/ui/Field';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
 import ImageField from '@/components/employees/ImageField';
+import CardHistory from '@/components/employees/CardHistory';
 
 export interface CompanyLite { id: string; code: string; legalName: string; isActive: boolean; brandColor?: string | null }
 
@@ -216,6 +217,13 @@ export default function EmploymentModal({ employee, onClose, onSaved, selfId }: 
                         <div className="flex gap-2.5 rounded-xl border border-blue-500/25 bg-blue-500/[0.07] p-3.5 text-sm text-blue-200">
                             <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" />
                             <p>Marking them active again lets them sign in again.</p>
+                        </div>
+                    )}
+
+                    {employee.employeeCode && (
+                        <div className="border-t border-[#232327] pt-5">
+                            <FieldLabel>ID cards</FieldLabel>
+                            <CardHistory userId={employee.id} onChanged={() => onSaved({ ...employee, photoUrl, card: null })} />
                         </div>
                     )}
 

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AppShell from "@/components/AppShell";
@@ -23,22 +24,26 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // public ID card verification pages (tagged by the middleware) render bare: no CRM shell or sign-in session
+  const verifyPage = (await headers()).get('x-verify-page') === '1';
   return (
     // suppressHydrationWarning: browser extensions (Grammarly, password managers) add attributes to
     // <html>/<body> before React loads. This only ignores attribute differences on these two tags.
     <html lang="en" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <EnvBadge />
-        <Providers>
-          <AppShell>
-            {children}
-          </AppShell>
-        </Providers>
+        {verifyPage ? children : (
+          <Providers>
+            <AppShell>
+              {children}
+            </AppShell>
+          </Providers>
+        )}
       </body>
     </html>
   );

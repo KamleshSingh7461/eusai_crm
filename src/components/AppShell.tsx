@@ -43,8 +43,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         });
     };
 
-    // Login, the public legal pages and the design preview render without the app shell.
-    if (['/login', '/privacy', '/terms', '/design-preview'].includes(pathname)) {
+    // Login, the public legal and ID verification pages, and the design preview render without the app shell.
+    if (['/login', '/privacy', '/terms', '/design-preview'].includes(pathname) || pathname === '/verify' || pathname.startsWith('/verify/')) {
         return <ToastProvider>{children}</ToastProvider>;
     }
 

@@ -91,6 +91,10 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     // ---- save; the ID is generated in the same transaction so the number and the person go together ----
     const saved = await prisma.$transaction(async tx => {
         const employeeCode = needsCode ? await issueEmployeeCode(tx, companyId!, joining!) : companyChanged ? null : person.employeeCode;
+        // a card names the employing company, so moving company cancels it (verification says "no longer employed")
+        if (companyChanged) {
+            await tx.idCard.updateMany({ where: { userId: id, status: 'ACTIVE' }, data: { status: 'REVOKED', revokedAt: new Date(), revokedReason: 'Moved to another company' } });
+        }
         return tx.user.update({
             where: { id },
             data: {

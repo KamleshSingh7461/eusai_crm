@@ -7,6 +7,46 @@ import { addMonths, cardBlockers, cardCompanySelect, cardPayload, newCardNumber,
 const MAX_PER_BATCH = 200;
 
 /**
+ * GET /api/id-cards?userId=…  every card issued to this person, newest first, with how often each was checked
+ * on the verification page, plus the latest checks. For HR and Directors of the person's company.
+ */
+export async function GET(req: Request) {
+    const user = await currentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const userId = new URL(req.url).searchParams.get('userId') || '';
+    const person = await prisma.user.findUnique({ where: { id: userId }, select: { companyId: true } });
+    if (!person) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (!canManageCompany(await staffAccess(user), person.companyId)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+    const cards = await prisma.idCard.findMany({
+        where: { userId },
+        orderBy: { issuedAt: 'desc' },
+        take: 20,
+        select: {
+            id: true, cardNumber: true, token: true, status: true, issuedAt: true, validUntil: true, revokedAt: true, revokedReason: true,
+            company: { select: { code: true, verifyDomain: true } },
+            _count: { select: { checks: true } },
+        },
+    });
+    const recent = await prisma.verificationLog.findMany({
+        where: { cardId: { in: cards.map(c => c.id) } },
+        orderBy: { createdAt: 'desc' },
+        take: 15,
+        select: { createdAt: true, method: true, result: true, card: { select: { cardNumber: true } } },
+    });
+    return NextResponse.json({
+        cards: cards.map(c => ({
+            id: c.id, cardNumber: c.cardNumber, status: c.status, companyCode: c.company.code,
+            issuedAt: c.issuedAt.toISOString(), validUntil: c.validUntil.toISOString().slice(0, 10),
+            revokedAt: c.revokedAt?.toISOString() || null, revokedReason: c.revokedReason, checks: c._count.checks,
+            // HR can open exactly what an outsider sees when scanning this card
+            verifyPath: `/verify/${c.token}`,
+        })),
+        recentChecks: recent.map(r => ({ at: r.createdAt.toISOString(), method: r.method, result: r.result, cardNumber: r.card?.cardNumber })),
+    });
+}
+
+/**
  * POST /api/id-cards  { userIds: string[], mode: "issue" | "reprint" }
  *  - issue: creates a new card for each person; their previous card is marked REPLACED and stops verifying
  *  - reprint: returns each person's current card unchanged (same number and QR), e.g. after a printer jam

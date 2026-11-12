@@ -98,6 +98,8 @@ export async function readCompanyInput(body: any, existingId?: string): Promise<
     if (has('verifyDomain')) {
         const v = normalizeDomain(text(body.verifyDomain, 253));
         if (v && !isValidDomain(v)) return { error: 'Enter the verification address like verify.company.com.' };
+        // the server recognises verification addresses by this prefix and serves nothing else on them
+        if (v && !v.startsWith('verify.')) return { error: 'The verification address must start with "verify.", like verify.company.com.' };
         if (v) {
             const clash = await prisma.company.findUnique({ where: { verifyDomain: v } });
             if (clash && clash.id !== existingId) return { error: `${v} is already used by ${clash.legalName}.` };

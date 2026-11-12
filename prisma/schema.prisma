@@ -143,8 +143,26 @@ model IdCard {
   revokedAt    DateTime?
   revokedReason String?
   createdAt    DateTime  @default(now())
+  checks       VerificationLog[]
 
   @@index([userId, status])
+}
+
+// Every lookup on the public verification page, so HR can see when a card is being checked and spot misuse.
+// The visitor's IP is stored only as a salted hash.
+model VerificationLog {
+  id        String   @id @default(uuid())
+  cardId    String?
+  card      IdCard?  @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  method    String   // QR (scanned link) or NUMBER (card number typed in)
+  result    String   // VALID, EXPIRED, REPLACED, REVOKED, EXITED, NOT_FOUND, LIMITED
+  host      String?
+  ipHash    String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([cardId, createdAt])
+  @@index([ipHash, createdAt])
 }
 
 // Small private files kept in the database (ID photos, company logos, signatures), so they're covered by
