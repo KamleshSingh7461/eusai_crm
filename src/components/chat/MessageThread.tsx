@@ -2,12 +2,13 @@
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { format } from 'date-fns';
-import { AlertCircle, ArrowDown, Check, Download, Edit2, FileText, Loader2, MessageSquare, SmilePlus, Trash2, X } from 'lucide-react';
+import { AlertCircle, ArrowDown, Check, Edit2, Eye, FileText, Loader2, MessageSquare, SmilePlus, Trash2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Avatar, { initialsOf } from '@/components/ui/Avatar';
 import { humanize } from '@/components/ui/tones';
 import RichText from './RichText';
-import { ChatMessage, QUICK_REACTIONS, canStillEdit, dayLabel, isImage, sameDay } from './chatUtils';
+import { Attachment, ChatMessage, QUICK_REACTIONS, canStillEdit, dayLabel, isImage, sameDay } from './chatUtils';
+import AttachmentViewer from './AttachmentViewer';
 
 interface Props {
     messages: ChatMessage[];
@@ -34,6 +35,7 @@ export default function MessageThread({ messages, meId, loading, hasMore, loadin
     const [pickerFor, setPickerFor] = useState<string | null>(null);
     const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
     const [, forceTick] = useState(0);
+    const [viewer, setViewer] = useState<{ items: Attachment[]; index: number; caption: string } | null>(null);
 
     // re-render every 15s so edit/delete buttons disappear once the window closes
     useEffect(() => {
@@ -161,18 +163,25 @@ export default function MessageThread({ messages, meId, loading, hasMore, loadin
 
                                     {!!m.attachments?.length && (
                                         <div className={cn('mt-1.5 flex flex-wrap gap-2', mine && 'justify-end')}>
-                                            {m.attachments.map(a => isImage(a) ? (
-                                                <a key={a.url} href={a.url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl border border-white/[0.08]">
-                                                    <img src={a.url} alt={a.name || 'Image'} className="max-h-64 max-w-[260px] object-cover transition hover:opacity-90" />
-                                                </a>
-                                            ) : (
-                                                <a key={a.url} href={a.url} target="_blank" rel="noreferrer" download
-                                                    className="flex max-w-[260px] items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-zinc-200 transition hover:bg-white/[0.06]">
-                                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/15 text-blue-300"><FileText className="h-4 w-4" /></span>
-                                                    <span className="min-w-0 flex-1 truncate">{a.name || 'Attachment'}</span>
-                                                    <Download className="h-4 w-4 shrink-0 text-zinc-500" />
-                                                </a>
-                                            ))}
+                                            {m.attachments.map((a, ai) => {
+                                                const open = () => setViewer({ items: m.attachments!, index: ai, caption: `${m.sender.name || 'Someone'} · ${format(new Date(m.createdAt), 'd MMM, h:mm a')}` });
+                                                return isImage(a) ? (
+                                                    <button key={a.url} type="button" onClick={open} aria-label={`Preview ${a.name || 'image'}`}
+                                                        className="block overflow-hidden rounded-xl border border-white/[0.08] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400">
+                                                        <img src={a.url} alt={a.name || 'Image'} className="max-h-64 max-w-[260px] object-cover transition hover:opacity-90" />
+                                                    </button>
+                                                ) : (
+                                                    <button key={a.url} type="button" onClick={open} aria-label={`Preview ${a.name || 'attachment'}`}
+                                                        className="flex max-w-[260px] items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-left text-sm text-zinc-200 transition hover:bg-white/[0.06] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400">
+                                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/15 text-blue-300"><FileText className="h-4 w-4" /></span>
+                                                        <span className="min-w-0 flex-1">
+                                                            <span className="block truncate">{a.name || 'Attachment'}</span>
+                                                            <span className="block text-[11px] uppercase tracking-wide text-zinc-500">{(a.name || a.url).split('.').pop()} · {['pdf', 'txt', 'csv', 'md', 'log'].includes(((a.name || a.url).split('.').pop() || '').toLowerCase()) ? 'Preview' : 'Open'}</span>
+                                                        </span>
+                                                        <Eye className="h-4 w-4 shrink-0 text-zinc-500" />
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     )}
 
@@ -220,6 +229,14 @@ export default function MessageThread({ messages, meId, loading, hasMore, loadin
                     <ArrowDown className="h-3.5 w-3.5" />New messages
                 </button>
             )}
+
+            <AttachmentViewer
+                items={viewer?.items || []}
+                index={viewer ? viewer.index : null}
+                caption={viewer?.caption}
+                onIndex={i => setViewer(v => (v ? { ...v, index: i } : v))}
+                onClose={() => setViewer(null)}
+            />
         </div>
     );
 }
