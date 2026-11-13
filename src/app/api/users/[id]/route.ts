@@ -28,6 +28,7 @@ export async function GET(
                         name: true,
                         email: true,
                         role: true,
+                        company: { select: { code: true, legalName: true, brandColor: true } },
                     }
                 },
                 reportingSubordinates: {
@@ -37,6 +38,7 @@ export async function GET(
                         email: true,
                         role: true,
                         department: true,
+                        company: { select: { code: true, legalName: true, brandColor: true } },
                     }
                 },
                 dailyReports: {

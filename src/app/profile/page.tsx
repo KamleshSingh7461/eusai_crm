@@ -16,13 +16,14 @@ import { humanize, roleTone } from '@/components/ui/tones';
 import { useToast } from '@/context/ToastContext';
 import { cn } from '@/lib/utils';
 import MyIdCard from '@/components/employees/MyIdCard';
+import CompanyTag from '@/components/ui/CompanyTag';
 
 interface Me {
     id: string; name: string | null; email: string; role: string; image: string | null; department: string | null;
     createdAt: string; lastLogin: string | null; hasPassword: boolean; googleLinked: boolean; teamSize: number;
     company: { legalName: string; code: string; brandColor: string | null } | null;
     memberSpaces: { id: string; name: string; color: string }[];
-    reportingManagers: { id: string; name: string | null; email: string; role: string; image: string | null }[];
+    reportingManagers: { id: string; name: string | null; email: string; role: string; image: string | null; company: { code: string; legalName: string; brandColor: string | null } | null }[];
     hrCompanies: { code: string; legalName: string }[];
 }
 
@@ -120,7 +121,7 @@ export default function ProfilePage() {
                                             <Avatar src={m.image} alt={m.name || m.email} fallback={initialsOf(m.name || m.email)} className="h-8 w-8 text-xs" />
                                             <div className="min-w-0 flex-1">
                                                 <p className="truncate text-sm font-medium text-zinc-100">{m.name || m.email}</p>
-                                                <p className="text-xs text-zinc-500">{humanize(m.role)}</p>
+                                                <p className="mt-0.5 flex items-center gap-2 text-xs text-zinc-500">{humanize(m.role)}<CompanyTag company={m.company} size="xs" /></p>
                                             </div>
                                             <a href={`mailto:${m.email}`} aria-label={`Email ${m.name || m.email}`} className="rounded-lg p-2 text-zinc-500 hover:bg-[#1F1F23] hover:text-white"><Mail className="h-4 w-4" /></a>
                                         </li>

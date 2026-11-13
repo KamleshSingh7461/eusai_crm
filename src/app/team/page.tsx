@@ -31,9 +31,11 @@ import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
 import Modal, { ModalIcon } from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
+import CompanyTag from '@/components/ui/CompanyTag';
 import Link from 'next/link';
 
 interface User {
+    company?: { code: string; legalName: string; brandColor: string | null } | null;
     id: string;
     name: string | null;
     email: string;
@@ -442,6 +444,7 @@ export default function TeamPage() {
                                                 <div className="min-w-0">
                                                     <div className="font-semibold text-heading text-sm flex items-center gap-2">
                                                         {user.name || 'No Name'}
+                                                        <CompanyTag company={user.company} />
                                                         {user.rank && user.rank <= 3 && <Award className={`w-3.5 h-3.5 ${user.rank === 1 ? 'text-[#FBBF24]' : 'text-body'}`} />}
                                                         {user.isSuspended && (
                                                             <span className="bg-[#FB71851F] text-[#E11D48] text-[11px] px-1.5 py-0.5 rounded-sm font-semibold tracking-tighter">Suspended</span>
@@ -692,6 +695,7 @@ export default function TeamPage() {
                                                                 <span className="text-xs text-heading font-medium truncate">
                                                                     {u.name || u.email}
                                                                 </span>
+                                                                <CompanyTag company={u.company} size="xs" />
                                                             </div>
                                                         </label>
                                                     ))
@@ -728,6 +732,7 @@ export default function TeamPage() {
                                                                     <span className="text-xs text-heading font-medium truncate">
                                                                         {u.name || u.email}
                                                                     </span>
+                                                                    <CompanyTag company={u.company} size="xs" />
                                                                 </div>
                                                             </label>
                                                         ))

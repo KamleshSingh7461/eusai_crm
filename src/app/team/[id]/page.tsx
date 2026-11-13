@@ -33,10 +33,12 @@ import { cn } from '@/lib/utils';
 import Button from '@/components/ui/Button';
 import Modal, { ModalIcon } from '@/components/ui/Modal';
 import EmploymentPanel from '@/components/employees/EmploymentPanel';
+import CompanyTag from '@/components/ui/CompanyTag';
 
 // --- DATA INTERFACES ---
 
 interface UserDetails {
+    company?: { code: string; legalName: string; brandColor: string | null } | null;
     id: string;
     name: string | null;
     email: string;
@@ -266,7 +268,7 @@ export default function UserProfilePage() {
 
                 <div className="flex-1 space-y-6">
                     <div>
-                        <div className="flex items-center gap-4 mb-2">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-2">
                             <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-white">{user.name}</h1>
                             <span className={cn(
                                 "px-4 py-1 rounded-xl text-xs font-semibold   border",
@@ -276,6 +278,7 @@ export default function UserProfilePage() {
                             )}>
                                 {user.role}
                             </span>
+                            <CompanyTag company={user.company} className="text-xs" />
                         </div>
                         <div className="flex flex-wrap gap-6 text-[11px] font-semibold text-white/40">
                             <div className="flex items-center gap-2">
@@ -340,7 +343,7 @@ export default function UserProfilePage() {
                                     </div>
                                     <div>
                                         <p className="text-sm font-semibold text-white group-hover:text-blue-400 transition-colors">{mgr.name}</p>
-                                        <p className="text-[11px] font-semibold text-white/30 tracking-tighter">Manager</p>
+                                        <p className="mt-0.5 flex items-center gap-2 text-[11px] font-semibold text-white/30 tracking-tighter">Manager <CompanyTag company={mgr.company} size="xs" /></p>
                                     </div>
                                 </div>
                             ))}
@@ -351,8 +354,9 @@ export default function UserProfilePage() {
                         <h4 className="text-[11px] font-semibold text-white/30 mb-6">Team members ({user.reportingSubordinates.length})</h4>
                         <div className="grid grid-cols-5 gap-2">
                             {user.reportingSubordinates.map((sub: any) => (
-                                <div key={sub.id} title={sub.name} className="w-10 h-10 rounded-xl bg-[#09090B] border border-white/10 flex items-center justify-center text-[11px] font-semibold hover:border-blue-500 transition-all cursor-pointer">
+                                <div key={sub.id} title={sub.company ? `${sub.name} · ${sub.company.legalName}` : sub.name} className="relative w-10 h-10 rounded-xl bg-[#09090B] border border-white/10 flex items-center justify-center text-[11px] font-semibold hover:border-blue-500 transition-all cursor-pointer">
                                     {sub.name?.[0]}
+                                    {sub.company?.brandColor && <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-[#111113]" style={{ background: sub.company.brandColor }} />}
                                 </div>
                             ))}
                         </div>

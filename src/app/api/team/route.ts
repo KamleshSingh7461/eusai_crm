@@ -72,6 +72,7 @@ export async function GET(request: NextRequest) {
                 image: true,
                 isSuspended: true,
                 createdAt: true,
+                company: { select: { code: true, legalName: true, brandColor: true } },
                 memberSpaces: {
                     select: {
                         id: true,

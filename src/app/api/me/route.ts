@@ -13,7 +13,7 @@ export async function GET() {
             password: true,
             company: { select: { legalName: true, code: true, brandColor: true } },
             memberSpaces: { select: { id: true, name: true, color: true }, orderBy: { name: 'asc' } },
-            reportingManagers: { select: { id: true, name: true, email: true, role: true, image: true } },
+            reportingManagers: { select: { id: true, name: true, email: true, role: true, image: true, company: { select: { code: true, legalName: true, brandColor: true } } } },
             reportingSubordinates: { where: { isSuspended: false }, select: { id: true } },
             hrCompanies: { select: { code: true, legalName: true } },
             accounts: { select: { provider: true } },
