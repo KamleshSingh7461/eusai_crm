@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { createNotification, notifyUserManager, notifyHierarchy } from '@/lib/notifications';
+import { milestoneAccess } from '@/lib/workAccess';
 
 // GET /api/milestones - Fetch milestones based on role
 export async function GET(request: NextRequest) {
@@ -239,6 +240,15 @@ export async function PATCH(request: NextRequest) {
 
         if (!oldMilestone) {
             return NextResponse.json({ error: 'Milestone not found' }, { status: 404 });
+        }
+
+        // same rules as the milestone detail screen: owner and their leaders update status and progress,
+        // only leaders write remarks or flag it
+        const access = await milestoneAccess({ id: userId, role: String((session.user as any).role || '') }, id);
+        const wantsStatus = status !== undefined || progress !== undefined;
+        const wantsGovernance = remarks !== undefined || isFlagged !== undefined;
+        if (!access || (wantsStatus && !access.canUpdateStatus) || (wantsGovernance && !access.canUpdateGovernance)) {
+            return NextResponse.json({ error: "You can't change this milestone." }, { status: 403 });
         }
 
         const updatedMilestone = await prisma.milestone.update({

@@ -60,10 +60,25 @@ export async function POST(request: Request) {
             );
         }
 
+        // anyone may record an order, but only leaders mark it paid or cancelled; Management is read-only
+        const role = String((session.user as any)?.role || '');
+        if (role === 'MANAGEMENT') return NextResponse.json({ error: 'Read-only role' }, { status: 403 });
+        const isLeader = ['DIRECTOR', 'ADMIN', 'MANAGER', 'TEAM_LEADER'].includes(role);
+        if (status && !['PENDING', 'PAID', 'CANCELLED'].includes(status)) {
+            return NextResponse.json({ error: 'Unknown order status.' }, { status: 400 });
+        }
+        if (status && status !== 'PENDING' && !isLeader) {
+            return NextResponse.json({ error: 'Only a Director, Manager or Team leader can mark an order paid or cancelled.' }, { status: 403 });
+        }
+        const value = parseFloat(amount);
+        if (!Number.isFinite(value) || value <= 0 || value > 1e12) {
+            return NextResponse.json({ error: 'Enter an amount greater than zero.' }, { status: 400 });
+        }
+
         const order = await prisma.businessOrder.create({
             data: {
                 title,
-                amount: parseFloat(amount),
+                amount: value,
                 universityId,
                 milestoneId: milestoneId || null,
                 description,

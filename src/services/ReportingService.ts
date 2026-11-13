@@ -33,7 +33,7 @@ export class ReportingService {
                 resourcesCount: project.resources.length,
                 tasksRemaining: totalTasks - completedTasks
             },
-            recentActivities: activities.map(a => ({
+            recentActivities: activities.map((a: { action: string; timestamp: Date }) => ({
                 action: a.action,
                 time: a.timestamp
             }))

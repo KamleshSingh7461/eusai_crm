@@ -235,6 +235,15 @@ export async function PATCH(request: Request) {
             return NextResponse.json({ error: 'Task not found' }, { status: 404 });
         }
 
+        // same rule as the task detail screen: only the person assigned to a task changes its status
+        if (oldTask.userId !== (session.user as any).id) {
+            return NextResponse.json({ error: 'Only the person assigned to this task can change its status.' }, { status: 403 });
+        }
+        const allowedStatus = ['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
+        if (!allowedStatus.includes(status)) {
+            return NextResponse.json({ error: 'Unknown task status.' }, { status: 400 });
+        }
+
         const updatedTask = await (prisma as any).task.update({
             where: { id },
             data: { status }

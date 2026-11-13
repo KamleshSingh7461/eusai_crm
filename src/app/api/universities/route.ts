@@ -103,6 +103,9 @@ export async function GET(request: NextRequest) {
     }
 }
 
+const STATUSES = ['PROSPECT', 'PARTNER', 'INACTIVE'];
+const EDITABLE = ['name', 'location', 'contactPerson', 'email', 'phone', 'website', 'status', 'description'];
+
 // POST /api/universities - Create new university
 export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
@@ -111,19 +114,21 @@ export async function POST(request: NextRequest) {
     }
 
     const { role } = (session.user as any);
-    // Only Directors, Managers, Team Leaders can add universities?
-    // Let's allow Employees to add PROSPECTS, but maybe restrict PARTNER status changes.
-    // For now, open to all authenticated users for ease of data entry.
+    // Anyone can add a prospect; only leaders decide a university's status. Management is read-only.
+    if (role === 'MANAGEMENT') return NextResponse.json({ error: 'Read-only role' }, { status: 403 });
+    const isLeader = ['DIRECTOR', 'ADMIN', 'MANAGER', 'TEAM_LEADER'].includes(role);
 
     try {
         const body = await request.json();
         const { name, location, contactPerson, email, phone, website, status, description } = body;
+        if (!name || typeof name !== 'string') return NextResponse.json({ error: 'Enter the university name.' }, { status: 400 });
+        if (status && !STATUSES.includes(status)) return NextResponse.json({ error: 'Unknown status.' }, { status: 400 });
 
         const newUniversity = await (prisma as any).university.create({
             data: {
                 name,
                 location,
-                status: status || 'PROSPECT',
+                status: isLeader && status ? status : 'PROSPECT',
                 contactPerson,
                 email,
                 phone,
@@ -144,9 +149,21 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // editing a university (including its partner status) is for leaders
+    const { role } = (session.user as any);
+    if (!['DIRECTOR', 'ADMIN', 'MANAGER', 'TEAM_LEADER'].includes(role)) {
+        return NextResponse.json({ error: 'Only Directors, Managers and Team leaders can edit universities.' }, { status: 403 });
+    }
+
     try {
         const body = await request.json();
-        const { id, ...updateData } = body;
+        const { id } = body;
+        // only these fields can change; anything else in the request is ignored
+        const updateData: Record<string, unknown> = {};
+        for (const k of EDITABLE) if (body[k] !== undefined) updateData[k] = body[k];
+        if (updateData.status !== undefined && !STATUSES.includes(updateData.status as string)) {
+            return NextResponse.json({ error: 'Unknown status.' }, { status: 400 });
+        }
 
         if (!id) {
             return NextResponse.json({ error: 'University ID is required' }, { status: 400 });

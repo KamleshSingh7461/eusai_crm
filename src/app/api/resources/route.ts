@@ -76,6 +76,10 @@ export async function POST(request: NextRequest) {
     if (!session || !session.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    // resources and their costs are managed by Directors and Managers (as on the Resources page)
+    if (!['DIRECTOR', 'ADMIN', 'MANAGER'].includes((session.user as any).role)) {
+        return NextResponse.json({ error: 'Only Directors and Managers can manage resources.' }, { status: 403 });
+    }
 
     try {
         const body = await request.json();
@@ -106,6 +110,10 @@ export async function PUT(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    // resources and their costs are managed by Directors and Managers (as on the Resources page)
+    if (!['DIRECTOR', 'ADMIN', 'MANAGER'].includes((session.user as any).role)) {
+        return NextResponse.json({ error: 'Only Directors and Managers can manage resources.' }, { status: 403 });
     }
 
     try {

@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { notifyHierarchy } from '@/lib/notifications';
+import { issueAccess } from '@/lib/workAccess';
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -211,6 +212,15 @@ export async function PUT(request: Request) {
         const body = await request.json();
         const { id, title, description, projectId, status, severity, owner, resolution, assignedToId } = body;
 
+        // the reporter and the assignee may update their issue, leaders any; only leaders reassign it
+        const access = await issueAccess({ id: userId, role: String(role || '') }, String(id || ''));
+        if (!access) return NextResponse.json({ error: 'Issue not found' }, { status: 404 });
+        if (!access.canEdit) return NextResponse.json({ error: "You can't change this issue." }, { status: 403 });
+        const current = await (prisma as any).issue.findUnique({ where: { id }, select: { assignedToId: true } });
+        if (assignedToId !== undefined && (assignedToId || null) !== (current?.assignedToId || null) && !access.canReassign) {
+            return NextResponse.json({ error: 'Only a Director, Manager or Team leader can reassign an issue.' }, { status: 403 });
+        }
+
         const updateData: any = {
             title,
             description,
@@ -223,10 +233,6 @@ export async function PUT(request: Request) {
 
         // If resolving/closing, add resolution details
         if (['RESOLVED', 'CLOSED'].includes(status)) {
-            // Permission check: Director, Manager, or Assignee can resolve
-            // (We assume if they can access the PUT they passed preliminary checks, but good to be safe)
-            // ideally we fetch the issue first to check ownership, but strict role filtering in GET limits access effectively.
-
             updateData.resolvedById = userId;
             updateData.resolution = resolution;
             updateData.resolutionDate = new Date();
