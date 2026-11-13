@@ -71,6 +71,17 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
         }
     }
 
+    // the official name, as printed on ID cards: HR and Directors correct it, nobody changes their own
+    let name = person.name;
+    if (has('name')) {
+        const n = typeof body.name === 'string' ? body.name.trim().replace(/\s+/g, ' ') : '';
+        if (n !== (person.name || '')) {
+            if (person.id === user.id) return bad("You can't change your own name. Ask HR or another Director.");
+            if (n.length < 2 || n.length > 80 || /[<>{}]/.test(n)) return bad('Enter the full name, between 2 and 80 characters.');
+            name = n;
+        }
+    }
+
     let designation = person.designation;
     if (has('designation')) {
         designation = typeof body.designation === 'string' ? body.designation.trim().replace(/\s+/g, ' ') : '';
@@ -120,7 +131,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
         return tx.user.update({
             where: { id },
             data: {
-                companyId, designation, dateOfJoining: joining, employmentStatus: status, exitDate, employeeCode,
+                name, companyId, designation, dateOfJoining: joining, employmentStatus: status, exitDate, employeeCode,
                 // leaving blocks sign-in; coming back (from exited) lifts it again
                 ...(status === 'EXITED' ? { isSuspended: true, isOnline: false } : wasExited ? { isSuspended: false } : {}),
             },

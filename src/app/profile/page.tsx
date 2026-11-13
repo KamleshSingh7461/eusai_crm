@@ -46,40 +46,18 @@ function sinceShort(iso: string) {
 }
 
 export default function ProfilePage() {
-    const { data: session, update } = useSession();
-    const { showToast } = useToast();
+    const { data: session } = useSession();
     const [me, setMe] = useState<Me | null>(null);
-    const [name, setName] = useState('');
-    const [saving, setSaving] = useState(false);
-    const [nameError, setNameError] = useState('');
 
     const load = useCallback(async () => {
         const res = await fetch('/api/me');
         if (!res.ok) return;
-        const data: Me = await res.json();
-        setMe(data);
-        setName(data.name || '');
+        setMe(await res.json());
     }, []);
     useEffect(() => { load(); }, [load]);
 
     const role = me?.role || (session?.user as any)?.role || 'EMPLOYEE';
     const displayName = me?.name || session?.user?.name || 'Your profile';
-    const nameChanged = !!me && name.trim().replace(/\s+/g, ' ') !== (me.name || '');
-
-    const saveName = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!nameChanged) return;
-        setSaving(true);
-        setNameError('');
-        const res = await fetch('/api/me', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
-        const data = await res.json().catch(() => ({}));
-        setSaving(false);
-        if (!res.ok) return setNameError(data.error || "Couldn't save your name. Try again.");
-        setMe(m => (m ? { ...m, name: data.name } : m));
-        setName(data.name);
-        await update({ name: data.name });
-        showToast('Name updated', 'success');
-    };
 
     const abilities = useMemo(() => {
         const list = [...(ROLE_ABILITIES[role] || ROLE_ABILITIES.EMPLOYEE)];
@@ -122,20 +100,12 @@ export default function ProfilePage() {
 
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
                 {/* ---------- personal details ---------- */}
-                <Panel icon={UserRound} title="Personal details" description="How you appear to colleagues across the CRM.">
-                    <form onSubmit={saveName} className="space-y-5">
-                        <div>
-                            <FieldLabel htmlFor="p-name">Full name</FieldLabel>
-                            <input id="p-name" className={cn(fieldClass, nameError && 'border-rose-500/60')} value={name} maxLength={80} autoComplete="name"
-                                onChange={e => { setName(e.target.value); setNameError(''); }} disabled={!me} />
-                            {nameError ? <FieldHint error>{nameError}</FieldHint> : <FieldHint>Shown on tasks, reports and messages. Your ID card keeps the name it was printed with.</FieldHint>}
-                        </div>
+                <Panel icon={UserRound} title="Personal details" description="Kept by HR, as they appear on your ID card and records.">
+                    <div className="space-y-5">
+                        <ReadOnly label="Full name" value={me?.name || session?.user?.name || ''} hint="Your official name. If it's wrong, ask HR or a Director to correct it." />
                         <ReadOnly label="Email" value={me?.email || session?.user?.email || ''} hint="Your sign-in address. An administrator can change it." />
                         <ReadOnly label="Role" value={humanize(role)} hint="Set by a Director." />
-                        <div className="flex justify-end">
-                            <Button type="submit" disabled={!nameChanged} isLoading={saving} leftIcon={<Check className="h-4 w-4" />}>Save changes</Button>
-                        </div>
-                    </form>
+                    </div>
                 </Panel>
 
                 {/* ---------- work setup ---------- */}

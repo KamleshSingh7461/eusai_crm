@@ -31,14 +31,5 @@ export async function GET() {
     });
 }
 
-/** PATCH /api/me { name } : people can change how their name appears; email and role are managed by admins. */
-export async function PATCH(req: Request) {
-    const user = await currentUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const body = await req.json().catch(() => ({}));
-    const name = typeof body?.name === 'string' ? body.name.trim().replace(/\s+/g, ' ') : '';
-    if (name.length < 2 || name.length > 80) return NextResponse.json({ error: 'Enter your name, between 2 and 80 characters.' }, { status: 400 });
-    if (/[<>{}]/.test(name)) return NextResponse.json({ error: 'Use letters, spaces and simple punctuation in your name.' }, { status: 400 });
-    const saved = await prisma.user.update({ where: { id: user.id }, data: { name }, select: { name: true } });
-    return NextResponse.json({ name: saved.name });
-}
+// Names are official records (printed on ID cards): only HR and Directors change them, from the
+// employment popup or Team → Edit member. There is deliberately no way to rename yourself here.

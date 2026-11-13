@@ -328,6 +328,19 @@ export async function PUT(request: NextRequest) {
         const body = await request.json();
         const { id, role, managerId, spaceIds = [], isSuspended } = body;
 
+        // Names are official records: a Director may correct someone else's, nobody renames themselves
+        let newName: string | undefined;
+        if (typeof body.name === 'string') {
+            const n = body.name.trim().replace(/\s+/g, ' ');
+            const current = await prisma.user.findUnique({ where: { id }, select: { name: true } });
+            if (current && n && n !== (current.name || '')) {
+                if (id === currentUserId) return NextResponse.json({ error: "You can't change your own name. Ask another Director." }, { status: 403 });
+                if (userRole !== 'DIRECTOR') return NextResponse.json({ error: 'Only a Director can change names.' }, { status: 403 });
+                if (n.length < 2 || n.length > 80 || /[<>{}]/.test(n)) return NextResponse.json({ error: 'Enter a name between 2 and 80 characters.' }, { status: 400 });
+                newName = n;
+            }
+        }
+
         const targetUser = await (prisma as any).user.findUnique({
             where: { id },
             select: { role: true }
@@ -408,6 +421,7 @@ export async function PUT(request: NextRequest) {
         const updatedUser = await (prisma as any).user.update({
             where: { id },
             data: {
+                ...(newName ? { name: newName } : {}),
                 role: isRoleChanging ? role : targetUser.role,
                 isSuspended: typeof isSuspended === 'boolean' ? isSuspended : undefined,
                 reportingManagers: managerId ? { set: [{ id: managerId }] }

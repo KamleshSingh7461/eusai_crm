@@ -54,6 +54,7 @@ export default function EmploymentModal({ employee, onClose, onSaved, selfId }: 
     const [companies, setCompanies] = useState<CompanyLite[] | null>(null);
     const [companyId, setCompanyId] = useState('');
     const [designation, setDesignation] = useState('');
+    const [fullName, setFullName] = useState('');
     const [joining, setJoining] = useState('');
     const [status, setStatus] = useState<EmployeeRow['employmentStatus']>('ACTIVE');
     const [exitDate, setExitDate] = useState('');
@@ -65,6 +66,7 @@ export default function EmploymentModal({ employee, onClose, onSaved, selfId }: 
         if (!employee) return;
         setCompanyId(employee.company?.id || '');
         setDesignation(employee.designation || '');
+        setFullName(employee.name || '');
         setJoining(employee.dateOfJoining || '');
         setStatus(employee.employmentStatus);
         setExitDate(employee.exitDate || '');
@@ -96,6 +98,7 @@ export default function EmploymentModal({ employee, onClose, onSaved, selfId }: 
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    ...(isSelf ? {} : { name: fullName.trim() }),
                     companyId, designation: designation.trim(), dateOfJoining: joining || null,
                     employmentStatus: status, exitDate: status === 'ACTIVE' ? null : exitDate || null,
                 }),
@@ -158,6 +161,13 @@ export default function EmploymentModal({ employee, onClose, onSaved, selfId }: 
                         hint="A recent passport-style photo: face clearly visible, plain background. Saved as soon as you confirm it."
                         onChange={url => { setPhotoUrl(url); onSaved({ ...employee, photoUrl: url, cardBlockers: url ? employee.cardBlockers.filter(b => b !== 'photo') : Array.from(new Set([...employee.cardBlockers, 'photo'])) }); }}
                     />
+
+                    <div>
+                        <FieldLabel htmlFor="emp-name" required>Full name</FieldLabel>
+                        <input id="emp-name" className={fieldClass} value={fullName} maxLength={80} disabled={isSelf}
+                            onChange={e => setFullName(e.target.value)} placeholder="As on their government ID" />
+                        <FieldHint>{isSelf ? "You can't change your own name. Ask HR or another Director." : 'Their official name, as on their government ID. Printed on new ID cards; already printed cards keep the old one.'}</FieldHint>
+                    </div>
 
                     <div>
                         <FieldLabel htmlFor="emp-company" required>Employing company</FieldLabel>
