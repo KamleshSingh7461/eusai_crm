@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { countWorkingDays, dayKey, getHolidays } from '@/lib/workdays';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getMobileSession } from '@/lib/auth-mobile';
 import { getSubordinateIds } from '@/lib/hierarchy';
 
 // GET /api/reports/weekly - Fetch weekly reports
@@ -65,6 +66,22 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { userId, weekStartDate } = body;
+
+        // Weekly reports feed performance scores: only the scheduler (CRON_SECRET), Directors and Managers,
+        // or the person themselves may generate one.
+        const fromScheduler = !!process.env.CRON_SECRET && request.headers.get('authorization') === `Bearer ${process.env.CRON_SECRET}`;
+        if (!fromScheduler) {
+            const session = (await getServerSession(authOptions)) || (await getMobileSession());
+            const me = session?.user as any;
+            if (!me?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            const role = String(me.role || '').toUpperCase();
+            if (me.id !== userId && !['DIRECTOR', 'ADMIN', 'MANAGER'].includes(role)) {
+                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            }
+        }
+        if (!userId || !weekStartDate || isNaN(new Date(weekStartDate).getTime())) {
+            return NextResponse.json({ error: 'userId and a valid weekStartDate are required' }, { status: 400 });
+        }
 
         const weekStart = new Date(weekStartDate);
         weekStart.setHours(0, 0, 0, 0);

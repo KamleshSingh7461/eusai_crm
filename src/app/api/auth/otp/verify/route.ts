@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { allowAuthAttempt, ipOf } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
     try {
@@ -10,7 +11,14 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Email and Token are required" }, { status: 400 });
         }
 
-        const normalizedEmail = email.toLowerCase().trim();
+        const normalizedEmail = String(email).toLowerCase().trim();
+
+        // a 6-digit code can be guessed if tries are unlimited: 5 per address (then the code is cancelled)
+        // and 20 per connection every 15 minutes
+        if (!allowAuthAttempt('otp-check', normalizedEmail, ipOf(req.headers), 5, 20)) {
+            await prisma.oTPToken.deleteMany({ where: { email: normalizedEmail } });
+            return NextResponse.json({ error: "Too many attempts. Request a new code and try again." }, { status: 429 });
+        }
 
         // 1. Find the latest OTP for this exact email and token
         const otpRecord = await prisma.oTPToken.findFirst({

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { allowAuthAttempt, ipOf } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
     try {
@@ -11,7 +12,13 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Enter your email, the code and a password of at least 6 characters." }, { status: 400 });
         }
 
-        const normalizedEmail = email.toLowerCase().trim();
+        const normalizedEmail = String(email).toLowerCase().trim();
+
+        // shares the code-guessing limit with /api/auth/otp/verify: too many wrong codes cancel the code
+        if (!allowAuthAttempt('otp-check', normalizedEmail, ipOf(req.headers), 5, 20)) {
+            await prisma.oTPToken.deleteMany({ where: { email: normalizedEmail } });
+            return NextResponse.json({ error: "Too many attempts. Request a new code and try again." }, { status: 429 });
+        }
 
         // 1. Double check the OTP token exists and isn't expired
         // This prevents someone from bypassing the /verify endpoint

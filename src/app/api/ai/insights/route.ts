@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import prisma from '@/lib/prisma';
+import { currentUser } from '@/lib/companies';
+import { allow } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+    // signed-in people only (it reads project data and spends the AI key), with a per-person limit
+    const user = await currentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!allow(`ai-insights:${user.id}`, 20, 10 * 60_000)) {
+        return NextResponse.json({ error: 'Too many requests. Try again in a few minutes.' }, { status: 429 });
+    }
     try {
         const { projectId, query } = await request.json();
         const apiKey = process.env.GEMINI_API_KEY;

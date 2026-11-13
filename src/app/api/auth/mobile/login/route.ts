@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signMobileToken, devShortcutsAllowed } from '@/lib/mobileToken';
+import { allowAuthAttempt, ipOf } from '@/lib/rateLimit';
 
 export async function POST(req: Request) {
     try {
@@ -9,6 +10,10 @@ export async function POST(req: Request) {
 
         if (!email || !password) {
             return NextResponse.json({ error: 'Missing credentials' }, { status: 400 });
+        }
+        // password guessing: 10 tries per address and 30 per connection every 15 minutes
+        if (!allowAuthAttempt('login', String(email), ipOf(req.headers), 10, 30)) {
+            return NextResponse.json({ error: 'Too many sign-in attempts. Wait 15 minutes and try again.' }, { status: 429 });
         }
 
         const user = await prisma.user.findUnique({
@@ -51,6 +56,11 @@ export async function POST(req: Request) {
         }
 
         // Generate a standalone JWT for mobile
+        // suspended or exited people can't sign in (same rule as the web)
+        if (user.isSuspended) {
+            return NextResponse.json({ error: 'Your account has been suspended. Contact your administrator.' }, { status: 403 });
+        }
+
         const token = signMobileToken({ id: user.id, email: user.email, role: user.role });
 
         return NextResponse.json({

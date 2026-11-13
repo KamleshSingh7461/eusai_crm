@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import nodemailer from "nodemailer";
+import { randomInt } from "crypto";
+import { allowAuthAttempt, ipOf } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
     try {
@@ -11,7 +13,13 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Email is required" }, { status: 400 });
         }
 
-        const normalizedEmail = email.toLowerCase().trim();
+        const normalizedEmail = String(email).toLowerCase().trim();
+
+        // stop inbox flooding: 3 codes per address and 10 per connection every 15 minutes. The reply is the
+        // same as a normal send so it doesn't reveal anything about the address.
+        if (!allowAuthAttempt('otp-send', normalizedEmail, ipOf(req.headers), 3, 10)) {
+            return NextResponse.json({ message: "If the email exists, an OTP has been sent." }, { status: 200 });
+        }
 
         // 1. Verify user exists in the database
         const user = await prisma.user.findUnique({
@@ -23,8 +31,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "If the email exists, an OTP has been sent." }, { status: 200 });
         }
 
-        // 2. Generate a 6-digit cryptographic-like OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        // 2. Generate a 6-digit code from a cryptographically secure source (Math.random is predictable)
+        const otp = randomInt(100000, 1000000).toString();
 
         // 3. Set Expiration (15 minutes)
         const expiresAt = new Date();

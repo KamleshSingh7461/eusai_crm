@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { ALL_COMPANY_ROLES, currentUser } from '@/lib/companies';
 
+/** GET /api/stats : organisation-wide counts for the admin page (Directors and Management). */
 export async function GET() {
+    const user = await currentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (![...ALL_COMPANY_ROLES, 'MANAGEMENT'].includes(user.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     try {
         const [
             projectCount,

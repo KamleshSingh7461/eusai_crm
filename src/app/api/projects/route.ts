@@ -7,6 +7,13 @@ import { AutomationService } from '@/services/AutomationService';
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
+    // Only Directors and Managers create projects (the same people the New project menu is shown to).
+    const session = await getServerSession(authOptions);
+    const creator = session?.user as any;
+    if (!creator?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!['DIRECTOR', 'MANAGER', 'ADMIN'].includes(String(creator.role || '').toUpperCase())) {
+        return NextResponse.json({ error: 'Only Directors and Managers can create projects.' }, { status: 403 });
+    }
     try {
         const data = await request.json();
 
@@ -28,11 +35,10 @@ export async function POST(request: Request) {
         });
 
         // 2. Log activity in Relational DB (PostgreSQL -> SQLite)
-        const session = await getServerSession(authOptions);
         await prisma.activity.create({
             data: {
                 projectId: project.id,
-                userId: (session?.user as any)?.id || 'SYSTEM_ADMIN',
+                userId: creator.id,
                 action: 'PROJECT_INITIATED',
                 metadata: JSON.stringify({
                     managerAssigned: data.managerName

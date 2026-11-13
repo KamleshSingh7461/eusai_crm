@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 import { allowedSignInDomains } from "@/lib/companyDomains";
+import { allowAuthAttempt, ipOf } from "@/lib/rateLimit";
 import bcrypt from "bcryptjs";
 import { isLocal, isDevLoginEnabled } from "@/lib/env";
 
@@ -36,9 +37,13 @@ export const authOptions: NextAuthOptions = {
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" }
             },
-            async authorize(credentials) {
+            async authorize(credentials, req) {
                 if (!credentials?.email || !credentials?.password) {
                     return null;
+                }
+                // password guessing: 10 tries per address and 30 per connection every 15 minutes
+                if (!allowAuthAttempt('login', credentials.email, ipOf((req as any)?.headers), 10, 30)) {
+                    throw new Error("Too many sign-in attempts. Wait 15 minutes and try again.");
                 }
 
                 // Real DB Lookup
