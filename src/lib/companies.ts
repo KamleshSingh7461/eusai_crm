@@ -76,3 +76,24 @@ export async function issueEmployeeCode(tx: Prisma.TransactionClient, companyId:
 
 
 export const emailDomain = (email: string) => email.trim().toLowerCase().split('@')[1] || '';
+
+/**
+ * Who may see someone's profile and employment record: the person, Directors and HR of their company
+ * (`canManage`), Management (read-only across the organisation), and the team leaders or managers they
+ * report to or whose department they're in. Company never matters here: reporting lines cross companies.
+ */
+export async function canViewPerson(viewer: { id: string; role: string }, personId: string, canManage: boolean) {
+    if (viewer.id === personId || canManage || viewer.role === 'MANAGEMENT' || ALL_COMPANY_ROLES.includes(viewer.role)) return true;
+    if (viewer.role === 'TEAM_LEADER') {
+        return (await prisma.user.count({ where: { id: personId, reportingManagers: { some: { id: viewer.id } } } })) > 0;
+    }
+    if (viewer.role === 'MANAGER') {
+        return (await prisma.user.count({
+            where: {
+                id: personId,
+                OR: [{ reportingManagers: { some: { id: viewer.id } } }, { memberSpaces: { some: { managerId: viewer.id } } }],
+            },
+        })) > 0;
+    }
+    return false;
+}

@@ -2,16 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { canManageCompany, canViewPerson, currentUser, staffAccess } from '@/lib/companies';
 
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        // Signed-in people only, and only those allowed to see this person (same rule as the profile panel).
+        const viewer = await currentUser();
+        if (!viewer) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         const { id: userId } = await params;
+        const target = await prisma.user.findUnique({ where: { id: userId }, select: { companyId: true } });
+        if (!target) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        const canManage = canManageCompany(await staffAccess(viewer), target.companyId);
+        if (!(await canViewPerson(viewer, userId, canManage))) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
+                company: { select: { code: true, legalName: true, brandColor: true } },
                 reportingManagers: {
                     select: {
                         id: true,
@@ -96,8 +106,10 @@ export async function GET(
         const rank = userScores.findIndex(s => s.id === userId) + 1;
 
         // Add calculated fields to response
+        // never send sign-in secrets or internal fields to the browser
+        const { password: _password, emailVerified: _emailVerified, ...safeUser } = user;
         const enhancedUser = {
-            ...user,
+            ...safeUser,
             rank: rank > 0 ? rank : null,
             // Only include non-done items in the list to match frontend "Active tasks" filter but keep counts accurate
             activeTasks: user.tasks.filter(t => t.status !== 'DONE'),
